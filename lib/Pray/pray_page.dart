@@ -21,7 +21,6 @@ class _PrayPageState extends State<PrayPage> {
   String _searchQuery = '';
   bool _isSearching = false;
   String _sortBy = 'date_desc'; // Default sort: newest first
-  // final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>(); // Remove single key
   final GlobalKey<AnimatedListState> _newListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _answeredListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _unansweredListKey = GlobalKey<AnimatedListState>();
@@ -64,7 +63,6 @@ class _PrayPageState extends State<PrayPage> {
       int insertionIndex = 0; // Default for 'date_desc' (Newest First)
       if (_sortBy == 'date_asc') {
         // For 'date_asc' (Oldest First), insert at the end
-        // Need to get the current count of 'new' prayers *before* adding the new one
         final currentNewPrayers = _prayerBox.values.where((p) => p.status == 'new').toList();
         insertionIndex = currentNewPrayers.length;
       }
@@ -95,8 +93,7 @@ class _PrayPageState extends State<PrayPage> {
     );
   }
 
-  // void _deletePrayer(Prayer prayer, int index) { // Old signature
-  void _deletePrayer(Prayer prayer, int index, String status) { // Add status to know which key
+  void _deletePrayer(Prayer prayer, int index, String status) {
     final listKey = status == 'new'
         ? _newListKey
         : status == 'answered'
@@ -108,7 +105,7 @@ class _PrayPageState extends State<PrayPage> {
       richTextJson: prayer.richTextJson,
       status: prayer.status,
       timestamp: prayer.timestamp,
-      id: prayer.id, // Keep id for potential undo
+      id: prayer.id,
     );
 
     // Animate removal first
@@ -116,23 +113,18 @@ class _PrayPageState extends State<PrayPage> {
       index,
       (context, animation) => SizeTransition(
         sizeFactor: animation,
-        // Use stored data for the animation widget as 'prayer' might be invalid after delete
-        child: _buildPrayerCard(deletedPrayerData, status, index), // Pass index for potential internal use
+        child: _buildPrayerCard(deletedPrayerData, status, index),
       ),
       duration: const Duration(milliseconds: 300),
     );
 
     // Delete from Hive AFTER initiating animation
-    // Use a short delay to ensure animation starts before data is gone
     Future.delayed(const Duration(milliseconds: 50), () {
-       // Check if the prayer object is still valid and managed by Hive before deleting
-       if (prayer.isInBox) {
-         prayer.delete();
-       }
-       // Trigger rebuild via setState AFTER deletion to update counts etc.
-       setState(() {});
+      if (prayer.isInBox) {
+        prayer.delete();
+      }
+      setState(() {});
     });
-
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -141,10 +133,8 @@ class _PrayPageState extends State<PrayPage> {
         action: SnackBarAction(
           label: 'Undo',
           onPressed: () {
-            // Use stored data for undo
             _prayerBox.put(deletedPrayerData.id, deletedPrayerData);
-            // TODO: Animate insertion on undo if desired, might need setState + key logic
-            setState(() {}); // Trigger rebuild to show undone item
+            setState(() {});
           },
         ),
         duration: const Duration(seconds: 4),
@@ -153,11 +143,11 @@ class _PrayPageState extends State<PrayPage> {
   }
 
   void _editPrayer(Prayer prayer, int index) {
-    // Deserialize the stored JSON to Delta
     final quillController = quill.QuillController(
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
     );
+    quillController.readOnly = false; // Enable editing
 
     showDialog(
       context: context,
@@ -165,7 +155,7 @@ class _PrayPageState extends State<PrayPage> {
         return AlertDialog(
           title: const Text('Edit Prayer'),
           content: Container(
-            height: 300, // Fixed height for editor
+            height: 300,
             width: double.maxFinite,
             child: Column(
               children: [
@@ -242,20 +232,17 @@ class _PrayPageState extends State<PrayPage> {
     Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
   }
 
-  // Widget _buildPrayerCard(Prayer prayer, String status) { // Old signature
-  Widget _buildPrayerCard(Prayer prayer, String status, int index) { // Add index
-    // Deserialize JSON for display
+  Widget _buildPrayerCard(Prayer prayer, String status, int index) {
     final quillController = quill.QuillController(
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
     );
+    quillController.readOnly = true; // Disable editing for display
 
-    quillController.readOnly = true;
     return Dismissible(
-      key: ValueKey(prayer.id), // Use ValueKey for better performance with object IDs
+      key: ValueKey(prayer.id),
       direction: DismissDirection.endToStart,
-      // onDismissed: (_) => _deletePrayer(prayer, _prayerBox.values.toList().indexOf(prayer)), // Old index calculation
-      onDismissed: (_) => _deletePrayer(prayer, index, status), // Pass correct index and status
+      onDismissed: (_) => _deletePrayer(prayer, index, status),
       background: Container(
         color: Theme.of(context).colorScheme.error,
         alignment: Alignment.centerRight,
@@ -278,7 +265,7 @@ class _PrayPageState extends State<PrayPage> {
             configurations: quill.QuillEditorConfigurations(
               showCursor: false,
               padding: const EdgeInsets.all(0),
-              maxHeight: 50, // Limit height to simulate maxLines: 2
+              maxHeight: 50,
             ),
           ),
           subtitle: Text(
@@ -293,8 +280,7 @@ class _PrayPageState extends State<PrayPage> {
               IconButton(
                 icon: const Icon(Icons.edit_outlined, semanticLabel: 'Edit prayer'),
                 color: Theme.of(context).colorScheme.secondary,
-                // onPressed: () => _editPrayer(prayer, _prayerBox.values.toList().indexOf(prayer)), // Old index calculation
-                onPressed: () => _editPrayer(prayer, index), // Pass correct index
+                onPressed: () => _editPrayer(prayer, index),
                 tooltip: 'Edit prayer',
               ),
               if (status == 'new') ...[
@@ -321,8 +307,7 @@ class _PrayPageState extends State<PrayPage> {
               IconButton(
                 icon: const Icon(Icons.delete_outline, semanticLabel: 'Delete prayer'),
                 color: Theme.of(context).colorScheme.error,
-                // onPressed: () => _deletePrayer(prayer, _prayerBox.values.toList().indexOf(prayer)), // Old index calculation
-                onPressed: () => _deletePrayer(prayer, index, status), // Pass correct index and status
+                onPressed: () => _deletePrayer(prayer, index, status),
                 tooltip: 'Delete prayer',
               ),
             ],
@@ -336,8 +321,7 @@ class _PrayPageState extends State<PrayPage> {
     return DateFormat('MMM d, yyyy').format(timestamp);
   }
 
-  // Widget _buildPrayerList(String status, String title) { // Old signature
-  Widget _buildPrayerList(String status, String title, GlobalKey<AnimatedListState> listKey) { // Add key parameter
+  Widget _buildPrayerList(String status, String title, GlobalKey<AnimatedListState> listKey) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -376,7 +360,6 @@ class _PrayPageState extends State<PrayPage> {
           builder: (context, Box<Prayer> box, _) {
             var prayers = box.values
                 .where((prayer) {
-                  // Extract plain text from Delta for search
                   final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
                   return prayer.status == status &&
                       document.toPlainText().toLowerCase().contains(_searchQuery);
@@ -399,21 +382,17 @@ class _PrayPageState extends State<PrayPage> {
               );
             }
             return AnimatedList(
-              // key: _listKey, // Use passed key
               key: listKey,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               initialItemCount: prayers.length,
               itemBuilder: (context, index, animation) {
-                // Check bounds just in case, although fixing the key should prevent this
                 if (index >= prayers.length) {
-                   // This should not happen if keys are correct, but acts as a safeguard
-                   return Container(child: Text("Error: Index out of bounds"));
+                  return Container(child: const Text("Error: Index out of bounds"));
                 }
                 final prayer = prayers[index];
                 return SizeTransition(
                   sizeFactor: animation,
-                  // child: _buildPrayerCard(prayer, status), // Pass index
                   child: _buildPrayerCard(prayer, status, index),
                 );
               },
@@ -479,7 +458,7 @@ class _PrayPageState extends State<PrayPage> {
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Bottom padding for FAB
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -511,13 +490,10 @@ class _PrayPageState extends State<PrayPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      // _buildPrayerList('new', 'New Prayers'), // Pass correct key
                       _buildPrayerList('new', 'New Prayers', _newListKey),
                       const SizedBox(height: 16),
-                      // _buildPrayerList('answered', 'Answered Prayers'), // Pass correct key
                       _buildPrayerList('answered', 'Answered Prayers', _answeredListKey),
                       const SizedBox(height: 16),
-                      // _buildPrayerList('unanswered', 'Unanswered Prayers'), // Pass correct key
                       _buildPrayerList('unanswered', 'Unanswered Prayers', _unansweredListKey),
                     ],
                   ),
@@ -543,6 +519,7 @@ class _PrayPageState extends State<PrayPage> {
                 );
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
