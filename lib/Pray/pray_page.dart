@@ -458,7 +458,7 @@ class _PrayPageState extends State<PrayPage> {
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Bottom padding for FAB
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -475,18 +475,20 @@ class _PrayPageState extends State<PrayPage> {
                             decoration: InputDecoration(
                               labelText: 'Enter your prayer',
                               border: InputBorder.none,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  Icons.add_circle,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  semanticLabel: 'Add prayer',
-                                ),
-                                onPressed: _addPrayer,
-                                tooltip: 'Add prayer',
-                              ),
                             ),
-                            onSubmitted: (_) => _addPrayer(),
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _addPrayer,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Prayer'),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -503,23 +505,6 @@ class _PrayPageState extends State<PrayPage> {
           ),
         ),
       ),
-      floatingActionButton: LayoutBuilder(
-        builder: (context, constraints) {
-          return constraints.maxWidth > 600
-              ? FloatingActionButton.extended(
-                  onPressed: _addPrayer,
-                  label: const Text('Add Prayer'),
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Add a new prayer',
-                )
-              : FloatingActionButton(
-                  onPressed: _addPrayer,
-                  child: const Icon(Icons.add),
-                  tooltip: 'Add a new prayer',
-                );
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
