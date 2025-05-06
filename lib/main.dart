@@ -75,6 +75,37 @@ class _RootPageState extends State<RootPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('By Faith App'), // Add a title to the AppBar
+      ),
+      drawer: Drawer( // Add the Drawer
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue, // Or use Theme.of(context).colorScheme.primary
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white, // Or use Theme.of(context).colorScheme.onPrimary
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                // TODO: Navigate to Settings page
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            // Add more list tiles for other sub-pages here
+          ],
+        ),
+      ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

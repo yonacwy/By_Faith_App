@@ -14,9 +14,9 @@ class PrayPage extends StatefulWidget {
   _PrayPageState createState() => _PrayPageState();
 }
 
-class _PrayPageState extends State<PrayPage> {
-  final TextEditingController _prayerController = TextEditingController();
+class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+  final quill.QuillController _quillController = quill.QuillController.basic();
   late Box<Prayer> _prayerBox;
   String _searchQuery = '';
   bool _isSearching = false;
@@ -24,11 +24,13 @@ class _PrayPageState extends State<PrayPage> {
   final GlobalKey<AnimatedListState> _newListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _answeredListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _unansweredListKey = GlobalKey<AnimatedListState>();
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _prayerBox = Hive.box<Prayer>('prayers');
+    _tabController = TabController(length: 3, vsync: this);
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text.toLowerCase();
@@ -38,36 +40,32 @@ class _PrayPageState extends State<PrayPage> {
 
   @override
   void dispose() {
-    _prayerController.dispose();
     _searchController.dispose();
+    _quillController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   void _addPrayer() {
-    if (_prayerController.text.isNotEmpty) {
-      // Create a basic Quill Delta with the plain text
-      final quillController = quill.QuillController.basic();
-      quillController.document.insert(0, _prayerController.text);
-      final richTextJson = jsonEncode(quillController.document.toDelta().toJson());
-
+    if (!_quillController.document.isEmpty()) {
+      final richTextJson = jsonEncode(_quillController.document.toDelta().toJson());
       final newPrayer = Prayer(
         richTextJson: richTextJson,
         status: 'new',
         timestamp: DateTime.now(),
       );
       _prayerBox.add(newPrayer);
-      _prayerController.clear();
+      _quillController.clear();
       FocusScope.of(context).unfocus();
 
       // Calculate insertion index based on sort order
       int insertionIndex = 0; // Default for 'date_desc' (Newest First)
       if (_sortBy == 'date_asc') {
-        // For 'date_asc' (Oldest First), insert at the end
         final currentNewPrayers = _prayerBox.values.where((p) => p.status == 'new').toList();
         insertionIndex = currentNewPrayers.length;
       }
 
-      // Use the calculated index for insertion animation
+      // Insert into AnimatedList
       _newListKey.currentState?.insertItem(insertionIndex, duration: const Duration(milliseconds: 300));
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,11 +78,43 @@ class _PrayPageState extends State<PrayPage> {
     }
   }
 
-  void _updatePrayerStatus(Prayer prayer, String status) {
+  void _updatePrayerStatus(Prayer prayer, String status, int index) {
+    final oldStatus = prayer.status;
     setState(() {
       prayer.status = status;
       prayer.save();
     });
+
+    // Remove from old list
+    final oldListKey = oldStatus == 'new'
+        ? _newListKey
+        : oldStatus == 'answered'
+            ? _answeredListKey
+            : _unansweredListKey;
+    oldListKey.currentState?.removeItem(
+      index,
+      (context, animation) => SizeTransition(
+        sizeFactor: animation,
+        child: _buildPrayerCard(prayer, oldStatus, index),
+      ),
+      duration: const Duration(milliseconds: 300),
+    );
+
+    // Insert into new list
+    final newListKey = status == 'new'
+        ? _newListKey
+        : status == 'answered'
+            ? _answeredListKey
+            : _unansweredListKey;
+    final prayersInNewStatus = _prayerBox.values.where((p) => p.status == status).toList();
+    if (_sortBy == 'date_desc') {
+      prayersInNewStatus.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    } else {
+      prayersInNewStatus.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    }
+    final insertionIndex = prayersInNewStatus.indexWhere((p) => p.id == prayer.id);
+    newListKey.currentState?.insertItem(insertionIndex, duration: const Duration(milliseconds: 300));
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Prayer marked as $status'),
@@ -100,7 +130,7 @@ class _PrayPageState extends State<PrayPage> {
             ? _answeredListKey
             : _unansweredListKey;
 
-    // Temporarily store prayer data before deleting from box
+    // Temporarily store prayer data
     final deletedPrayerData = Prayer(
       richTextJson: prayer.richTextJson,
       status: prayer.status,
@@ -108,7 +138,7 @@ class _PrayPageState extends State<PrayPage> {
       id: prayer.id,
     );
 
-    // Animate removal first
+    // Animate removal
     listKey.currentState?.removeItem(
       index,
       (context, animation) => SizeTransition(
@@ -118,7 +148,7 @@ class _PrayPageState extends State<PrayPage> {
       duration: const Duration(milliseconds: 300),
     );
 
-    // Delete from Hive AFTER initiating animation
+    // Delete from Hive
     Future.delayed(const Duration(milliseconds: 50), () {
       if (prayer.isInBox) {
         prayer.delete();
@@ -147,7 +177,7 @@ class _PrayPageState extends State<PrayPage> {
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
     );
-    quillController.readOnly = false; // Enable editing
+    quillController.readOnly = false;
 
     showDialog(
       context: context,
@@ -237,13 +267,56 @@ class _PrayPageState extends State<PrayPage> {
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
     );
-    quillController.readOnly = true; // Disable editing for display
+    quillController.readOnly = true;
 
     return Dismissible(
       key: ValueKey(prayer.id),
-      direction: DismissDirection.endToStart,
-      onDismissed: (_) => _deletePrayer(prayer, index, status),
+      direction: DismissDirection.horizontal,
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.endToStart) {
+          // Delete
+          _deletePrayer(prayer, index, status);
+          return true;
+        } else if (direction == DismissDirection.startToEnd && status == 'new') {
+          // Change status (answered or unanswered)
+          final newStatus = await showDialog<String>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Change Status'),
+              content: const Text('Mark this prayer as:'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'answered'),
+                  child: const Text('Answered'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'unanswered'),
+                  child: const Text('Unanswered'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          );
+          if (newStatus != null) {
+            _updatePrayerStatus(prayer, newStatus, index);
+            return true;
+          }
+          return false;
+        }
+        return false;
+      },
       background: Container(
+        color: status == 'new' ? Theme.of(context).colorScheme.primary : Colors.transparent,
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 16),
+        child: status == 'new'
+            ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.onPrimary)
+            : null,
+      ),
+      secondaryBackground: Container(
         color: Theme.of(context).colorScheme.error,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
@@ -253,64 +326,36 @@ class _PrayPageState extends State<PrayPage> {
         elevation: 0,
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          title: quill.QuillEditor(
-            controller: quillController,
-            scrollController: ScrollController(),
-            focusNode: FocusNode(),
-            configurations: quill.QuillEditorConfigurations(
-              showCursor: false,
-              padding: const EdgeInsets.all(0),
-              maxHeight: 50,
-            ),
-          ),
-          subtitle: Text(
-            _formatTimestamp(prayer.timestamp),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+        child: InkWell(
+          onTap: () => _editPrayer(prayer, index),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                quill.QuillEditor(
+                  controller: quillController,
+                  scrollController: ScrollController(),
+                  focusNode: FocusNode(),
+                  configurations: quill.QuillEditorConfigurations(
+                    showCursor: false,
+                    padding: const EdgeInsets.all(0),
+                    maxHeight: 40,
+                  ),
                 ),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, semanticLabel: 'Edit prayer'),
-                color: Theme.of(context).colorScheme.secondary,
-                onPressed: () => _editPrayer(prayer, index),
-                tooltip: 'Edit prayer',
-              ),
-              if (status == 'new') ...[
-                IconButton(
-                  icon: const Icon(Icons.check_circle_outline, semanticLabel: 'Mark as answered'),
-                  color: Theme.of(context).colorScheme.primary,
-                  onPressed: () => _updatePrayerStatus(prayer, 'answered'),
-                  tooltip: 'Mark as answered',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.cancel_outlined, semanticLabel: 'Mark as unanswered'),
-                  color: Theme.of(context).colorScheme.error,
-                  onPressed: () => _updatePrayerStatus(prayer, 'unanswered'),
-                  tooltip: 'Mark as unanswered',
+                const SizedBox(height: 4),
+                Text(
+                  _formatTimestamp(prayer.timestamp),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
               ],
-              if (status != 'new')
-                IconButton(
-                  icon: const Icon(Icons.refresh, semanticLabel: 'Reset to new'),
-                  color: Theme.of(context).colorScheme.secondary,
-                  onPressed: () => _updatePrayerStatus(prayer, 'new'),
-                  tooltip: 'Reset to new',
-                ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, semanticLabel: 'Delete prayer'),
-                color: Theme.of(context).colorScheme.error,
-                onPressed: () => _deletePrayer(prayer, index, status),
-                tooltip: 'Delete prayer',
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -321,85 +366,50 @@ class _PrayPageState extends State<PrayPage> {
     return DateFormat('MMM d, yyyy').format(timestamp);
   }
 
-  Widget _buildPrayerList(String status, String title, GlobalKey<AnimatedListState> listKey) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-              ),
-              if (status == 'new' && _prayerBox.values.any((p) => p.status == status))
-                DropdownButton<String>(
-                  value: _sortBy,
-                  items: const [
-                    DropdownMenuItem(value: 'date_desc', child: Text('Newest First')),
-                    DropdownMenuItem(value: 'date_asc', child: Text('Oldest First')),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _sortBy = value!;
-                    });
-                  },
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                ),
-            ],
-          ),
-        ),
-        ValueListenableBuilder(
-          valueListenable: _prayerBox.listenable(),
-          builder: (context, Box<Prayer> box, _) {
-            var prayers = box.values
-                .where((prayer) {
-                  final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
-                  return prayer.status == status &&
-                      document.toPlainText().toLowerCase().contains(_searchQuery);
-                })
-                .toList();
-            if (_sortBy == 'date_desc') {
-              prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-            } else {
-              prayers.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  Widget _buildPrayerList(String status, GlobalKey<AnimatedListState> listKey) {
+    return ValueListenableBuilder(
+      valueListenable: _prayerBox.listenable(),
+      builder: (context, Box<Prayer> box, _) {
+        var prayers = box.values
+            .where((prayer) {
+              final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
+              return prayer.status == status &&
+                  document.toPlainText().toLowerCase().contains(_searchQuery);
+            })
+            .toList();
+        if (_sortBy == 'date_desc') {
+          prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        } else {
+          prayers.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        }
+        if (prayers.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              _searchQuery.isEmpty ? 'No prayers in this category' : 'No matching prayers',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          );
+        }
+        return AnimatedList(
+          key: listKey,
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          initialItemCount: prayers.length,
+          itemBuilder: (context, index, animation) {
+            if (index >= prayers.length) {
+              return Container(child: const Text("Error: Index out of bounds"));
             }
-            if (prayers.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  _searchQuery.isEmpty ? 'No $title' : 'No matching $title',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              );
-            }
-            return AnimatedList(
-              key: listKey,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              initialItemCount: prayers.length,
-              itemBuilder: (context, index, animation) {
-                if (index >= prayers.length) {
-                  return Container(child: const Text("Error: Index out of bounds"));
-                }
-                final prayer = prayers[index];
-                return SizeTransition(
-                  sizeFactor: animation,
-                  child: _buildPrayerCard(prayer, status, index),
-                );
-              },
+            final prayer = prayers[index];
+            return SizeTransition(
+              sizeFactor: animation,
+              child: _buildPrayerCard(prayer, status, index),
             );
           },
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -434,6 +444,7 @@ class _PrayPageState extends State<PrayPage> {
               });
             },
             tooltip: _isSearching ? 'Close search' : 'Search prayers',
+            padding: const EdgeInsets.all(8),
           ),
           IconButton(
             icon: Icon(
@@ -446,62 +457,121 @@ class _PrayPageState extends State<PrayPage> {
             tooltip: Theme.of(context).brightness == Brightness.light
                 ? 'Switch to dark mode'
                 : 'Switch to light mode',
+            padding: const EdgeInsets.all(8),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Column(
+            children: [
+              TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'New'),
+                  Tab(text: 'Answered'),
+                  Tab(text: 'Unanswered'),
+                ],
+                labelStyle: Theme.of(context).textTheme.titleSmall,
+                unselectedLabelStyle: Theme.of(context).textTheme.titleSmall,
+                indicatorColor: Theme.of(context).colorScheme.primary,
+                labelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              if (_tabController.index == 0 && _prayerBox.values.any((p) => p.status == 'new'))
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16, bottom: 8),
+                    child: DropdownButton<String>(
+                      value: _sortBy,
+                      items: const [
+                        DropdownMenuItem(value: 'date_desc', child: Text('Newest First')),
+                        DropdownMenuItem(value: 'date_asc', child: Text('Oldest First')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _sortBy = value!;
+                        });
+                      },
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refreshPrayers,
           color: Theme.of(context).colorScheme.primary,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildPrayerList('new', _newListKey),
+                    _buildPrayerList('answered', _answeredListKey),
+                    _buildPrayerList('unanswered', _unansweredListKey),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                      Container(
+                        height: 80,
+                        padding: const EdgeInsets.all(8),
+                        child: quill.QuillEditor(
+                          controller: _quillController,
+                          scrollController: ScrollController(),
+                          focusNode: FocusNode(),
+                          configurations: quill.QuillEditorConfigurations(
+                            placeholder: 'Enter your prayer...',
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: TextField(
-                            controller: _prayerController,
-                            decoration: InputDecoration(
-                              labelText: 'Enter your prayer',
-                              border: InputBorder.none,
+                      ),
+                      quill.QuillToolbar.simple(
+                        configurations: quill.QuillSimpleToolbarConfigurations(
+                          controller: _quillController,
+                          multiRowsDisplay: false,
+                          showAlignmentButtons: false,
+                          showBackgroundColorButton: false,
+                          showColorButton: false,
+                          showListCheck: false,
+                          showDividers: false,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Semantics(
+                          label: 'Add new prayer',
+                          child: ElevatedButton.icon(
+                            onPressed: _addPrayer,
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text('Add Prayer'),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 40),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _addPrayer,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add Prayer'),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildPrayerList('new', 'New Prayers', _newListKey),
-                      const SizedBox(height: 16),
-                      _buildPrayerList('answered', 'Answered Prayers', _answeredListKey),
-                      const SizedBox(height: 16),
-                      _buildPrayerList('unanswered', 'Unanswered Prayers', _unansweredListKey),
                     ],
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),
