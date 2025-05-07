@@ -14,8 +14,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(PrayerAdapter());
-  await Hive.openBox<Prayer>('prayers');
-  final themeBox = await Hive.openBox('themeBox');
+  await Hive.openBox<Prayer>('prayers'); // For Prayer model
+  final themeBox = await Hive.openBox('themeBox'); // For theme persistence
+  await Hive.openBox('userPreferences'); // For ReadPage book and chapter persistence
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeNotifier(themeBox),
