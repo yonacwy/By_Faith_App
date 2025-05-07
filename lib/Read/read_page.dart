@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_notifier.dart';
 
 class ReadPage extends StatefulWidget {
   const ReadPage({super.key});
@@ -18,6 +19,8 @@ class _ReadPageState extends State<ReadPage> {
   String chapterText = "";
   bool isLoading = true;
   late Box userPrefsBox;
+  String selectedFont = 'Roboto';
+  double selectedFontSize = 16.0;
 
   @override
   void initState() {
@@ -30,6 +33,8 @@ class _ReadPageState extends State<ReadPage> {
     setState(() {
       selectedBook = userPrefsBox.get('lastSelectedBook') ?? "Genesis";
       selectedChapter = userPrefsBox.get('lastSelectedChapter') ?? 1;
+      selectedFont = userPrefsBox.get('selectedFont') ?? 'Roboto';
+      selectedFontSize = userPrefsBox.get('selectedFontSize') ?? 16.0;
     });
     loadData();
   }
@@ -41,6 +46,8 @@ class _ReadPageState extends State<ReadPage> {
     if (selectedChapter != null) {
       await userPrefsBox.put('lastSelectedChapter', selectedChapter!);
     }
+    await userPrefsBox.put('selectedFont', selectedFont);
+    await userPrefsBox.put('selectedFontSize', selectedFontSize);
   }
 
   Future<void> loadData() async {
@@ -123,10 +130,29 @@ class _ReadPageState extends State<ReadPage> {
     }
   }
 
+  void _openSettingsPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _SettingsPage(
+          onFontChanged: (font, size) {
+            setState(() {
+              selectedFont = font;
+              selectedFontSize = size;
+              _saveSelection();
+            });
+          },
+          initialFont: selectedFont,
+          initialFontSize: selectedFontSize,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double fontSize = screenWidth < 360 ? 14 : 16;
+    final double dropdownFontSize = screenWidth < 360 ? 14 : 16;
 
     if (isLoading && books.isEmpty) {
       return Scaffold(
@@ -140,6 +166,14 @@ class _ReadPageState extends State<ReadPage> {
                 fontWeight: FontWeight.bold,
               ),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: _openSettingsPage,
+              tooltip: 'Settings',
+              padding: const EdgeInsets.all(8),
+            ),
+          ],
         ),
         body: const Center(
           child: CircularProgressIndicator(),
@@ -158,6 +192,14 @@ class _ReadPageState extends State<ReadPage> {
               fontWeight: FontWeight.bold,
             ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: _openSettingsPage,
+            tooltip: 'Settings',
+            padding: const EdgeInsets.all(8),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -175,7 +217,7 @@ class _ReadPageState extends State<ReadPage> {
                       icon: Icon(
                         Icons.arrow_drop_down,
                         color: Theme.of(context).colorScheme.onSurface,
-                        size: fontSize + 4,
+                        size: dropdownFontSize + 4,
                       ),
                       items: books.map((book) {
                         return DropdownMenuItem<String>(
@@ -183,7 +225,7 @@ class _ReadPageState extends State<ReadPage> {
                           child: Text(
                             book['book'],
                             style: TextStyle(
-                              fontSize: fontSize,
+                              fontSize: dropdownFontSize,
                               color: Theme.of(context).colorScheme.onSurface,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -209,7 +251,7 @@ class _ReadPageState extends State<ReadPage> {
                       icon: Icon(
                         Icons.arrow_drop_down,
                         color: Theme.of(context).colorScheme.onSurface,
-                        size: fontSize + 4,
+                        size: dropdownFontSize + 4,
                       ),
                       items: (selectedBook != null && books.isNotEmpty)
                           ? List<int>.generate(
@@ -223,7 +265,7 @@ class _ReadPageState extends State<ReadPage> {
                                 child: Text(
                                   '$chapter',
                                   style: TextStyle(
-                                    fontSize: fontSize,
+                                    fontSize: dropdownFontSize,
                                     color: Theme.of(context).colorScheme.onSurface,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -248,8 +290,6 @@ class _ReadPageState extends State<ReadPage> {
               thickness: 1,
               color: Theme.of(context).colorScheme.outlineVariant,
             ),
-
-            // Chapter Content with increased padding
             Expanded(
               child: isLoading
                   ? Center(
@@ -261,11 +301,12 @@ class _ReadPageState extends State<ReadPage> {
                     )
                   : SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // Increased horizontal padding
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                         child: Text(
                           chapterText,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
+                                fontSize: selectedFontSize,
+                                fontFamily: selectedFont,
                                 height: 1.5,
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
@@ -275,6 +316,226 @@ class _ReadPageState extends State<ReadPage> {
                     ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsPage extends StatefulWidget {
+  final Function(String, double) onFontChanged;
+  final String initialFont;
+  final double initialFontSize;
+
+  const _SettingsPage({
+    required this.onFontChanged,
+    required this.initialFont,
+    required this.initialFontSize,
+  });
+
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<_SettingsPage> {
+  late String currentFont;
+  late double currentFontSize;
+
+  @override
+  void initState() {
+    super.initState();
+    currentFont = widget.initialFont;
+    currentFontSize = widget.initialFontSize;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> fontOptions = [
+      'Roboto',
+      'Times New Roman',
+      'Open Sans',
+      'Lora',
+    ];
+    const String sampleText = "The Lord is my shepherd; I shall not want.";
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Back',
+        ),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Appearance',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: ListTile(
+                    title: const Text('Theme'),
+                    trailing: Switch(
+                      value: Theme.of(context).brightness == Brightness.dark,
+                      onChanged: (value) {
+                        Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
+                      },
+                    ),
+                    subtitle: Text(
+                      Theme.of(context).brightness == Brightness.light ? 'Light Mode' : 'Dark Mode',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Text Settings',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Font Type',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        DropdownButton<String>(
+                          value: currentFont,
+                          isExpanded: true,
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          underline: const SizedBox(),
+                          items: fontOptions.map((font) {
+                            return DropdownMenuItem<String>(
+                              value: font,
+                              child: Text(
+                                font,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                currentFont = value;
+                                widget.onFontChanged(currentFont, currentFontSize);
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Font Size',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Slider(
+                          value: currentFontSize,
+                          min: 12.0,
+                          max: 24.0,
+                          divisions: 24, // (24 - 12) / 0.5 = 24 divisions
+                          label: currentFontSize.toStringAsFixed(1),
+                          activeColor: Theme.of(context).colorScheme.primary,
+                          inactiveColor: Theme.of(context).colorScheme.outlineVariant,
+                          onChanged: (value) {
+                            setState(() {
+                              currentFontSize = value;
+                              widget.onFontChanged(currentFont, currentFontSize);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Text Preview',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      sampleText,
+                      style: TextStyle(
+                        fontSize: currentFontSize,
+                        fontFamily: currentFont,
+                        height: 1.5,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.justify,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

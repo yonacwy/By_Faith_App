@@ -52,7 +52,6 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
       prayer.save();
     });
 
-    // Remove from old list
     final oldListKey = oldStatus == 'new'
         ? _newListKey
         : oldStatus == 'answered'
@@ -67,7 +66,6 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
 
-    // Insert into new list (newest first)
     final newListKey = newStatus == 'new'
         ? _newListKey
         : newStatus == 'answered'
@@ -96,7 +94,6 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
             ? _answeredListKey
             : _unansweredListKey;
 
-    // Temporarily store prayer data
     final deletedPrayerData = Prayer(
       richTextJson: prayer.richTextJson,
       status: prayer.status,
@@ -104,7 +101,6 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
       id: prayer.id,
     );
 
-    // Animate removal
     listKey.currentState?.removeItem(
       index,
       (context, animation) => SizeTransition(
@@ -114,7 +110,6 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
 
-    // Delete from Hive
     Future.delayed(const Duration(milliseconds: 50), () {
       if (prayer.isInBox) {
         prayer.delete();
@@ -168,18 +163,23 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
     );
   }
 
+  void _openSettingsPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const _SettingsPage(),
+      ),
+    );
+  }
+
   Future<void> _refreshPrayers() async {
     await Future.delayed(const Duration(milliseconds: 500));
     setState(() {});
   }
 
-  void _toggleTheme() {
-    Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
-  }
-
   Widget _buildPrayerCard(Prayer prayer, String status, int index) {
     final quillController = quill.QuillController(
-      document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)), // Fixed typo: quwtill -> quill
+      document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
     );
     quillController.readOnly = true;
@@ -189,11 +189,9 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
       direction: DismissDirection.horizontal,
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
-          // Delete
           _deletePrayer(prayer, index, status);
           return true;
         } else if (direction == DismissDirection.startToEnd) {
-          // Change status
           final List<String> statusOptions = ['new', 'answered', 'unanswered']
               .where((s) => s != status)
               .toList();
@@ -303,10 +301,9 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
                   document.toPlainText().toLowerCase().contains(_searchQuery);
             })
             .toList();
-        prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Newest first
+        prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
         if (status == 'new') {
-          // New tab: Show "New Prayer" button and list
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -358,7 +355,6 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
             ],
           );
         } else {
-          // Answered and Unanswered tabs: Show list only
           return prayers.isEmpty
               ? Padding(
                   padding: const EdgeInsets.all(16),
@@ -394,7 +390,6 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate responsive font size based on screen width
     final double screenWidth = MediaQuery.of(context).size.width;
     final double fontSize = screenWidth < 360 ? 14 : 16;
 
@@ -435,16 +430,9 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
             padding: const EdgeInsets.all(8),
           ),
           IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.light ? Icons.dark_mode : Icons.light_mode,
-              semanticLabel: Theme.of(context).brightness == Brightness.light
-                  ? 'Switch to dark mode'
-                  : 'Switch to light mode',
-            ),
-            onPressed: _toggleTheme,
-            tooltip: Theme.of(context).brightness == Brightness.light
-                ? 'Switch to dark mode'
-                : 'Switch to light mode',
+            icon: const Icon(Icons.settings),
+            onPressed: _openSettingsPage,
+            tooltip: 'Settings',
             padding: const EdgeInsets.all(8),
           ),
         ],
@@ -495,7 +483,66 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
   }
 }
 
-// Full-screen edit page
+class _SettingsPage extends StatelessWidget {
+  const _SettingsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Back',
+        ),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Appearance',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                ),
+                child: ListTile(
+                  title: const Text('Theme'),
+                  trailing: Switch(
+                    value: Theme.of(context).brightness == Brightness.dark,
+                    onChanged: (value) {
+                      Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
+                    },
+                  ),
+                  subtitle: Text(
+                    Theme.of(context).brightness == Brightness.light ? 'Light Mode' : 'Dark Mode',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _EditPrayerPage extends StatefulWidget {
   final Prayer prayer;
   final int index;
@@ -615,7 +662,6 @@ class _EditPrayerPageState extends State<_EditPrayerPage> {
   }
 }
 
-// Full-screen new prayer page
 class _NewPrayerPage extends StatefulWidget {
   final Function(Prayer) onSave;
 
