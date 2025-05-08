@@ -392,6 +392,7 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double fontSize = screenWidth < 360 ? 14 : 16;
+    final bool isWideScreen = screenWidth > 600;
 
     return Scaffold(
       appBar: AppBar(
@@ -438,30 +439,27 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabs: const [
-                Tab(text: 'New'),
-                Tab(text: 'Answered'),
-                Tab(text: 'Unanswered'),
-              ],
-              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w600,
-                  ),
-              unselectedLabelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w400,
-                  ),
-              indicatorColor: Theme.of(context).colorScheme.primary,
-              labelColor: Theme.of(context).colorScheme.primary,
-              unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.only(left: 16, right: 16),
-            ),
+          child: TabBar(
+            controller: _tabController,
+            isScrollable: !isWideScreen,
+            tabs: const [
+              Tab(text: 'New'),
+              Tab(text: 'Answered'),
+              Tab(text: 'Unanswered'),
+            ],
+            labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w600,
+                ),
+            unselectedLabelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w400,
+                ),
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            labelColor: Theme.of(context).colorScheme.primary,
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+            labelPadding: EdgeInsets.symmetric(horizontal: isWideScreen ? 24 : 12),
+            padding: EdgeInsets.symmetric(horizontal: isWideScreen ? 24 : 8),
           ),
         ),
       ),
@@ -589,7 +587,7 @@ class _EditPrayerPageState extends State<_EditPrayerPage> {
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Prayer updated'),
+        content: Text('Prayer updated'),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
