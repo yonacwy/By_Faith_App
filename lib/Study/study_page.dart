@@ -162,7 +162,7 @@ class _StudyPageState extends State<StudyPage> {
     int lastIndex = 0; // Keep track of the end of the last processed match
 
     for (final match in segmentPattern.allMatches(text)) {
-       // Add any text between the last match and this one (likely spaces or uncaptured punctuation)
+       // Add any text between the last match and this one (likely just spaces or uncaptured punctuation)
        if (match.start > lastIndex) {
          String intermediateText = text.substring(lastIndex, match.start).trim();
          if (intermediateText.isNotEmpty) {
@@ -448,11 +448,14 @@ class _StudyPageState extends State<StudyPage> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
-                                ...parsedWords.map((wordData) {
+                                ...parsedWords.expand((wordData) {
                                   final word = wordData['word'];
                                   final List<String> strongs = List<String>.from(wordData['strongs']);
-                                  return TextSpan(
-                                    text: "$word ",
+                                  final List<TextSpan> spans = [];
+
+                                  // Add the word TextSpan with conditional styling and recognizer
+                                  spans.add(TextSpan(
+                                    text: word,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
@@ -471,7 +474,12 @@ class _StudyPageState extends State<StudyPage> {
                                         ? (TapGestureRecognizer()
                                           ..onTap = () => _openDictionaryPage(strongs.first))
                                         : null,
-                                  );
+                                  ));
+
+                                  // Add a space TextSpan
+                                  spans.add(TextSpan(text: " "));
+
+                                  return spans;
                                 }),
                               ],
                             ),
