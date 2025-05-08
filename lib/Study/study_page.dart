@@ -46,7 +46,7 @@ class _StudyPageState extends State<StudyPage> {
       selectedFont = userPrefsBox.get('selectedStudyFont') ?? 'Roboto';
       selectedFontSize = userPrefsBox.get('selectedStudyFontSize') ?? 16.0;
     });
-    loadData();
+    await loadData();
   }
 
   Future<void> _saveSelection() async {
@@ -93,15 +93,19 @@ class _StudyPageState extends State<StudyPage> {
             await _saveSelection();
           }
         }
-        setState(() {});
         await loadChapter();
+      } else {
+        setState(() {
+          verses = [
+            {'verse': 0, 'text': "No books available."}
+          ];
+        });
       }
     } catch (e) {
       setState(() {
         verses = [
           {'verse': 0, 'text': "Error loading data: $e"}
         ];
-        isLoading = false;
       });
     } finally {
       setState(() => isLoading = false);
@@ -275,39 +279,6 @@ class _StudyPageState extends State<StudyPage> {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double dropdownFontSize = screenWidth < 360 ? 14 : 16;
 
-    if (isLoading && books.isEmpty) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        appBar: AppBar(
-          title: const Text('Bible Study'),
-          elevation: 0,
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: _openSearchPage,
-              tooltip: 'Search',
-              padding: const EdgeInsets.all(8),
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: _openSettingsPage,
-              tooltip: 'Settings',
-              padding: const EdgeInsets.all(8),
-            ),
-          ],
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -338,6 +309,7 @@ class _StudyPageState extends State<StudyPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Always show tabs, even during loading
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -353,27 +325,37 @@ class _StudyPageState extends State<StudyPage> {
                         color: Theme.of(context).colorScheme.onSurface,
                         size: dropdownFontSize + 4,
                       ),
-                      items: books.map((book) {
-                        return DropdownMenuItem<String>(
-                          value: book['book'],
-                          child: Text(
-                            book['book'],
-                            style: TextStyle(
-                              fontSize: dropdownFontSize,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedBook = value;
-                          selectedChapter = 1;
-                          loadChapter();
-                          _saveSelection();
-                        });
-                      },
+                      items: books.isEmpty
+                          ? [
+                              const DropdownMenuItem<String>(
+                                value: "Loading",
+                                child: Text("Loading..."),
+                              )
+                            ]
+                          : books.map((book) {
+                              return DropdownMenuItem<String>(
+                                value: book['book'],
+                                child: Text(
+                                  book['book'],
+                                  style: TextStyle(
+                                    fontSize: dropdownFontSize,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                      onChanged: books.isEmpty
+                          ? null
+                          : (value) {
+                              setState(() {
+                                selectedBook = value;
+                                selectedChapter = 1;
+                                loadChapter();
+                                _saveSelection();
+                              });
+                            },
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -391,7 +373,7 @@ class _StudyPageState extends State<StudyPage> {
                           ? List<int>.generate(
                               books.firstWhere(
                                   (book) => book['book'] == selectedBook,
-                                  orElse: () => {'chapters': 0})['chapters'],
+                                  orElse: () => {'chapters': 1})['chapters'],
                               (index) => index + 1,
                             ).map((chapter) {
                               return DropdownMenuItem<int>(
@@ -400,20 +382,28 @@ class _StudyPageState extends State<StudyPage> {
                                   '$chapter',
                                   style: TextStyle(
                                     fontSize: dropdownFontSize,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               );
                             }).toList()
-                          : [],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedChapter = value;
-                          loadChapter();
-                          _saveSelection();
-                        });
-                      },
+                          : [
+                              const DropdownMenuItem<int>(
+                                value: 1,
+                                child: Text("1"),
+                              )
+                            ],
+                      onChanged: books.isEmpty
+                          ? null
+                          : (value) {
+                              setState(() {
+                                selectedChapter = value;
+                                loadChapter();
+                                _saveSelection();
+                              });
+                            },
                     ),
                   ),
                 ],
@@ -494,7 +484,7 @@ class _StudyPageState extends State<StudyPage> {
                                         : null,
                                   ));
 
-                                  spans.add(TextSpan(text: " "));
+                                  spans.add(const TextSpan(text: " "));
 
                                   return spans;
                                 }),
@@ -515,8 +505,92 @@ class _StudyPageState extends State<StudyPage> {
 
 class BibleSearchDelegate extends SearchDelegate {
   final List<dynamic> bibleData;
+  List<Map<String, dynamic>> searchResults = [];
+  bool isLoading = false;
 
   BibleSearchDelegate({required this.bibleData});
+
+  String _removeStrongsNumbers(String text) {
+    // Remove Strong's numbers in formats like {(H8804)}, {H123}, {G456}, etc.
+    return text.replaceAll(RegExp(r'\{\(?[HG]\d+\)?\}'), '');
+  }
+
+  List<TextSpan> _buildHighlightedText(
+      String text, String query, BuildContext context) {
+    final List<TextSpan> spans = [];
+    // Remove Strong's numbers before processing
+    final cleanedText = _removeStrongsNumbers(text);
+    final lowerText = cleanedText.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    int start = 0;
+
+    while (start < cleanedText.length) {
+      final index = lowerText.indexOf(lowerQuery, start);
+      if (index == -1) {
+        spans.add(TextSpan(
+          text: cleanedText.substring(start),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ));
+        break;
+      }
+
+      if (index > start) {
+        spans.add(TextSpan(
+          text: cleanedText.substring(start, index),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ));
+      }
+
+      spans.add(TextSpan(
+        text: cleanedText.substring(index, index + query.length),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+      ));
+
+      start = index + query.length;
+    }
+
+    return spans;
+  }
+
+  void _performSearch(String query) {
+    isLoading = true;
+    searchResults.clear();
+    final lowerQuery = query.toLowerCase();
+
+    // Collect all matching verses
+    final List<Map<String, dynamic>> allResults = bibleData
+        .where((verse) => verse['text'].toString().toLowerCase().contains(lowerQuery))
+        .map<Map<String, dynamic>>((verse) => {
+              'book': verse['book_name'],
+              'chapter': verse['chapter'],
+              'verse': verse['verse'],
+              'text': verse['text'],
+            })
+        .toList();
+
+    // Group results by book
+    final Map<String, List<Map<String, dynamic>>> groupedResults = {};
+    for (var result in allResults) {
+      final book = result['book'] as String;
+      if (!groupedResults.containsKey(book)) {
+        groupedResults[book] = [];
+      }
+      groupedResults[book]!.add(result);
+    }
+
+    // Convert grouped results to a list for display
+    searchResults = groupedResults.entries
+        .map((entry) => {
+              'book': entry.key,
+              'verses': entry.value,
+            })
+        .toList();
+
+    isLoading = false;
+  }
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -525,6 +599,7 @@ class BibleSearchDelegate extends SearchDelegate {
         icon: const Icon(Icons.clear),
         onPressed: () {
           query = '';
+          searchResults.clear();
         },
       ),
     ];
@@ -542,18 +617,80 @@ class BibleSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => _SearchResultsPage(
-            bibleData: bibleData,
-            searchQuery: query,
-          ),
-        ),
-      );
-    });
-    return Container();
+    if (query.isNotEmpty && query != searchResults.toString()) {
+      _performSearch(query);
+    }
+
+    return SafeArea(
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : searchResults.isEmpty
+              ? Center(
+                  child: Text(
+                    'No results found for "$query"',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: searchResults.length,
+                  itemBuilder: (context, index) {
+                    final result = searchResults[index];
+                    final book = result['book'] as String;
+                    final verses = result['verses'] as List<Map<String, dynamic>>;
+
+                    return Card(
+                      elevation: 0,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                            color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
+                      child: ExpansionTile(
+                        title: Text(
+                          book,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        children: verses.map((verse) {
+                          final text = verse['text'].toString();
+                          final queryLower = query.toLowerCase();
+                          final spans =
+                              _buildHighlightedText(text, queryLower, context);
+
+                          return ListTile(
+                            title: Text(
+                              '${verse['chapter']}:${verse['verse']}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            subtitle: RichText(
+                              text: TextSpan(
+                                children: spans,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => StudyPage(
+                                    initialBook: verse['book'],
+                                    initialChapter: verse['chapter'],
+                                  ),
+                                ),
+                              );
+                              close(context, null); // Close search delegate
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+    );
   }
 
   @override
@@ -914,197 +1051,6 @@ class _StrongsDictionaryPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SearchResultsPage extends StatefulWidget {
-  final List<dynamic> bibleData;
-  final String searchQuery;
-
-  const _SearchResultsPage({
-    required this.bibleData,
-    required this.searchQuery,
-  });
-
-  @override
-  _SearchResultsPageState createState() => _SearchResultsPageState();
-}
-
-class _SearchResultsPageState extends State<_SearchResultsPage> {
-  List<Map<String, dynamic>> searchResults = [];
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _performSearch();
-  }
-
-  void _performSearch() {
-    setState(() => isLoading = true);
-    final query = widget.searchQuery.toLowerCase();
-
-    // Collect all matching verses
-    final List<Map<String, dynamic>> allResults = widget.bibleData
-        .where((verse) => verse['text'].toString().toLowerCase().contains(query))
-        .map<Map<String, dynamic>>((verse) => {
-              'book': verse['book_name'],
-              'chapter': verse['chapter'],
-              'verse': verse['verse'],
-              'text': verse['text'],
-            })
-        .toList();
-
-    // Group results by book
-    final Map<String, List<Map<String, dynamic>>> groupedResults = {};
-    for (var result in allResults) {
-      final book = result['book'] as String;
-      if (!groupedResults.containsKey(book)) {
-        groupedResults[book] = [];
-      }
-      groupedResults[book]!.add(result);
-    }
-
-    // Convert grouped results to a list for display
-    searchResults = groupedResults.entries
-        .map((entry) => {
-              'book': entry.key,
-              'verses': entry.value,
-            })
-        .toList();
-
-    setState(() => isLoading = false);
-  }
-
-  String _removeStrongsNumbers(String text) {
-    // Remove Strong's numbers in formats like {(H8804)}, {H123}, {G456}, etc.
-    return text.replaceAll(RegExp(r'\{\(?[HG]\d+\)?\}'), '');
-  }
-
-  List<TextSpan> _buildHighlightedText(
-      String text, String query, BuildContext context) {
-    final List<TextSpan> spans = [];
-    // Remove Strong's numbers before processing
-    final cleanedText = _removeStrongsNumbers(text);
-    final lowerText = cleanedText.toLowerCase();
-    final lowerQuery = query.toLowerCase();
-    int start = 0;
-
-    while (start < cleanedText.length) {
-      final index = lowerText.indexOf(lowerQuery, start);
-      if (index == -1) {
-        spans.add(TextSpan(
-          text: cleanedText.substring(start),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ));
-        break;
-      }
-
-      if (index > start) {
-        spans.add(TextSpan(
-          text: cleanedText.substring(start, index),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ));
-      }
-
-      spans.add(TextSpan(
-        text: cleanedText.substring(index, index + query.length),
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-      ));
-
-      start = index + query.length;
-    }
-
-    return spans;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Search Results: "${widget.searchQuery}"'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-          tooltip: 'Back',
-        ),
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-      ),
-      body: SafeArea(
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : searchResults.isEmpty
-                ? Center(
-                    child: Text(
-                      'No results found for "${widget.searchQuery}"',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: searchResults.length,
-                    itemBuilder: (context, index) {
-                      final result = searchResults[index];
-                      final book = result['book'] as String;
-                      final verses = result['verses'] as List<Map<String, dynamic>>;
-
-                      return Card(
-                        elevation: 0,
-                        margin: const EdgeInsets.only(bottom: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                              color: Theme.of(context).colorScheme.outlineVariant),
-                        ),
-                        child: ExpansionTile(
-                          title: Text(
-                            book,
-                            style:
-                                Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                          ),
-                          children: verses.map((verse) {
-                            final text = verse['text'].toString();
-                            final query = widget.searchQuery.toLowerCase();
-                            final spans =
-                                _buildHighlightedText(text, query, context);
-
-                            return ListTile(
-                              title: Text(
-                                '${verse['chapter']}:${verse['verse']}',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              subtitle: RichText(
-                                text: TextSpan(
-                                  children: spans,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              onTap: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => StudyPage(
-                                      initialBook: verse['book'],
-                                      initialChapter: verse['chapter'],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      );
-                    },
-                  ),
       ),
     );
   }
