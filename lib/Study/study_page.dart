@@ -147,12 +147,12 @@ class _StudyPageState extends State<StudyPage> {
   }
 
   // Parse verse text into words and Strong's numbers, ensuring strongs is non-null
-  List<Map<String, dynamic>> _parseVerseText(String text) {
+  List<Map<String, dynamic>> _parseVerseText(String text, String? bookName) {
     final List<Map<String, dynamic>> parsed = [];
     // Regex to capture a word segment and all following curly blocks
     final RegExp segmentPattern = RegExp(r'([^{}]+)((?:\{[^{}]+\})*)');
-    // Regex to find the first valid Strong's number {H...}
-    final RegExp validStrongsPattern = RegExp(r'\{H\d+\}');
+    // Regex to find the first valid Strong's number {H...} or {G...}
+    final RegExp validStrongsPattern = RegExp(r'\{[HG]\d+\}');
     // Regex to identify punctuation we want to separate
     final RegExp punctuationPattern = RegExp(r'[.,;:]$');
     // Regex to check if a string is purely punctuation
@@ -261,12 +261,13 @@ class _StudyPageState extends State<StudyPage> {
     );
   }
 
-  void _openDictionaryPage(String strongsNumber) {
+  void _openDictionaryPage(String strongsNumber, String? bookName) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => _StrongsDictionaryPage(
           strongsNumber: strongsNumber,
+          bookName: bookName, // Pass bookName
           hebrewDictionary: hebrewDictionary,
           greekDictionary: greekDictionary,
         ),
@@ -429,7 +430,7 @@ class _StudyPageState extends State<StudyPage> {
                       itemCount: verses.length,
                       itemBuilder: (context, index) {
                         final verse = verses[index];
-                        final parsedWords = _parseVerseText(verse['text']);
+                        final parsedWords = _parseVerseText(verse['text'], selectedBook); // Pass selectedBook
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: RichText(
@@ -472,7 +473,7 @@ class _StudyPageState extends State<StudyPage> {
                                         ),
                                     recognizer: strongs.isNotEmpty
                                         ? (TapGestureRecognizer()
-                                          ..onTap = () => _openDictionaryPage(strongs.first))
+                                          ..onTap = () => _openDictionaryPage(strongs.first, selectedBook)) // Pass selectedBook
                                         : null,
                                   ));
 
@@ -691,11 +692,13 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
 
 class _StrongsDictionaryPage extends StatelessWidget {
   final String strongsNumber;
+  final String? bookName; // Add bookName parameter
   final Map<String, dynamic> hebrewDictionary;
   final Map<String, dynamic> greekDictionary;
 
   const _StrongsDictionaryPage({
     required this.strongsNumber,
+    this.bookName, // Make bookName optional for safety, though it should be provided
     required this.hebrewDictionary,
     required this.greekDictionary,
   });
@@ -744,13 +747,30 @@ class _StrongsDictionaryPage extends StatelessWidget {
   }
 
   Map<String, dynamic>? _findEntry() {
-    if (strongsNumber.startsWith('H')) {
-      return hebrewDictionary[strongsNumber];
-    } else if (strongsNumber.startsWith('G')) {
+    // Determine which dictionary to use based on the book name or Strong's number prefix
+    bool isNewTestament = _isNewTestamentBook(bookName);
+
+    if (isNewTestament || strongsNumber.startsWith('G')) {
       return greekDictionary[strongsNumber];
+    } else if (strongsNumber.startsWith('H')) {
+      return hebrewDictionary[strongsNumber];
     }
     return null;
   }
+
+  // Helper function to determine if a book is from the New Testament
+  bool _isNewTestamentBook(String? book) {
+    if (book == null) return false;
+    final newTestamentBooks = [
+      "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians",
+      "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians",
+      "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus",
+      "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John",
+      "3 John", "Jude", "Revelation"
+    ];
+    return newTestamentBooks.contains(book);
+  }
+
 
   Widget _buildInfoCard(BuildContext context, String title, String? content) {
     if (content == null || content.isEmpty) {
