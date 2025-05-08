@@ -728,9 +728,14 @@ class _StrongsDictionaryPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildInfoCard(context, 'Lemma', entry['lemma']),
-                      _buildInfoCard(context, 'Pronunciation', entry['pronunciation']),
+                      if (strongsNumber.startsWith('H')) // Conditionally display for Hebrew
+                        _buildInfoCard(context, 'Pronunciation', entry['pronunciation']),
+                      if (strongsNumber.startsWith('G')) // Conditionally display for Greek
+                        _buildInfoCard(context, 'Transliteration', entry['translit']),
                       _buildInfoCard(context, 'Definition', entry['definition']),
                       _buildInfoCard(context, 'Derivation', entry['derivation']),
+                      if (strongsNumber.startsWith('H') || strongsNumber.startsWith('G')) // Display strongs_def for both
+                         _buildInfoCard(context, 'Strongs Definition', entry['strongs_def']),
                       _buildInfoCard(context, 'KJV Usage', entry['kjv_def']),
                     ],
                   ),
