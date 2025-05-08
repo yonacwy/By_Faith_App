@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,9 @@ class _StudyPageState extends State<StudyPage> {
   int? selectedChapter;
   List<dynamic> books = [];
   List<dynamic> bibleData = [];
-  List<Map<String, dynamic>> verses = []; // Store verses for line-by-line display
+  Map<String, dynamic> hebrewDictionary = {};
+  Map<String, dynamic> greekDictionary = {};
+  List<Map<String, dynamic>> verses = [];
   bool isLoading = true;
   late Box userPrefsBox;
   String selectedFont = 'Roboto';
@@ -53,13 +56,24 @@ class _StudyPageState extends State<StudyPage> {
   Future<void> loadData() async {
     setState(() => isLoading = true);
     try {
+      // Load book and chapter metadata
       String bookChapterData = await DefaultAssetBundle.of(context)
           .loadString('lib/bible_data/book.chapters.json');
       books = jsonDecode(bookChapterData);
 
+      // Load Bible data
       String kjvData = await DefaultAssetBundle.of(context)
           .loadString('lib/bible_data/kjv-strongs-numbers.json');
       bibleData = jsonDecode(kjvData);
+
+      // Load dictionaries
+      String hebrewDictData = await DefaultAssetBundle.of(context)
+          .loadString('lib/bible_data/strongs-hebrew-dictionary.json');
+      hebrewDictionary = jsonDecode(hebrewDictData);
+
+      String greekDictData = await DefaultAssetBundle.of(context)
+          .loadString('lib/bible_data/strongs-greek-dictionary.json');
+      greekDictionary = jsonDecode(greekDictData);
 
       if (books.isNotEmpty) {
         bool isValidBook = books.any((book) => book['book'] == selectedBook);
@@ -110,13 +124,9 @@ class _StudyPageState extends State<StudyPage> {
           .where((verse) =>
               verse['book_name'] == bookName && verse['chapter'] == chapterNumber)
           .map<Map<String, dynamic>>((verse) {
-        // Clean text by removing Strong's numbers and grammatical codes
-        String cleanedText = verse['text']
-            .replaceAll(RegExp(r'\{H\d+\}'), '')
-            .replaceAll(RegExp(r'\{\(H\d+\)\}'), '');
         return {
           'verse': verse['verse'],
-          'text': cleanedText.trim(),
+          'text': verse['text'],
         };
       }).toList();
 
@@ -136,6 +146,40 @@ class _StudyPageState extends State<StudyPage> {
     }
   }
 
+  // Parse verse text into words and Strong's numbers, ensuring strongs is non-null
+  List<Map<String, dynamic>> _parseVerseText(String text) {
+    final List<Map<String, dynamic>> parsed = [];
+    // Regex to capture words, punctuation, and Strong's numbers/codes
+    final RegExp pattern = RegExp(r'([^{}\s.,;:]+)|([.,;:])|(\{.+?\})');
+    final matches = pattern.allMatches(text);
+
+    for (final match in matches) {
+      String? word = match.group(1);
+      String? punctuation = match.group(2);
+      String? curlyContent = match.group(3);
+
+      if (word != null) {
+        parsed.add({'word': word.trim(), 'strongs': []});
+      } else if (punctuation != null) {
+        parsed.add({'word': punctuation, 'strongs': []});
+      } else if (curlyContent != null) {
+        // Check if it's a valid Strong's number and not grammatical code
+        if (curlyContent.startsWith('{H') && curlyContent.endsWith('}') && !curlyContent.startsWith('{(H')) {
+          final strongsNumberMatch = RegExp(r'H\d+').firstMatch(curlyContent);
+          if (strongsNumberMatch != null && parsed.isNotEmpty) {
+            // Associate with the last added element that is not punctuation
+            int lastWordIndex = parsed.lastIndexWhere((element) => !RegExp(r'^[.,;:]$').hasMatch(element['word']));
+            if (lastWordIndex != -1) {
+              parsed[lastWordIndex]['strongs'].add(strongsNumberMatch.group(0)!);
+            }
+          }
+        }
+        // Ignore grammatical codes {(H...)}
+      }
+    }
+    return parsed;
+  }
+
   void _openSettingsPage() {
     Navigator.push(
       context,
@@ -150,6 +194,19 @@ class _StudyPageState extends State<StudyPage> {
           },
           initialFont: selectedFont,
           initialFontSize: selectedFontSize,
+        ),
+      ),
+    );
+  }
+
+  void _openDictionaryPage(String strongsNumber) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _StrongsDictionaryPage(
+          strongsNumber: strongsNumber,
+          hebrewDictionary: hebrewDictionary,
+          greekDictionary: greekDictionary,
         ),
       ),
     );
@@ -310,16 +367,52 @@ class _StudyPageState extends State<StudyPage> {
                       itemCount: verses.length,
                       itemBuilder: (context, index) {
                         final verse = verses[index];
+                        final parsedWords = _parseVerseText(verse['text']);
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            "${verse['verse']} ${verse['text']}",
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontSize: selectedFontSize,
-                                  fontFamily: selectedFont,
-                                  height: 1.5,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "${verse['verse']} ",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontSize: selectedFontSize,
+                                        fontFamily: selectedFont,
+                                        height: 1.5,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
+                                ...parsedWords.map((wordData) {
+                                  final word = wordData['word'];
+                                  final List<String> strongs = List<String>.from(wordData['strongs']);
+                                  return TextSpan(
+                                    text: "$word ",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          fontSize: selectedFontSize,
+                                          fontFamily: selectedFont,
+                                          height: 1.5,
+                                          color: strongs.isNotEmpty
+                                              ? Theme.of(context).colorScheme.primary
+                                              : Theme.of(context).colorScheme.onSurface,
+                                          decoration: strongs.isNotEmpty
+                                              ? TextDecoration.underline
+                                              : null,
+                                        ),
+                                    recognizer: strongs.isNotEmpty
+                                        ? (TapGestureRecognizer()
+                                          ..onTap = () => _openDictionaryPage(strongs.first))
+                                        : null,
+                                  );
+                                }),
+                              ],
+                            ),
                             textAlign: TextAlign.justify,
                           ),
                         );
@@ -410,7 +503,9 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                       },
                     ),
                     subtitle: Text(
-                      Theme.of(context).brightness == Brightness.light ? 'Light Mode' : 'Dark Mode',
+                      Theme.of(context).brightness == Brightness.light
+                          ? 'Light Mode'
+                          : 'Dark Mode',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
@@ -542,6 +637,159 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                       ),
                       textAlign: TextAlign.justify,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StrongsDictionaryPage extends StatelessWidget {
+  final String strongsNumber;
+  final Map<String, dynamic> hebrewDictionary;
+  final Map<String, dynamic> greekDictionary;
+
+  const _StrongsDictionaryPage({
+    required this.strongsNumber,
+    required this.hebrewDictionary,
+    required this.greekDictionary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isHebrew = strongsNumber.startsWith('H');
+    final dictionary = isHebrew ? hebrewDictionary : greekDictionary;
+    final entry = dictionary[strongsNumber];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Strong\'s Dictionary: $strongsNumber'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Back',
+        ),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Dictionary Entry',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: entry == null
+                        ? Text(
+                            'No dictionary entry found for $strongsNumber.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (entry['lemma'] != null)
+                                Text(
+                                  'Lemma: ${entry['lemma']}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color:
+                                            Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                ),
+                              if (entry['xlit'] != null || entry['translit'] != null)
+                                Text(
+                                  'Transliteration: ${entry['xlit'] ?? entry['translit']}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color:
+                                            Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                ),
+                              if (entry['pron'] != null)
+                                Text(
+                                  'Pronunciation: ${entry['pron']}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color:
+                                            Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                ),
+                              if (entry['derivation'] != null)
+                                Text(
+                                  'Derivation: ${entry['derivation']}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color:
+                                            Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Definition:',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                              ),
+                              Text(
+                                entry['strongs_def'] ?? 'No definition available.',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'KJV Usage:',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                              ),
+                              Text(
+                                entry['kjv_def'] ?? 'No KJV usage available.',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
               ],
