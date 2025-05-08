@@ -6,7 +6,10 @@ import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 
 class StudyPage extends StatefulWidget {
-  const StudyPage({super.key});
+  final String? initialBook;
+  final int? initialChapter;
+
+  const StudyPage({super.key, this.initialBook, this.initialChapter});
 
   @override
   _StudyPageState createState() => _StudyPageState();
@@ -34,8 +37,12 @@ class _StudyPageState extends State<StudyPage> {
   Future<void> _loadSavedSelection() async {
     userPrefsBox = await Hive.openBox('userPreferences');
     setState(() {
-      selectedBook = userPrefsBox.get('lastSelectedStudyBook') ?? "Genesis";
-      selectedChapter = userPrefsBox.get('lastSelectedStudyChapter') ?? 1;
+      selectedBook = widget.initialBook ??
+          userPrefsBox.get('lastSelectedStudyBook') ??
+          "Genesis";
+      selectedChapter = widget.initialChapter ??
+          userPrefsBox.get('lastSelectedStudyChapter') ??
+          1;
       selectedFont = userPrefsBox.get('selectedStudyFont') ?? 'Roboto';
       selectedFontSize = userPrefsBox.get('selectedStudyFontSize') ?? 16.0;
     });
@@ -56,17 +63,14 @@ class _StudyPageState extends State<StudyPage> {
   Future<void> loadData() async {
     setState(() => isLoading = true);
     try {
-      // Load book and chapter metadata
       String bookChapterData = await DefaultAssetBundle.of(context)
           .loadString('lib/bible_data/book.chapters.json');
       books = jsonDecode(bookChapterData);
 
-      // Load Bible data
       String kjvData = await DefaultAssetBundle.of(context)
           .loadString('lib/bible_data/kjv-strongs-numbers.json');
       bibleData = jsonDecode(kjvData);
 
-      // Load dictionaries
       String hebrewDictData = await DefaultAssetBundle.of(context)
           .loadString('lib/bible_data/strongs-hebrew-dictionary.json');
       hebrewDictionary = jsonDecode(hebrewDictData);
@@ -119,7 +123,6 @@ class _StudyPageState extends State<StudyPage> {
       String bookName = selectedBook!;
       int chapterNumber = selectedChapter!;
 
-      // Filter verses for the selected book and chapter
       verses = bibleData
           .where((verse) =>
               verse['book_name'] == bookName && verse['chapter'] == chapterNumber)
@@ -146,46 +149,38 @@ class _StudyPageState extends State<StudyPage> {
     }
   }
 
-  // Parse verse text into words and Strong's numbers, ensuring strongs is non-null
   List<Map<String, dynamic>> _parseVerseText(String text, String? bookName) {
     final List<Map<String, dynamic>> parsed = [];
-    // Regex to capture a word segment and all following curly blocks
     final RegExp segmentPattern = RegExp(r'([^{}]+)((?:\{[^{}]+\})*)');
-    // Regex to find the first valid Strong's number {H...} or {G...}
     final RegExp validStrongsPattern = RegExp(r'\{[HG]\d+\}');
-    // Regex to identify punctuation we want to separate
     final RegExp punctuationPattern = RegExp(r'[.,;:]$');
-    // Regex to check if a string is purely punctuation
     final RegExp onlyPunctuationPattern = RegExp(r'^[.,;:]+$');
 
-
-    int lastIndex = 0; // Keep track of the end of the last processed match
+    int lastIndex = 0;
 
     for (final match in segmentPattern.allMatches(text)) {
-       // Add any text between the last match and this one (likely just spaces or uncaptured punctuation)
-       if (match.start > lastIndex) {
-         String intermediateText = text.substring(lastIndex, match.start).trim();
-         if (intermediateText.isNotEmpty) {
-           final words = intermediateText.split(RegExp(r'\s+'));
-           for(final word in words) {
-              if (word.isNotEmpty) {
-                 parsed.add({'word': word, 'strongs': []});
-              }
-           }
-         }
-       }
+      if (match.start > lastIndex) {
+        String intermediateText = text.substring(lastIndex, match.start).trim();
+        if (intermediateText.isNotEmpty) {
+          final words = intermediateText.split(RegExp(r'\s+'));
+          for (final word in words) {
+            if (word.isNotEmpty) {
+              parsed.add({'word': word, 'strongs': []});
+            }
+          }
+        }
+      }
 
       String wordPart = match.group(1)!.trim();
       String curlyBlocks = match.group(2) ?? '';
 
       List<String> strongs = [];
-      // Find the first valid Strong's number in the curly blocks
       final firstValidStrongsMatch = validStrongsPattern.firstMatch(curlyBlocks);
       if (firstValidStrongsMatch != null) {
-        strongs.add(firstValidStrongsMatch.group(0)!.replaceAll(RegExp(r'[\{\}]'), ''));
+        strongs.add(
+            firstValidStrongsMatch.group(0)!.replaceAll(RegExp(r'[\{\}]'), ''));
       }
 
-      // Split the word part by space to handle multiple words before braces
       final wordsAndPunctuation = wordPart.split(RegExp(r'\s+'));
       for (int i = 0; i < wordsAndPunctuation.length; i++) {
         String currentSegment = wordsAndPunctuation[i];
@@ -194,53 +189,44 @@ class _StudyPageState extends State<StudyPage> {
         String currentWord = currentSegment;
         String trailingPunctuation = '';
 
-        // Separate trailing punctuation
         final puncMatch = punctuationPattern.firstMatch(currentWord);
-         if (puncMatch != null) {
-            trailingPunctuation = puncMatch.group(0)!;
-            currentWord = currentWord.substring(0, puncMatch.start);
-         }
+        if (puncMatch != null) {
+          trailingPunctuation = puncMatch.group(0)!;
+          currentWord = currentWord.substring(0, puncMatch.start);
+        }
 
-
-        // Add the word part
         if (currentWord.isNotEmpty) {
-          // Associate strongs only with the last word segment before the braces
           parsed.add({
             'word': currentWord,
             'strongs': (i == wordsAndPunctuation.length - 1) ? strongs : [],
           });
         }
 
-        // Add the punctuation part if it exists
         if (trailingPunctuation.isNotEmpty) {
           parsed.add({'word': trailingPunctuation, 'strongs': []});
         }
       }
-       lastIndex = match.end; // Update lastIndex to the end of the current segment match
+      lastIndex = match.end;
     }
 
-     // Add any remaining text after the last match
-     if (lastIndex < text.length) {
-       String remainingText = text.substring(lastIndex).trim();
-       if (remainingText.isNotEmpty) {
-          final remainingWords = remainingText.split(RegExp(r'\s+'));
-          for (final word in remainingWords) {
-             if (word.isNotEmpty) {
-                // Check if the remaining part is just punctuation
-                if (onlyPunctuationPattern.hasMatch(word)) {
-                   parsed.add({'word': word, 'strongs': []});
-                } else {
-                   // Treat as a regular word if not just punctuation
-                   parsed.add({'word': word, 'strongs': []});
-                }
-             }
+    if (lastIndex < text.length) {
+      String remainingText = text.substring(lastIndex).trim();
+      if (remainingText.isNotEmpty) {
+        final remainingWords = remainingText.split(RegExp(r'\s+'));
+        for (final word in remainingWords) {
+          if (word.isNotEmpty) {
+            if (onlyPunctuationPattern.hasMatch(word)) {
+              parsed.add({'word': word, 'strongs': []});
+            } else {
+              parsed.add({'word': word, 'strongs': []});
+            }
           }
-       }
-     }
+        }
+      }
+    }
 
     return parsed;
   }
-
 
   void _openSettingsPage() {
     Navigator.push(
@@ -261,13 +247,22 @@ class _StudyPageState extends State<StudyPage> {
     );
   }
 
+  void _openSearchPage() {
+    showSearch(
+      context: context,
+      delegate: BibleSearchDelegate(
+        bibleData: bibleData,
+      ),
+    );
+  }
+
   void _openDictionaryPage(String strongsNumber, String? bookName) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => _StrongsDictionaryPage(
           strongsNumber: strongsNumber,
-          bookName: bookName, // Pass bookName
+          bookName: bookName,
           hebrewDictionary: hebrewDictionary,
           greekDictionary: greekDictionary,
         ),
@@ -293,6 +288,12 @@ class _StudyPageState extends State<StudyPage> {
               ),
           centerTitle: true,
           actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: _openSearchPage,
+              tooltip: 'Search',
+              padding: const EdgeInsets.all(8),
+            ),
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: _openSettingsPage,
@@ -320,6 +321,12 @@ class _StudyPageState extends State<StudyPage> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _openSearchPage,
+            tooltip: 'Search',
+            padding: const EdgeInsets.all(8),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: _openSettingsPage,
             tooltip: 'Settings',
@@ -332,7 +339,8 @@ class _StudyPageState extends State<StudyPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Row(
                 children: [
                   Expanded(
@@ -426,11 +434,13 @@ class _StudyPageState extends State<StudyPage> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
                       itemCount: verses.length,
                       itemBuilder: (context, index) {
                         final verse = verses[index];
-                        final parsedWords = _parseVerseText(verse['text'], selectedBook); // Pass selectedBook
+                        final parsedWords =
+                            _parseVerseText(verse['text'], selectedBook);
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: RichText(
@@ -445,16 +455,18 @@ class _StudyPageState extends State<StudyPage> {
                                         fontSize: selectedFontSize,
                                         fontFamily: selectedFont,
                                         height: 1.5,
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
                                 ...parsedWords.expand((wordData) {
                                   final word = wordData['word'];
-                                  final List<String> strongs = List<String>.from(wordData['strongs']);
+                                  final List<String> strongs =
+                                      List<String>.from(wordData['strongs']);
                                   final List<TextSpan> spans = [];
 
-                                  // Add the word TextSpan with conditional styling and recognizer
                                   spans.add(TextSpan(
                                     text: word,
                                     style: Theme.of(context)
@@ -465,19 +477,23 @@ class _StudyPageState extends State<StudyPage> {
                                           fontFamily: selectedFont,
                                           height: 1.5,
                                           color: strongs.isNotEmpty
-                                              ? Theme.of(context).colorScheme.primary
-                                              : Theme.of(context).colorScheme.onSurface,
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
                                           decoration: strongs.isNotEmpty
                                               ? TextDecoration.underline
                                               : null,
                                         ),
                                     recognizer: strongs.isNotEmpty
                                         ? (TapGestureRecognizer()
-                                          ..onTap = () => _openDictionaryPage(strongs.first, selectedBook)) // Pass selectedBook
+                                          ..onTap = () => _openDictionaryPage(
+                                              strongs.first, selectedBook))
                                         : null,
                                   ));
 
-                                  // Add a space TextSpan
                                   spans.add(TextSpan(text: " "));
 
                                   return spans;
@@ -494,6 +510,55 @@ class _StudyPageState extends State<StudyPage> {
         ),
       ),
     );
+  }
+}
+
+class BibleSearchDelegate extends SearchDelegate {
+  final List<dynamic> bibleData;
+
+  BibleSearchDelegate({required this.bibleData});
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _SearchResultsPage(
+            bibleData: bibleData,
+            searchQuery: query,
+          ),
+        ),
+      );
+    });
+    return Container();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return Container();
   }
 }
 
@@ -531,7 +596,8 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
       'Open Sans',
       'Lora',
     ];
-    const String sampleText = "In the beginning God created the heaven and the earth.";
+    const String sampleText =
+        "In the beginning God created the heaven and the earth.";
 
     return Scaffold(
       appBar: AppBar(
@@ -563,14 +629,16 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                    side: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant),
                   ),
                   child: ListTile(
                     title: const Text('Theme'),
                     trailing: Switch(
                       value: Theme.of(context).brightness == Brightness.dark,
                       onChanged: (value) {
-                        Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
+                        Provider.of<ThemeNotifier>(context, listen: false)
+                            .toggleTheme();
                       },
                     ),
                     subtitle: Text(
@@ -596,7 +664,8 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                    side: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -605,9 +674,12 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                       children: [
                         Text(
                           'Font Family',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                         const SizedBox(height: 8),
                         DropdownButton<String>(
@@ -621,7 +693,8 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                                 font,
                                 style: TextStyle(
                                   fontFamily: font,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             );
@@ -636,9 +709,12 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                         const SizedBox(height: 16),
                         Text(
                           'Font Size: ${currentFontSize.toStringAsFixed(1)}',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                         Slider(
                           value: currentFontSize,
@@ -654,15 +730,20 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
                         const SizedBox(height: 16),
                         Text(
                           'Preview:',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -689,16 +770,15 @@ class _StudySettingsPageState extends State<_StudySettingsPage> {
   }
 }
 
-
 class _StrongsDictionaryPage extends StatelessWidget {
   final String strongsNumber;
-  final String? bookName; // Add bookName parameter
+  final String? bookName;
   final Map<String, dynamic> hebrewDictionary;
   final Map<String, dynamic> greekDictionary;
 
   const _StrongsDictionaryPage({
     required this.strongsNumber,
-    this.bookName, // Make bookName optional for safety, though it should be provided
+    this.bookName,
     required this.hebrewDictionary,
     required this.greekDictionary,
   });
@@ -706,7 +786,8 @@ class _StrongsDictionaryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic>? entry = _findEntry();
-    final String title = entry != null ? "$strongsNumber: ${entry['lemma']}" : "$strongsNumber: Not Found";
+    final String title =
+        entry != null ? "$strongsNumber: ${entry['lemma']}" : "$strongsNumber: Not Found";
 
     return Scaffold(
       appBar: AppBar(
@@ -728,14 +809,18 @@ class _StrongsDictionaryPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildInfoCard(context, 'Lemma', entry['lemma']),
-                      if (strongsNumber.startsWith('H')) // Conditionally display for Hebrew
-                        _buildInfoCard(context, 'Pronunciation', entry['pronunciation']),
-                      if (strongsNumber.startsWith('G')) // Conditionally display for Greek
-                        _buildInfoCard(context, 'Transliteration', entry['translit']),
+                      if (strongsNumber.startsWith('H'))
+                        _buildInfoCard(
+                            context, 'Pronunciation', entry['pronunciation']),
+                      if (strongsNumber.startsWith('G'))
+                        _buildInfoCard(
+                            context, 'Transliteration', entry['translit']),
                       _buildInfoCard(context, 'Definition', entry['definition']),
                       _buildInfoCard(context, 'Derivation', entry['derivation']),
-                      if (strongsNumber.startsWith('H') || strongsNumber.startsWith('G')) // Display strongs_def for both
-                         _buildInfoCard(context, 'Strongs Definition', entry['strongs_def']),
+                      if (strongsNumber.startsWith('H') ||
+                          strongsNumber.startsWith('G'))
+                        _buildInfoCard(
+                            context, 'Strongs Definition', entry['strongs_def']),
                       _buildInfoCard(context, 'KJV Usage', entry['kjv_def']),
                     ],
                   ),
@@ -752,7 +837,6 @@ class _StrongsDictionaryPage extends StatelessWidget {
   }
 
   Map<String, dynamic>? _findEntry() {
-    // Determine which dictionary to use based on the book name or Strong's number prefix
     bool isNewTestament = _isNewTestamentBook(bookName);
 
     if (isNewTestament || strongsNumber.startsWith('G')) {
@@ -763,23 +847,43 @@ class _StrongsDictionaryPage extends StatelessWidget {
     return null;
   }
 
-  // Helper function to determine if a book is from the New Testament
   bool _isNewTestamentBook(String? book) {
     if (book == null) return false;
     final newTestamentBooks = [
-      "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians",
-      "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians",
-      "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus",
-      "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John",
-      "3 John", "Jude", "Revelation"
+      "Matthew",
+      "Mark",
+      "Luke",
+      "John",
+      "Acts",
+      "Romans",
+      "1 Corinthians",
+      "2 Corinthians",
+      "Galatians",
+      "Ephesians",
+      "Philippians",
+      "Colossians",
+      "1 Thessalonians",
+      "2 Thessalonians",
+      "1 Timothy",
+      "2 Timothy",
+      "Titus",
+      "Philemon",
+      "Hebrews",
+      "James",
+      "1 Peter",
+      "2 Peter",
+      "1 John",
+      "2 John",
+      "3 John",
+      "Jude",
+      "Revelation"
     ];
     return newTestamentBooks.contains(book);
   }
 
-
   Widget _buildInfoCard(BuildContext context, String title, String? content) {
     if (content == null || content.isEmpty) {
-      return const SizedBox.shrink(); // Don't display card if content is empty
+      return const SizedBox.shrink();
     }
     return Card(
       elevation: 0,
@@ -810,6 +914,197 @@ class _StrongsDictionaryPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SearchResultsPage extends StatefulWidget {
+  final List<dynamic> bibleData;
+  final String searchQuery;
+
+  const _SearchResultsPage({
+    required this.bibleData,
+    required this.searchQuery,
+  });
+
+  @override
+  _SearchResultsPageState createState() => _SearchResultsPageState();
+}
+
+class _SearchResultsPageState extends State<_SearchResultsPage> {
+  List<Map<String, dynamic>> searchResults = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _performSearch();
+  }
+
+  void _performSearch() {
+    setState(() => isLoading = true);
+    final query = widget.searchQuery.toLowerCase();
+
+    // Collect all matching verses
+    final List<Map<String, dynamic>> allResults = widget.bibleData
+        .where((verse) => verse['text'].toString().toLowerCase().contains(query))
+        .map<Map<String, dynamic>>((verse) => {
+              'book': verse['book_name'],
+              'chapter': verse['chapter'],
+              'verse': verse['verse'],
+              'text': verse['text'],
+            })
+        .toList();
+
+    // Group results by book
+    final Map<String, List<Map<String, dynamic>>> groupedResults = {};
+    for (var result in allResults) {
+      final book = result['book'] as String;
+      if (!groupedResults.containsKey(book)) {
+        groupedResults[book] = [];
+      }
+      groupedResults[book]!.add(result);
+    }
+
+    // Convert grouped results to a list for display
+    searchResults = groupedResults.entries
+        .map((entry) => {
+              'book': entry.key,
+              'verses': entry.value,
+            })
+        .toList();
+
+    setState(() => isLoading = false);
+  }
+
+  String _removeStrongsNumbers(String text) {
+    // Remove Strong's numbers in formats like {(H8804)}, {H123}, {G456}, etc.
+    return text.replaceAll(RegExp(r'\{\(?[HG]\d+\)?\}'), '');
+  }
+
+  List<TextSpan> _buildHighlightedText(
+      String text, String query, BuildContext context) {
+    final List<TextSpan> spans = [];
+    // Remove Strong's numbers before processing
+    final cleanedText = _removeStrongsNumbers(text);
+    final lowerText = cleanedText.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    int start = 0;
+
+    while (start < cleanedText.length) {
+      final index = lowerText.indexOf(lowerQuery, start);
+      if (index == -1) {
+        spans.add(TextSpan(
+          text: cleanedText.substring(start),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ));
+        break;
+      }
+
+      if (index > start) {
+        spans.add(TextSpan(
+          text: cleanedText.substring(start, index),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ));
+      }
+
+      spans.add(TextSpan(
+        text: cleanedText.substring(index, index + query.length),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+      ));
+
+      start = index + query.length;
+    }
+
+    return spans;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Search Results: "${widget.searchQuery}"'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Back',
+        ),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      ),
+      body: SafeArea(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : searchResults.isEmpty
+                ? Center(
+                    child: Text(
+                      'No results found for "${widget.searchQuery}"',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: searchResults.length,
+                    itemBuilder: (context, index) {
+                      final result = searchResults[index];
+                      final book = result['book'] as String;
+                      final verses = result['verses'] as List<Map<String, dynamic>>;
+
+                      return Card(
+                        elevation: 0,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                              color: Theme.of(context).colorScheme.outlineVariant),
+                        ),
+                        child: ExpansionTile(
+                          title: Text(
+                            book,
+                            style:
+                                Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                          ),
+                          children: verses.map((verse) {
+                            final text = verse['text'].toString();
+                            final query = widget.searchQuery.toLowerCase();
+                            final spans =
+                                _buildHighlightedText(text, query, context);
+
+                            return ListTile(
+                              title: Text(
+                                '${verse['chapter']}:${verse['verse']}',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              subtitle: RichText(
+                                text: TextSpan(
+                                  children: spans,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              onTap: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => StudyPage(
+                                      initialBook: verse['book'],
+                                      initialChapter: verse['chapter'],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    },
+                  ),
       ),
     );
   }
