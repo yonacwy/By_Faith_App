@@ -43,6 +43,7 @@ dependencies:
   mapsforge_flutter: ^3.0.1
   path_provider: ^2.1.5
   http: ^1.2.2
+  archive: ^3.5.1 # Added archive package
 
 dev_dependencies:
   hive_generator: ^2.0.1
@@ -71,7 +72,7 @@ flutter:
     - lib/bible_data/strongs-greek-dictionary.json
     - lib/bible_data/strongs-hebrew-dictionary.json
     - lib/bible_data/websters1828dictionary.json
-    - lib/assets/maps/tennessee.map
+    - lib/assets/maps/israel-and-palestine.map
     - lib/assets/maps/render_themes/defaultrender.xml
 
 
