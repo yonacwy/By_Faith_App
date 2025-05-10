@@ -7,6 +7,7 @@ import 'Pray/pray_page.dart';
 import 'Read/read_page.dart';
 import 'Study/study_page.dart';
 import 'models/prayer.dart';
+import 'Gospel/gospel_page.dart'; // Import GospelPage to access MapInfoAdapter
 import 'package:provider/provider.dart';
 import 'providers/theme_notifier.dart';
 
@@ -14,6 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(PrayerAdapter());
+  Hive.registerAdapter(MapInfoAdapter()); // Register MapInfoAdapter
   await Hive.openBox<Prayer>('prayers'); // For Prayer model
   final themeBox = await Hive.openBox('themeBox'); // For theme persistence
   await Hive.openBox('userPreferences'); // For ReadPage book and chapter persistence
