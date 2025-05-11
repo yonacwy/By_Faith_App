@@ -63,33 +63,53 @@ class _GospelPageState extends State<GospelPage> {
 
   // Comprehensive list of available maps with working download links
   final List<Map<String, String>> _availableMaps = [
-    // United States (OpenAndroMaps)
+    // North America (Mapsforge v5) - Tennessee and bordering states
     {
-      'name': 'California',
-      'url': 'https://download.openandromaps.org/maps/usa/California.zip',
+      'name': 'United States - Tennessee',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/tennessee.map',
     },
     {
-      'name': 'Tennessee',
-      'url': 'https://download.openandromaps.org/maps/usa/Tennessee.zip',
+      'name': 'United States - Kentucky',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/kentucky.map',
     },
     {
-      'name': 'Colorado',
-      'url': 'https://download.openandromaps.org/maps/usa/Colorado.zip',
+      'name': 'United States - Virginia',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/virginia.map',
     },
     {
-      'name': 'New York',
-      'url': 'https://download.openandromaps.org/maps/usa/New_York.zip',
-    },
-    // Additional US regions (Mapsforge)
-    {
-      'name': 'Texas',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/texas.map',
+      'name': 'United States - North Carolina',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/north-carolina.map',
     },
     {
-      'name': 'Florida',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/florida.map',
+      'name': 'United States - Georgia',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/georgia.map',
     },
-    // Global regions (OpenAndroMaps)
+    {
+      'name': 'United States - Alabama',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/alabama.map',
+    },
+    {
+      'name': 'United States - Mississippi',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/mississippi.map',
+    },
+    {
+      'name': 'United States - Arkansas',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/arkansas.map',
+    },
+    {
+      'name': 'United States - Missouri',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/missouri.map',
+    },
+    // Other North America (Mapsforge v5)
+    {
+      'name': 'Canada',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/canada.map',
+    },
+    {
+      'name': 'Mexico',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/mexico.map',
+    },
+    // Europe (OpenAndroMaps)
     {
       'name': 'Germany',
       'url': 'https://download.openandromaps.org/maps/europe/Germany.zip',
@@ -99,17 +119,80 @@ class _GospelPageState extends State<GospelPage> {
       'url': 'https://download.openandromaps.org/maps/europe/France.zip',
     },
     {
+      'name': 'United Kingdom',
+      'url': 'https://download.openandromaps.org/maps/europe/United_Kingdom.zip',
+    },
+    {
+      'name': 'Italy',
+      'url': 'https://download.openandromaps.org/maps/europe/Italy.zip',
+    },
+    {
+      'name': 'Spain',
+      'url': 'https://download.openandromaps.org/maps/europe/Spain.zip',
+    },
+    {
+      'name': 'Poland',
+      'url': 'https://download.openandromaps.org/maps/europe/Poland.zip',
+    },
+    {
+      'name': 'Netherlands',
+      'url': 'https://download.openandromaps.org/maps/europe/Netherlands.zip',
+    },
+    // Asia (Mapsforge v5 and OpenAndroMaps)
+    {
+      'name': 'Israel and Palestine',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/israel-and-palestine.map',
+    },
+    {
       'name': 'Japan',
       'url': 'https://download.openandromaps.org/maps/asia/Japan.zip',
     },
     {
+      'name': 'India',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/india.map',
+    },
+    {
+      'name': 'South Korea',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/south-korea.map',
+    },
+    {
+      'name': 'Thailand',
+      'url': 'https://download.openandromaps.org/maps/asia/Thailand.zip',
+    },
+    // Africa (Mapsforge v5 and OpenAndroMaps)
+    {
+      'name': 'South Africa',
+      'url': 'https://download.openandromaps.org/maps/africa/South_Africa.zip',
+    },
+    {
+      'name': 'Egypt',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/egypt.map',
+    },
+    {
+      'name': 'Morocco',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/morocco.map',
+    },
+    // South America (Mapsforge v5 and OpenAndroMaps)
+    {
+      'name': 'Brazil',
+      'url': 'https://download.openandromaps.org/maps/south-america/Brazil.zip',
+    },
+    {
+      'name': 'Argentina',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/argentina.map',
+    },
+    {
+      'name': 'Chile',
+      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/chile.map',
+    },
+    // Oceania (OpenAndroMaps)
+    {
       'name': 'Australia',
       'url': 'https://download.openandromaps.org/maps/oceania/Australia.zip',
     },
-    // Added Israel and Palestine map
     {
-      'name': 'Israel and Palestine',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/israel-and-palestine.map',
+      'name': 'New Zealand',
+      'url': 'https://download.openandromaps.org/maps/oceania/New_Zealand.zip',
     },
   ];
 
@@ -284,10 +367,7 @@ class _GospelPageState extends State<GospelPage> {
         }
 
         // Validate the map file by attempting to create a MapFile object.
-        // If this fails, it will throw an exception, caught by the outer try-catch.
         await MapFile.from(File(mapFilePath).path, null, null);
-        // The MapFile object created here is temporary for validation and does not need to be explicitly closed
-        // as it's not stored or used further in this local scope.
 
         await _mapBox.add(MapInfo(
           name: mapName,
