@@ -235,56 +235,94 @@ class _GospelPageState extends State<GospelPage> {
     // Load default or last used map
     MapInfo? lastMap;
     try {
-      // Try to find the 'Israel and Palestine' map first.
       lastMap = _mapBox.values.firstWhere((map) => map.name == 'Israel and Palestine');
     } catch (e) {
-      // If 'Israel and Palestine' map is not found, try to get the first available map.
       if (_mapBox.values.isNotEmpty) {
         lastMap = _mapBox.values.first;
       }
-      // If no maps are available at all, lastMap remains null.
     }
 
     if (lastMap != null) {
       _currentMapFilePath = lastMap.filePath;
+      print('Initialized with map: ${lastMap.name}, path: $_currentMapFilePath');
     } else if (defaultMapPath != null) {
-      // Fallback to the default map path if no map was loaded from Hive
       _currentMapFilePath = defaultMapPath;
+      print('Initialized with default map path: $defaultMapPath');
+    } else {
+      print('No map initialized, _currentMapFilePath is null');
     }
-    // Ensure _currentMapFilePath is set if possible, otherwise it remains null
-    // and the UI will show a loading indicator or an error message.
 
     setState(() {});
   }
 
   Future<MapModel> _createMapModelFuture() async {
     if (_currentMapFilePath == null) {
-      throw StateError("No map file path available.");
+      throw StateError('No map file path available.');
     }
-    final mapFile = await MapFile.from(File(_currentMapFilePath!).path, null, null);
-    final renderThemeBuilder = RenderThemeBuilder();
-    final xml = await rootBundle
-        .loadString('lib/assets/maps/render_themes/defaultrender.xml');
-    renderThemeBuilder.parseXml(_displayModel, xml);
-    final renderTheme = renderThemeBuilder.build();
-    final renderer = MapDataStoreRenderer(
-      mapFile,
-      renderTheme,
-      FileSymbolCache(),
-      false,
-    );
-    return MapModel(
-      displayModel: _displayModel,
-      renderer: renderer,
-    );
+    print('Creating MapModel for: $_currentMapFilePath');
+    try {
+      final mapFile = await MapFile.from(File(_currentMapFilePath!).path, null, null);
+      final renderThemeBuilder = RenderThemeBuilder();
+      final xml = await rootBundle.loadString('lib/assets/maps/render_themes/defaultrender.xml');
+      renderThemeBuilder.parseXml(_displayModel, xml);
+      final renderTheme = renderThemeBuilder.build();
+      final renderer = MapDataStoreRenderer(
+        mapFile,
+        renderTheme,
+        FileSymbolCache(),
+        false,
+      );
+      print('MapModel created successfully for: $_currentMapFilePath');
+      return MapModel(
+        displayModel: _displayModel,
+        renderer: renderer,
+      );
+    } catch (e) {
+      print('Error creating MapModel for $_currentMapFilePath: $e');
+      rethrow;
+    }
   }
 
   Future<ViewModel> _createViewModelFuture() async {
     final viewModel = ViewModel(displayModel: _displayModel);
+    double latitude = 31.7683; // Default: Jerusalem
+    double longitude = 35.2137;
+    int zoomLevel = 7;
+
+    // Adjust coordinates for US states
+    if (_currentMapFilePath != null) {
+      final mapName = _mapBox.values
+          .firstWhere(
+            (map) => map.filePath == _currentMapFilePath,
+            orElse: () => MapInfo(name: '', filePath: '', downloadUrl: ''),
+          )
+          .name;
+      if (mapName.startsWith('United States -')) {
+        // Approximate center coordinates for US states
+        final stateCenters = {
+          'United States - Tennessee': {'lat': 36.1627, 'lon': -86.7816}, // Nashville
+          'United States - Kentucky': {'lat': 38.2009, 'lon': -84.8733}, // Frankfort
+          'United States - Virginia': {'lat': 37.5407, 'lon': -77.4360}, // Richmond
+          'United States - North Carolina': {'lat': 35.7796, 'lon': -78.6382}, // Raleigh
+          'United States - Georgia': {'lat': 33.7490, 'lon': -84.3880}, // Atlanta
+          'United States - Alabama': {'lat': 32.3182, 'lon': -86.9023}, // Montgomery
+          'United States - Mississippi': {'lat': 32.2988, 'lon': -90.1848}, // Jackson
+          'United States - Arkansas': {'lat': 34.7465, 'lon': -92.2896}, // Little Rock
+          'United States - Missouri': {'lat': 38.5767, 'lon': -92.1735}, // Jefferson City
+        };
+        if (stateCenters.containsKey(mapName)) {
+          latitude = stateCenters[mapName]!['lat']!;
+          longitude = stateCenters[mapName]!['lon']!;
+          zoomLevel = 8; // Better zoom for US states
+        }
+      }
+    }
+
+    print('Creating ViewModel with lat: $latitude, lon: $longitude, zoom: $zoomLevel');
     final position = MapViewPosition(
-      31.7683, // latitude (Jerusalem)
-      35.2137, // longitude
-      7, // zoomLevel
+      latitude,
+      longitude,
+      zoomLevel,
       0, // rotation
       0, // paddingFactor
     );
@@ -294,12 +332,14 @@ class _GospelPageState extends State<GospelPage> {
   }
 
   void _loadMap(String mapFilePath) {
+    print('Loading map: $mapFilePath');
     setState(() {
       _currentMapFilePath = mapFilePath;
     });
   }
 
   Future<String> _copyAssetToFile(String assetPath) async {
+    print('Copying asset: $assetPath');
     final data = await rootBundle.load('lib/assets/maps/$assetPath');
     final appDir = await getApplicationDocumentsDirectory();
     final mapsDir = Directory('${appDir.path}/maps');
@@ -308,6 +348,7 @@ class _GospelPageState extends State<GospelPage> {
     }
     final tempFile = File('${mapsDir.path}/$assetPath');
     await tempFile.writeAsBytes(data.buffer.asUint8List());
+    print('Asset copied to: ${tempFile.path}');
     return tempFile.path;
   }
 
@@ -317,8 +358,12 @@ class _GospelPageState extends State<GospelPage> {
     if (!await mapsDir.exists()) {
       await mapsDir.create(recursive: true);
     }
-    final mapFilePath = '${mapsDir.path}/$mapName.map';
-    final tempZipPath = '${mapsDir.path}/$mapName.zip';
+    // Sanitize mapName to avoid spaces and special characters
+    final sanitizedMapName = mapName.replaceAll(RegExp(r'[\s-]'), '_').toLowerCase();
+    final mapFilePath = '${mapsDir.path}/$sanitizedMapName.map';
+    final tempZipPath = '${mapsDir.path}/$sanitizedMapName.zip';
+
+    print('Downloading map: $mapName from $url to $mapFilePath');
 
     showDialog(
       context: context,
@@ -338,57 +383,70 @@ class _GospelPageState extends State<GospelPage> {
     try {
       final client = http.Client();
       final request = await client.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
-      if (request.statusCode == 200) {
-        final tempFile = File(tempZipPath);
-        await tempFile.writeAsBytes(request.bodyBytes);
-
-        if (url.endsWith('.zip')) {
-          final bytes = await tempFile.readAsBytes();
-          final archive = ZipDecoder().decodeBytes(bytes);
-          File? mapFile;
-          for (final file in archive) {
-            if (file.isFile && file.name.endsWith('.map')) {
-              mapFile = File(mapFilePath);
-              await mapFile.writeAsBytes(file.content as List<int>);
-              break;
-            }
-          }
-          if (mapFile == null) {
-            throw Exception('No .map file found in the downloaded zip');
-          }
-          await tempFile.delete();
-        } else {
-          final file = File(mapFilePath);
-          await file.writeAsBytes(request.bodyBytes);
-        }
-
-        if (await File(mapFilePath).length() == 0) {
-          throw Exception('Downloaded file is empty');
-        }
-
-        // Validate the map file by attempting to create a MapFile object.
-        await MapFile.from(File(mapFilePath).path, null, null);
-
-        await _mapBox.add(MapInfo(
-          name: mapName,
-          filePath: mapFilePath,
-          downloadUrl: url,
-        ));
-
-        setState(() {
-          _currentMapFilePath = mapFilePath;
-          _loadMap(mapFilePath);
-        });
-
-        Navigator.pop(context);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Downloaded $mapName')),
-        );
-      } else {
+      if (request.statusCode != 200) {
         throw Exception('HTTP ${request.statusCode}: Failed to download $mapName');
       }
+
+      final tempFile = File(tempZipPath);
+      await tempFile.writeAsBytes(request.bodyBytes);
+      print('Downloaded file size: ${await tempFile.length()} bytes');
+
+      File? mapFile;
+      if (url.endsWith('.zip')) {
+        print('Extracting zip: $tempZipPath');
+        final bytes = await tempFile.readAsBytes();
+        final archive = ZipDecoder().decodeBytes(bytes);
+        for (final file in archive) {
+          if (file.isFile && file.name.toLowerCase().endsWith('.map')) {
+            mapFile = File(mapFilePath);
+            await mapFile.writeAsBytes(file.content as List<int>);
+            print('Extracted .map file: ${file.name} to $mapFilePath');
+            break;
+          }
+        }
+        if (mapFile == null) {
+          throw Exception('No .map file found in the downloaded zip');
+        }
+        await tempFile.delete();
+      } else {
+        mapFile = File(mapFilePath);
+        await mapFile.writeAsBytes(request.bodyBytes);
+        print('Saved .map file to: $mapFilePath');
+      }
+
+      if (await mapFile.length() == 0) {
+        throw Exception('Downloaded file is empty');
+      }
+
+      // Validate the map file
+      print('Validating map file: $mapFilePath');
+      await MapFile.from(mapFilePath, null, null);
+      print('Map file validated successfully');
+
+      // Store in Hive
+      await _mapBox.add(MapInfo(
+        name: mapName,
+        filePath: mapFilePath,
+        downloadUrl: url,
+      ));
+      print('Stored in Hive: $mapName, path: $mapFilePath');
+      print('Current Hive maps: ${_mapBox.values.map((m) => m.name).toList()}');
+
+      // Update current map and reload
+      setState(() {
+        _currentMapFilePath = mapFilePath;
+        _loadMap(mapFilePath);
+      });
+
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Downloaded $mapName')),
+      );
+
+      // Reopen map selection dialog to show the new map
+      _showMapSelectionDialog();
     } catch (e) {
+      print('Error downloading map $mapName: $e');
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error downloading $mapName: $e')),
@@ -397,11 +455,13 @@ class _GospelPageState extends State<GospelPage> {
       final tempFile = File(tempZipPath);
       if (await tempFile.exists()) {
         await tempFile.delete();
+        print('Cleaned up temp file: $tempZipPath');
       }
     }
   }
 
   void _showMapSelectionDialog() {
+    print('Showing map selection dialog, local maps: ${_mapBox.values.map((m) => m.name).toList()}');
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -434,9 +494,11 @@ class _GospelPageState extends State<GospelPage> {
                         : IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () async {
+                              print('Deleting map: ${map.name}, path: ${map.filePath}');
                               final file = File(map.filePath);
                               if (await file.exists()) {
                                 await file.delete();
+                                print('Deleted file: ${map.filePath}');
                               }
                               await _mapBox.deleteAt(_mapBox.values.toList().indexOf(map));
                               if (_currentMapFilePath == map.filePath) {
@@ -445,6 +507,7 @@ class _GospelPageState extends State<GospelPage> {
                                     : null;
                                 setState(() {
                                   _currentMapFilePath = defaultMap?.filePath;
+                                  print('Switched to default map: ${defaultMap?.filePath}');
                                 });
                               }
                               setState(() {});
@@ -453,6 +516,7 @@ class _GospelPageState extends State<GospelPage> {
                             },
                           ),
                     onTap: () {
+                      print('Selecting map: ${map.name}, path: ${map.filePath}');
                       setState(() {
                         _currentMapFilePath = map.filePath;
                         _loadMap(map.filePath);
@@ -465,7 +529,10 @@ class _GospelPageState extends State<GospelPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              print('Closing map selection dialog');
+              Navigator.pop(context);
+            },
             child: const Text('Close'),
           ),
         ],
@@ -475,6 +542,7 @@ class _GospelPageState extends State<GospelPage> {
 
   @override
   Widget build(BuildContext context) {
+    print('Building widget, current map path: $_currentMapFilePath');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gospel'),
@@ -499,6 +567,7 @@ class _GospelPageState extends State<GospelPage> {
 
   @override
   void dispose() {
+    print('Disposing GospelPage');
     Hive.close();
     super.dispose();
   }
