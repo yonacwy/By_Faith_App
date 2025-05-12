@@ -406,8 +406,8 @@ class _GospelPageState extends State<GospelPage> {
   late DisplayModel _displayModel;
   String? _currentMapFilePath;
   late Box<MapInfo> _mapBox;
+  ViewModel? _viewModel; // Store ViewModel for zoom control
 
-  // Directory structure mirroring https://download.mapsforge.org/maps/v5/
   final List<Directory> _availableMaps = [
     Directory(
       name: 'Africa',
@@ -704,6 +704,7 @@ class _GospelPageState extends State<GospelPage> {
 
   Future<ViewModel> _createViewModelFuture() async {
     final viewModel = ViewModel(displayModel: _displayModel);
+    _viewModel = viewModel; // Store ViewModel for zoom control
     double latitude = 0.0;
     double longitude = 0.0;
     int zoomLevel = 2;
@@ -748,6 +749,34 @@ class _GospelPageState extends State<GospelPage> {
     return viewModel;
   }
 
+  void _zoomIn() {
+    if (_viewModel != null && _viewModel!.mapViewPosition != null) {
+      final currentZoom = _viewModel!.mapViewPosition!.zoomLevel;
+      final newZoom = (currentZoom + 1).clamp(2, 18); // Max zoom: 18
+      _viewModel!.setMapViewPosition(
+        _viewModel!.mapViewPosition!.latitude!,
+        _viewModel!.mapViewPosition!.longitude!,
+      );
+      _viewModel!.setZoomLevel(newZoom);
+      setState(() {});
+      print('Zoomed in to: $newZoom');
+    }
+  }
+
+  void _zoomOut() {
+    if (_viewModel != null && _viewModel!.mapViewPosition != null) {
+      final currentZoom = _viewModel!.mapViewPosition!.zoomLevel;
+      final newZoom = (currentZoom - 1).clamp(2, 18); // Min zoom: 2
+      _viewModel!.setMapViewPosition(
+        _viewModel!.mapViewPosition!.latitude!,
+        _viewModel!.mapViewPosition!.longitude!,
+      );
+      _viewModel!.setZoomLevel(newZoom);
+      setState(() {});
+      print('Zoomed out to: $newZoom');
+    }
+  }
+
   void _loadMap(String mapFilePath) {
     print('Loading map: $mapFilePath');
     setState(() {
@@ -781,30 +810,43 @@ class _GospelPageState extends State<GospelPage> {
 
     print('Downloading map: $mapName from $url to $mapFilePath');
 
+    // Show progress dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text('Downloading $mapName...'),
-          ],
-        ),
+      builder: (context) => _DownloadProgressDialog(
+        mapName: mapName,
+        url: url,
       ),
     );
 
     try {
       final client = http.Client();
-      final request = await client.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
-      if (request.statusCode != 200) {
-        throw Exception('HTTP ${request.statusCode}: Failed to download $mapName');
+      final request = http.Request('GET', Uri.parse(url));
+      final response = await client.send(request).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode != 200) {
+        throw Exception('HTTP ${response.statusCode}: Failed to download $mapName');
       }
 
+      final totalBytes = response.contentLength ?? 0;
       final tempFile = io.File(tempZipPath);
-      await tempFile.writeAsBytes(request.bodyBytes);
+      final sink = tempFile.openWrite();
+      int receivedBytes = 0;
+
+      // Stream download and update progress
+      await for (var chunk in response.stream) {
+        receivedBytes += chunk.length;
+        sink.add(chunk);
+        if (totalBytes > 0) {
+          final progress = (receivedBytes / totalBytes * 100).toStringAsFixed(0);
+          print('Download progress: $progress% ($receivedBytes/$totalBytes bytes)');
+          // Update dialog via notification
+          DownloadProgressNotification(progress).dispatch(context);
+        }
+      }
+
+      await sink.close();
       print('Downloaded file size: ${await tempFile.length()} bytes');
 
       io.File? mapFile;
@@ -826,7 +868,7 @@ class _GospelPageState extends State<GospelPage> {
         await tempFile.delete();
       } else {
         mapFile = io.File(mapFilePath);
-        await mapFile.writeAsBytes(request.bodyBytes);
+        await tempFile.rename(mapFilePath);
         print('Saved .map file to: $mapFilePath');
       }
 
@@ -857,7 +899,9 @@ class _GospelPageState extends State<GospelPage> {
         SnackBar(content: Text('Downloaded $mapName')),
       );
 
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     } catch (e) {
       print('Error downloading map $mapName: $e');
       Navigator.pop(context);
@@ -962,14 +1006,65 @@ class _GospelPageState extends State<GospelPage> {
           ),
         ],
       ),
-      body: _currentMapFilePath != null
-          ? MapviewWidget(
-              displayModel: _displayModel,
-              createMapModel: _createMapModelFuture,
-              createViewModel: _createViewModelFuture,
-              changeKey: _currentMapFilePath,
-            )
-          : const Center(child: CircularProgressIndicator()),
+      body: Stack(
+        children: [
+          _currentMapFilePath != null
+              ? MapviewWidget(
+                  displayModel: _displayModel,
+                  createMapModel: _createMapModelFuture,
+                  createViewModel: _createViewModelFuture,
+                  changeKey: _currentMapFilePath,
+                )
+              : const Center(child: CircularProgressIndicator()),
+          // Zoom controls
+          if (_currentMapFilePath != null)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.zoom_in, size: 20),
+                      onPressed: _zoomIn,
+                      tooltip: 'Zoom In',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.zoom_out, size: 20),
+                      onPressed: _zoomOut,
+                      tooltip: 'Zoom Out',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -978,5 +1073,48 @@ class _GospelPageState extends State<GospelPage> {
     print('Disposing GospelPage');
     Hive.close();
     super.dispose();
+  }
+}
+
+// Notification for download progress
+class DownloadProgressNotification extends Notification {
+  final String progress;
+  DownloadProgressNotification(this.progress);
+}
+
+// Download progress dialog
+class _DownloadProgressDialog extends StatefulWidget {
+  final String mapName;
+  final String url;
+
+  const _DownloadProgressDialog({required this.mapName, required this.url});
+
+  @override
+  _DownloadProgressDialogState createState() => _DownloadProgressDialogState();
+}
+
+class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
+  String _progress = '0%';
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: NotificationListener<DownloadProgressNotification>(
+        onNotification: (notification) {
+          setState(() {
+            _progress = notification.progress;
+          });
+          return true; // Consume the notification
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text('Downloading ${widget.mapName}... $_progress'),
+          ],
+        ),
+      ),
+    );
   }
 }
