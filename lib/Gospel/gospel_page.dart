@@ -10,6 +10,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 // Hive model for map metadata
 class MapInfo {
@@ -117,7 +119,8 @@ class _MapManagerPageState extends State<MapManagerPage> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['map', 'zip'],
+        allowedExtensions: ['map', 'MAP', 'zip', 'ZIP'], // Include both cases
+        allowMultiple: false,
       );
       if (result == null || result.files.isEmpty) {
         print('No file selected');
@@ -125,6 +128,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
       }
 
       final file = result.files.single;
+      print('Selected file: ${file.name}, path: ${file.path}');
       if (file.path == null) {
         throw Exception('Invalid file path');
       }
@@ -142,9 +146,9 @@ class _MapManagerPageState extends State<MapManagerPage> {
       await sourceFile.copy(tempFilePath);
 
       String mapFilePath = tempFilePath;
-      String mapName = fileName.replaceAll(RegExp(r'\.(map|zip)$'), '');
+      String mapName = fileName.replaceAll(RegExp(r'\.(map|zip)$', caseSensitive: false), '');
 
-      if (fileName.endsWith('.zip')) {
+      if (fileName.toLowerCase().endsWith('.zip')) {
         print('Processing zip file: $tempFilePath');
         final bytes = await tempFile.readAsBytes();
         final archive = ZipDecoder().decodeBytes(bytes);
@@ -154,7 +158,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
             mapFilePath = '${tempDir.path}/${archivedFile.name}';
             final mapFile = io.File(mapFilePath);
             await mapFile.writeAsBytes(archivedFile.content as List<int>);
-            mapName = archivedFile.name.replaceAll(RegExp(r'\.map$'), '');
+            mapName = archivedFile.name.replaceAll(RegExp(r'\.map$', caseSensitive: false), '');
             mapFound = true;
             print('Extracted .map file: ${archivedFile.name} to $mapFilePath');
             break;
@@ -359,6 +363,11 @@ class _MapManagerPageState extends State<MapManagerPage> {
                       style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Note: The Esslingen mirror may be unreliable for some networks. Try the Mapsforge server if downloads fail.',
+                    style: TextStyle(color: Colors.red),
+                  ),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: _uploadMapFile,
@@ -417,11 +426,11 @@ class _GospelPageState extends State<GospelPage> {
           maps: [
             MapEntry(
               name: 'Egypt',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/egypt.map',
+              url: 'https://download.mapsforge.org/maps/v5/africa/egypt.map',
             ),
             MapEntry(
               name: 'Morocco',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/morocco.map',
+              url: 'https://download.mapsforge.org/maps/v5/africa/morocco.map',
             ),
             MapEntry(
               name: 'South Africa',
@@ -439,15 +448,15 @@ class _GospelPageState extends State<GospelPage> {
           maps: [
             MapEntry(
               name: 'India',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/india.map',
+              url: 'https://download.mapsforge.org/maps/v5/asia/india.map',
             ),
             MapEntry(
               name: 'Israel and Palestine',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/israel-and-palestine.map',
+              url: 'https://download.mapsforge.org/maps/v5/asia/israel-and-palestine.map',
             ),
             MapEntry(
               name: 'South Korea',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/south-korea.map',
+              url: 'https://download.mapsforge.org/maps/v5/asia/south-korea.map',
             ),
             MapEntry(
               name: 'Japan',
@@ -507,39 +516,39 @@ class _GospelPageState extends State<GospelPage> {
           maps: [
             MapEntry(
               name: 'United States - Alabama',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/alabama.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/alabama.map',
             ),
             MapEntry(
               name: 'United States - Arkansas',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/arkansas.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/arkansas.map',
             ),
             MapEntry(
               name: 'United States - Georgia',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/georgia.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/georgia.map',
             ),
             MapEntry(
               name: 'United States - Kentucky',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/kentucky.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/kentucky.map',
             ),
             MapEntry(
               name: 'United States - Mississippi',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/mississippi.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/mississippi.map',
             ),
             MapEntry(
               name: 'United States - Missouri',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/missouri.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/missouri.map',
             ),
             MapEntry(
               name: 'United States - North Carolina',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/north-carolina.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/north-carolina.map',
             ),
             MapEntry(
               name: 'United States - Tennessee',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/tennessee.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/tennessee.map',
             ),
             MapEntry(
               name: 'United States - Virginia',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/virginia.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/us/virginia.map',
             ),
           ],
         ),
@@ -548,11 +557,11 @@ class _GospelPageState extends State<GospelPage> {
           maps: [
             MapEntry(
               name: 'Canada',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/canada.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/canada.map',
             ),
             MapEntry(
               name: 'Mexico',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/mexico.map',
+              url: 'https://download.mapsforge.org/maps/v5/north-america/mexico.map',
             ),
           ],
         ),
@@ -566,11 +575,11 @@ class _GospelPageState extends State<GospelPage> {
           maps: [
             MapEntry(
               name: 'Argentina',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/argentina.map',
+              url: 'https://download.mapsforge.org/maps/v5/south-america/argentina.map',
             ),
             MapEntry(
               name: 'Chile',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/chile.map',
+              url: 'https://download.mapsforge.org/maps/v5/south-america/chile.map',
             ),
             MapEntry(
               name: 'Brazil',
@@ -606,7 +615,7 @@ class _GospelPageState extends State<GospelPage> {
           maps: [
             MapEntry(
               name: 'World',
-              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/world/world.map',
+              url: 'https://download.mapsforge.org/maps/v5/world/world.map',
             ),
           ],
         ),
@@ -798,7 +807,20 @@ class _GospelPageState extends State<GospelPage> {
     return tempFile.path;
   }
 
+  Future<bool> _checkNetwork() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    print('Network status: $connectivityResult');
+    return connectivityResult != ConnectivityResult.none;
+  }
+
   Future<void> _downloadMap(String url, String mapName) async {
+    if (!await _checkNetwork()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No internet connection. Please check your network.')),
+      );
+      return;
+    }
+
     final appDir = await getApplicationDocumentsDirectory();
     final mapsDir = io.Directory('${appDir.path}/maps');
     if (!await mapsDir.exists()) {
@@ -810,75 +832,115 @@ class _GospelPageState extends State<GospelPage> {
 
     print('Downloading map: $mapName from $url to $mapFilePath');
 
+    // List of mirror URLs
+    final mirrors = [
+      url,
+      url.replaceFirst('download.mapsforge.org', 'ftp-stud.hs-esslingen.de'),
+      url.replaceFirst('ftp-stud.hs-esslingen.de', 'download.mapsforge.org'),
+    ];
+
+    // Create a Completer to pass the dialog context
+    final completer = Completer<BuildContext>();
+
     // Show progress dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _DownloadProgressDialog(
-        mapName: mapName,
-        url: url,
-      ),
+      builder: (dialogContext) {
+        completer.complete(dialogContext); // Pass dialog context
+        return _DownloadProgressDialog(
+          mapName: mapName,
+          url: url,
+        );
+      },
     );
 
-    try {
-      final client = http.Client();
-      final request = http.Request('GET', Uri.parse(url));
-      final response = await client.send(request).timeout(const Duration(seconds: 30));
+    io.File? mapFile;
+    Exception? lastError;
 
-      if (response.statusCode != 200) {
-        throw Exception('HTTP ${response.statusCode}: Failed to download $mapName');
-      }
+    const maxRetries = 3;
+    for (var mirrorUrl in mirrors) {
+      for (int attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          final dialogContext = await completer.future;
+          final client = http.Client();
+          final request = http.Request('GET', Uri.parse(mirrorUrl));
+          print('Attempt $attempt/$maxRetries for $mirrorUrl');
+          final response = await client.send(request).timeout(const Duration(seconds: 30));
 
-      final totalBytes = response.contentLength ?? 0;
-      final tempFile = io.File(tempZipPath);
-      final sink = tempFile.openWrite();
-      int receivedBytes = 0;
-
-      // Stream download and update progress
-      await for (var chunk in response.stream) {
-        receivedBytes += chunk.length;
-        sink.add(chunk);
-        if (totalBytes > 0) {
-          final progress = (receivedBytes / totalBytes * 100).toStringAsFixed(0);
-          print('Download progress: $progress% ($receivedBytes/$totalBytes bytes)');
-          // Update dialog via notification
-          DownloadProgressNotification(progress).dispatch(context);
-        }
-      }
-
-      await sink.close();
-      print('Downloaded file size: ${await tempFile.length()} bytes');
-
-      io.File? mapFile;
-      if (url.endsWith('.zip')) {
-        print('Extracting zip: $tempZipPath');
-        final bytes = await tempFile.readAsBytes();
-        final archive = ZipDecoder().decodeBytes(bytes);
-        for (final file in archive) {
-          if (file.isFile && file.name.toLowerCase().endsWith('.map')) {
-            mapFile = io.File(mapFilePath);
-            await mapFile.writeAsBytes(file.content as List<int>);
-            print('Extracted .map file: ${file.name} to $mapFilePath');
-            break;
+          if (response.statusCode != 200) {
+            throw Exception('HTTP ${response.statusCode}: Failed to download $mapName from $mirrorUrl');
           }
-        }
-        if (mapFile == null) {
-          throw Exception('No .map file found in the downloaded zip');
-        }
-        await tempFile.delete();
-      } else {
-        mapFile = io.File(mapFilePath);
-        await tempFile.rename(mapFilePath);
-        print('Saved .map file to: $mapFilePath');
-      }
 
-      if (await mapFile.length() == 0) {
-        throw Exception('Downloaded file is empty');
-      }
+          final totalBytes = response.contentLength ?? -1; // -1 indicates unknown size
+          final tempFile = io.File(tempZipPath);
+          final sink = tempFile.openWrite();
+          int receivedBytes = 0;
 
-      print('Validating map file: $mapFilePath');
-      await MapFile.from(mapFilePath, null, null);
-      print('Map file validated successfully');
+          // Stream download and update progress
+          await for (var chunk in response.stream) {
+            receivedBytes += chunk.length;
+            sink.add(chunk);
+            String progress;
+            if (totalBytes > 0) {
+              progress = (receivedBytes / totalBytes * 100).toStringAsFixed(0) + '%';
+            } else {
+              progress = '${(receivedBytes / 1024 / 1024).toStringAsFixed(1)} MB';
+            }
+            print('Download progress: $progress from $mirrorUrl');
+            DownloadProgressNotification(progress).dispatch(dialogContext);
+            print('Dispatched DownloadProgressNotification: $progress');
+          }
+
+          await sink.close();
+          print('Downloaded file size: ${await tempFile.length()} bytes');
+
+          if (mirrorUrl.endsWith('.zip')) {
+            print('Extracting zip: $tempZipPath');
+            final bytes = await tempFile.readAsBytes();
+            final archive = ZipDecoder().decodeBytes(bytes);
+            for (final file in archive) {
+              if (file.isFile && file.name.toLowerCase().endsWith('.map')) {
+                mapFile = io.File(mapFilePath);
+                await mapFile.writeAsBytes(file.content as List<int>);
+                print('Extracted .map file: ${file.name} to $mapFilePath');
+                break;
+              }
+            }
+            if (mapFile == null) {
+              throw Exception('No .map file found in the downloaded zip');
+            }
+            await tempFile.delete();
+          } else {
+            mapFile = io.File(mapFilePath);
+            await tempFile.rename(mapFilePath);
+            print('Saved .map file to: $mapFilePath');
+          }
+
+          if (await mapFile.length() == 0) {
+            throw Exception('Downloaded file is empty');
+          }
+
+          print('Validating map file: $mapFilePath');
+          await MapFile.from(mapFilePath, null, null);
+          print('Map file validated successfully');
+          break; // Success, exit retry loop
+        } catch (e) {
+          print('Error downloading from $mirrorUrl (attempt $attempt/$maxRetries): $e');
+          lastError = e is Exception ? e : Exception('Unknown error: $e');
+          if (attempt == maxRetries) {
+            continue; // Move to next mirror
+          }
+          await Future.delayed(Duration(seconds: attempt * 2)); // Exponential backoff
+        }
+      }
+      if (mapFile != null) break; // Exit mirror loop if successful
+    }
+
+    try {
+      if (mapFile == null) {
+        throw lastError ?? Exception('All mirrors failed for $mapName');
+      }
 
       await _mapBox.add(MapInfo(
         name: mapName,
@@ -904,7 +966,7 @@ class _GospelPageState extends State<GospelPage> {
       }
     } catch (e) {
       print('Error downloading map $mapName: $e');
-      Navigator.pop(context);
+      Navigator.of(context, rootNavigator: true).pop(); // Ensure dialog is closed
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error downloading $mapName: $e')),
       );
@@ -1098,18 +1160,26 @@ class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
+    print('Building _DownloadProgressDialog, current progress: $_progress');
     return AlertDialog(
       content: NotificationListener<DownloadProgressNotification>(
         onNotification: (notification) {
+          print('Received DownloadProgressNotification: ${notification.progress}');
           setState(() {
             _progress = notification.progress;
           });
-          return true; // Consume the notification
+          return true;
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
+            if (_progress == '0%') const CircularProgressIndicator(), // Show spinner at start
+            if (_progress != '0%')
+              _progress.endsWith('%')
+                  ? LinearProgressIndicator(
+                      value: double.tryParse(_progress.replaceAll('%', ''))! / 100,
+                    )
+                  : const LinearProgressIndicator(), // Indeterminate for MB
             const SizedBox(height: 16),
             Text('Downloading ${widget.mapName}... $_progress'),
           ],
