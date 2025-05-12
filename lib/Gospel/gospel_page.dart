@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io' as io; // Use io prefix to avoid conflict with custom Directory
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:mapsforge_flutter/core.dart';
@@ -51,9 +51,28 @@ class MapInfoAdapter extends TypeAdapter<MapInfo> {
   }
 }
 
-// Updated MapManagerPage to handle real-time updates
+// Data structure for directory hierarchy
+class MapEntry {
+  final String name;
+  final String url;
+  MapEntry({required this.name, required this.url});
+}
+
+class SubDirectory {
+  final String name;
+  final List<MapEntry> maps;
+  SubDirectory({required this.name, required this.maps});
+}
+
+class Directory {
+  final String name;
+  final List<SubDirectory> subDirectories;
+  Directory({required this.name, required this.subDirectories});
+}
+
+// Updated MapManagerPage with accordion UI
 class MapManagerPage extends StatefulWidget {
-  final List<Map<String, String>> availableMaps;
+  final List<Directory> directories;
   final Box<MapInfo> mapBox;
   final String? currentMapFilePath;
   final Function(String) onLoadMap;
@@ -61,7 +80,7 @@ class MapManagerPage extends StatefulWidget {
 
   const MapManagerPage({
     Key? key,
-    required this.availableMaps,
+    required this.directories,
     required this.mapBox,
     required this.currentMapFilePath,
     required this.onLoadMap,
@@ -100,20 +119,27 @@ class _MapManagerPageState extends State<MapManagerPage> {
                     'Available Maps to Download:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  ...widget.availableMaps.map((map) {
-                    final isDownloaded = mapBox.values.any(
-                      (m) => m.name == map['name'],
-                    );
-                    return ListTile(
-                      title: Text(map['name']!),
-                      trailing: isDownloaded
-                          ? const Icon(Icons.check_circle, color: Colors.green)
-                          : IconButton(
-                              icon: const Icon(Icons.download),
-                              onPressed: () => widget.onDownloadMap(map['url']!, map['name']!),
-                            ),
-                    );
-                  }),
+                  const SizedBox(height: 8),
+                  ...widget.directories.map((directory) => ExpansionTile(
+                        title: Text(directory.name),
+                        children: directory.subDirectories.map((subDir) => ExpansionTile(
+                              title: Text(subDir.name),
+                              children: subDir.maps.map((map) {
+                                final isDownloaded = mapBox.values.any(
+                                  (m) => m.name == map.name,
+                                );
+                                return ListTile(
+                                  title: Text(map.name),
+                                  trailing: isDownloaded
+                                      ? const Icon(Icons.check_circle, color: Colors.green)
+                                      : IconButton(
+                                          icon: const Icon(Icons.download),
+                                          onPressed: () => widget.onDownloadMap(map.url, map.name),
+                                        ),
+                                );
+                              }).toList(),
+                            )).toList(),
+                      )),
                   const Divider(),
                   const Text(
                     'Local Maps:',
@@ -127,7 +153,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
                                 icon: const Icon(Icons.delete),
                                 onPressed: () async {
                                   print('Deleting map: ${map.name}, path: ${map.filePath}');
-                                  final file = File(map.filePath);
+                                  final file = io.File(map.filePath);
                                   if (await file.exists()) {
                                     await file.delete();
                                     print('Deleted file: ${map.filePath}');
@@ -139,7 +165,6 @@ class _MapManagerPageState extends State<MapManagerPage> {
                                         : null;
                                     widget.onLoadMap(defaultMap?.filePath ?? '');
                                   }
-                                  // No setState needed due to ValueListenableBuilder
                                 },
                               ),
                         onTap: () {
@@ -168,139 +193,197 @@ class _GospelPageState extends State<GospelPage> {
   String? _currentMapFilePath;
   late Box<MapInfo> _mapBox;
 
-  // Comprehensive list of available maps with working download links
-  final List<Map<String, String>> _availableMaps = [
-    // North America (Mapsforge v5) - Tennessee and bordering states
-    {
-      'name': 'United States - Tennessee',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/tennessee.map',
-    },
-    {
-      'name': 'United States - Kentucky',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/kentucky.map',
-    },
-    {
-      'name': 'United States - Virginia',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/virginia.map',
-    },
-    {
-      'name': 'United States - North Carolina',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/north-carolina.map',
-    },
-    {
-      'name': 'United States - Georgia',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/georgia.map',
-    },
-    {
-      'name': 'United States - Alabama',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/alabama.map',
-    },
-    {
-      'name': 'United States - Mississippi',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/mississippi.map',
-    },
-    {
-      'name': 'United States - Arkansas',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/arkansas.map',
-    },
-    {
-      'name': 'United States - Missouri',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/missouri.map',
-    },
-    // Other North America (Mapsforge v5)
-    {
-      'name': 'Canada',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/canada.map',
-    },
-    {
-      'name': 'Mexico',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/mexico.map',
-    },
-    // Europe (OpenAndroMaps)
-    {
-      'name': 'Germany',
-      'url': 'https://download.openandromaps.org/maps/europe/Germany.zip',
-    },
-    {
-      'name': 'France',
-      'url': 'https://download.openandromaps.org/maps/europe/France.zip',
-    },
-    {
-      'name': 'United Kingdom',
-      'url': 'https://download.openandromaps.org/maps/europe/United_Kingdom.zip',
-    },
-    {
-      'name': 'Italy',
-      'url': 'https://download.openandromaps.org/maps/europe/Italy.zip',
-    },
-    {
-      'name': 'Spain',
-      'url': 'https://download.openandromaps.org/maps/europe/Spain.zip',
-    },
-    {
-      'name': 'Poland',
-      'url': 'https://download.openandromaps.org/maps/europe/Poland.zip',
-    },
-    {
-      'name': 'Netherlands',
-      'url': 'https://download.openandromaps.org/maps/europe/Netherlands.zip',
-    },
-    // Asia (Mapsforge v5 and OpenAndroMaps)
-    {
-      'name': 'Israel and Palestine',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/israel-and-palestine.map',
-    },
-    {
-      'name': 'Japan',
-      'url': 'https://download.openandromaps.org/maps/asia/Japan.zip',
-    },
-    {
-      'name': 'India',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/india.map',
-    },
-    {
-      'name': 'South Korea',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/south-korea.map',
-    },
-    {
-      'name': 'Thailand',
-      'url': 'https://download.openandromaps.org/maps/asia/Thailand.zip',
-    },
-    // Africa (Mapsforge v5 and OpenAndroMaps)
-    {
-      'name': 'South Africa',
-      'url': 'https://download.openandromaps.org/maps/africa/South_Africa.zip',
-    },
-    {
-      'name': 'Egypt',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/egypt.map',
-    },
-    {
-      'name': 'Morocco',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/morocco.map',
-    },
-    // South America (Mapsforge v5 and OpenAndroMaps)
-    {
-      'name': 'Brazil',
-      'url': 'https://download.openandromaps.org/maps/south-america/Brazil.zip',
-    },
-    {
-      'name': 'Argentina',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/argentina.map',
-    },
-    {
-      'name': 'Chile',
-      'url': 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/chile.map',
-    },
-    // Oceania (OpenAndroMaps)
-    {
-      'name': 'Australia',
-      'url': 'https://download.openandromaps.org/maps/oceania/Australia.zip',
-    },
-    {
-      'name': 'New Zealand',
-      'url': 'https://download.openandromaps.org/maps/oceania/New_Zealand.zip',
-    },
+  // Directory structure mirroring https://download.mapsforge.org/maps/v5/
+  final List<Directory> _availableMaps = [
+    Directory(
+      name: 'Africa',
+      subDirectories: [
+        SubDirectory(
+          name: 'Countries',
+          maps: [
+            MapEntry(
+              name: 'Egypt',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/egypt.map',
+            ),
+            MapEntry(
+              name: 'Morocco',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/africa/morocco.map',
+            ),
+            MapEntry(
+              name: 'South Africa',
+              url: 'https://download.openandromaps.org/maps/africa/South_Africa.zip',
+            ),
+          ],
+        ),
+      ],
+    ),
+    Directory(
+      name: 'Asia',
+      subDirectories: [
+        SubDirectory(
+          name: 'Countries',
+          maps: [
+            MapEntry(
+              name: 'India',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/india.map',
+            ),
+            MapEntry(
+              name: 'Israel and Palestine',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/israel-and-palestine.map',
+            ),
+            MapEntry(
+              name: 'South Korea',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/asia/south-korea.map',
+            ),
+            MapEntry(
+              name: 'Japan',
+              url: 'https://download.openandromaps.org/maps/asia/Japan.zip',
+            ),
+            MapEntry(
+              name: 'Thailand',
+              url: 'https://download.openandromaps.org/maps/asia/Thailand.zip',
+            ),
+          ],
+        ),
+      ],
+    ),
+    Directory(
+      name: 'Europe',
+      subDirectories: [
+        SubDirectory(
+          name: 'Countries',
+          maps: [
+            MapEntry(
+              name: 'Germany',
+              url: 'https://download.openandromaps.org/maps/europe/Germany.zip',
+            ),
+            MapEntry(
+              name: 'France',
+              url: 'https://download.openandromaps.org/maps/europe/France.zip',
+            ),
+            MapEntry(
+              name: 'United Kingdom',
+              url: 'https://download.openandromaps.org/maps/europe/United_Kingdom.zip',
+            ),
+            MapEntry(
+              name: 'Italy',
+              url: 'https://download.openandromaps.org/maps/europe/Italy.zip',
+            ),
+            MapEntry(
+              name: 'Spain',
+              url: 'https://download.openandromaps.org/maps/europe/Spain.zip',
+            ),
+            MapEntry(
+              name: 'Poland',
+              url: 'https://download.openandromaps.org/maps/europe/Poland.zip',
+            ),
+            MapEntry(
+              name: 'Netherlands',
+              url: 'https://download.openandromaps.org/maps/europe/Netherlands.zip',
+            ),
+          ],
+        ),
+      ],
+    ),
+    Directory(
+      name: 'North America',
+      subDirectories: [
+        SubDirectory(
+          name: 'United States',
+          maps: [
+            MapEntry(
+              name: 'United States - Alabama',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/alabama.map',
+            ),
+            MapEntry(
+              name: 'United States - Arkansas',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/arkansas.map',
+            ),
+            MapEntry(
+              name: 'United States - Georgia',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/georgia.map',
+            ),
+            MapEntry(
+              name: 'United States - Kentucky',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/kentucky.map',
+            ),
+            MapEntry(
+              name: 'United States - Mississippi',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/mississippi.map',
+            ),
+            MapEntry(
+              name: 'United States - Missouri',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/missouri.map',
+            ),
+            MapEntry(
+              name: 'United States - North Carolina',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/north-carolina.map',
+            ),
+            MapEntry(
+              name: 'United States - Tennessee',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/tennessee.map',
+            ),
+            MapEntry(
+              name: 'United States - Virginia',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/us/virginia.map',
+            ),
+          ],
+        ),
+        SubDirectory(
+          name: 'Other',
+          maps: [
+            MapEntry(
+              name: 'Canada',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/canada.map',
+            ),
+            MapEntry(
+              name: 'Mexico',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/north-america/mexico.map',
+            ),
+          ],
+        ),
+      ],
+    ),
+    Directory(
+      name: 'South America',
+      subDirectories: [
+        SubDirectory(
+          name: 'Countries',
+          maps: [
+            MapEntry(
+              name: 'Argentina',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/argentina.map',
+            ),
+            MapEntry(
+              name: 'Chile',
+              url: 'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/south-america/chile.map',
+            ),
+            MapEntry(
+              name: 'Brazil',
+              url: 'https://download.openandromaps.org/maps/south-america/Brazil.zip',
+            ),
+          ],
+        ),
+      ],
+    ),
+    Directory(
+      name: 'Oceania',
+      subDirectories: [
+        SubDirectory(
+          name: 'Countries',
+          maps: [
+            MapEntry(
+              name: 'Australia',
+              url: 'https://download.openandromaps.org/maps/oceania/Australia.zip',
+            ),
+            MapEntry(
+              name: 'New Zealand',
+              url: 'https://download.openandromaps.org/maps/oceania/New_Zealand.zip',
+            ),
+          ],
+        ),
+      ],
+    ),
   ];
 
   @override
@@ -333,9 +416,11 @@ class _GospelPageState extends State<GospelPage> {
     } catch (e) {
       print('Default map not found in assets: $e');
       // Fallback to downloading if not in assets
-      final map = _availableMaps.firstWhere((m) => m['name'] == 'Israel and Palestine');
+      final asiaDir = _availableMaps.firstWhere((dir) => dir.name == 'Asia');
+      final countriesSubDir = asiaDir.subDirectories.firstWhere((subDir) => subDir.name == 'Countries');
+      final map = countriesSubDir.maps.firstWhere((m) => m.name == 'Israel and Palestine');
       if (!_mapBox.values.any((m) => m.name == 'Israel and Palestine')) {
-        await _downloadMap(map['url']!, map['name']!);
+        await _downloadMap(map.url, map.name);
       }
     }
 
@@ -368,7 +453,7 @@ class _GospelPageState extends State<GospelPage> {
     }
     print('Creating MapModel for: $_currentMapFilePath');
     try {
-      final mapFile = await MapFile.from(File(_currentMapFilePath!).path, null, null);
+      final mapFile = await MapFile.from(io.File(_currentMapFilePath!).path, null, null);
       final renderThemeBuilder = RenderThemeBuilder();
       final xml = await rootBundle.loadString('lib/assets/maps/render_themes/defaultrender.xml');
       renderThemeBuilder.parseXml(_displayModel, xml);
@@ -449,11 +534,11 @@ class _GospelPageState extends State<GospelPage> {
     print('Copying asset: $assetPath');
     final data = await rootBundle.load('lib/assets/maps/$assetPath');
     final appDir = await getApplicationDocumentsDirectory();
-    final mapsDir = Directory('${appDir.path}/maps');
+    final mapsDir = io.Directory('${appDir.path}/maps');
     if (!await mapsDir.exists()) {
       await mapsDir.create(recursive: true);
     }
-    final tempFile = File('${mapsDir.path}/$assetPath');
+    final tempFile = io.File('${mapsDir.path}/$assetPath');
     await tempFile.writeAsBytes(data.buffer.asUint8List());
     print('Asset copied to: ${tempFile.path}');
     return tempFile.path;
@@ -461,7 +546,7 @@ class _GospelPageState extends State<GospelPage> {
 
   Future<void> _downloadMap(String url, String mapName) async {
     final appDir = await getApplicationDocumentsDirectory();
-    final mapsDir = Directory('${appDir.path}/maps');
+    final mapsDir = io.Directory('${appDir.path}/maps');
     if (!await mapsDir.exists()) {
       await mapsDir.create(recursive: true);
     }
@@ -494,18 +579,18 @@ class _GospelPageState extends State<GospelPage> {
         throw Exception('HTTP ${request.statusCode}: Failed to download $mapName');
       }
 
-      final tempFile = File(tempZipPath);
+      final tempFile = io.File(tempZipPath);
       await tempFile.writeAsBytes(request.bodyBytes);
       print('Downloaded file size: ${await tempFile.length()} bytes');
 
-      File? mapFile;
+      io.File? mapFile;
       if (url.endsWith('.zip')) {
         print('Extracting zip: $tempZipPath');
         final bytes = await tempFile.readAsBytes();
         final archive = ZipDecoder().decodeBytes(bytes);
         for (final file in archive) {
           if (file.isFile && file.name.toLowerCase().endsWith('.map')) {
-            mapFile = File(mapFilePath);
+            mapFile = io.File(mapFilePath);
             await mapFile.writeAsBytes(file.content as List<int>);
             print('Extracted .map file: ${file.name} to $mapFilePath');
             break;
@@ -516,7 +601,7 @@ class _GospelPageState extends State<GospelPage> {
         }
         await tempFile.delete();
       } else {
-        mapFile = File(mapFilePath);
+        mapFile = io.File(mapFilePath);
         await mapFile.writeAsBytes(request.bodyBytes);
         print('Saved .map file to: $mapFilePath');
       }
@@ -559,7 +644,7 @@ class _GospelPageState extends State<GospelPage> {
         SnackBar(content: Text('Error downloading $mapName: $e')),
       );
     } finally {
-      final tempFile = File(tempZipPath);
+      final tempFile = io.File(tempZipPath);
       if (await tempFile.exists()) {
         await tempFile.delete();
         print('Cleaned up temp file: $tempZipPath');
@@ -573,7 +658,7 @@ class _GospelPageState extends State<GospelPage> {
       context,
       MaterialPageRoute(
         builder: (context) => MapManagerPage(
-          availableMaps: _availableMaps,
+          directories: _availableMaps,
           mapBox: _mapBox,
           currentMapFilePath: _currentMapFilePath,
           onLoadMap: _loadMap,
