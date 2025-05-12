@@ -51,6 +51,113 @@ class MapInfoAdapter extends TypeAdapter<MapInfo> {
   }
 }
 
+// Updated MapManagerPage to handle real-time updates
+class MapManagerPage extends StatefulWidget {
+  final List<Map<String, String>> availableMaps;
+  final Box<MapInfo> mapBox;
+  final String? currentMapFilePath;
+  final Function(String) onLoadMap;
+  final Function(String, String) onDownloadMap;
+
+  const MapManagerPage({
+    Key? key,
+    required this.availableMaps,
+    required this.mapBox,
+    required this.currentMapFilePath,
+    required this.onLoadMap,
+    required this.onDownloadMap,
+  }) : super(key: key);
+
+  @override
+  _MapManagerPageState createState() => _MapManagerPageState();
+}
+
+class _MapManagerPageState extends State<MapManagerPage> {
+  @override
+  Widget build(BuildContext context) {
+    print('Building MapManagerPage, local maps: ${widget.mapBox.values.map((m) => m.name).toList()}');
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Manage Maps'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            print('Navigating back from MapManagerPage');
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      body: ValueListenableBuilder(
+        valueListenable: widget.mapBox.listenable(),
+        builder: (context, Box<MapInfo> mapBox, _) {
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Available Maps to Download:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  ...widget.availableMaps.map((map) {
+                    final isDownloaded = mapBox.values.any(
+                      (m) => m.name == map['name'],
+                    );
+                    return ListTile(
+                      title: Text(map['name']!),
+                      trailing: isDownloaded
+                          ? const Icon(Icons.check_circle, color: Colors.green)
+                          : IconButton(
+                              icon: const Icon(Icons.download),
+                              onPressed: () => widget.onDownloadMap(map['url']!, map['name']!),
+                            ),
+                    );
+                  }),
+                  const Divider(),
+                  const Text(
+                    'Local Maps:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  ...mapBox.values.map((map) => ListTile(
+                        title: Text(map.name),
+                        trailing: widget.currentMapFilePath == map.filePath
+                            ? const Icon(Icons.check, color: Colors.green)
+                            : IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  print('Deleting map: ${map.name}, path: ${map.filePath}');
+                                  final file = File(map.filePath);
+                                  if (await file.exists()) {
+                                    await file.delete();
+                                    print('Deleted file: ${map.filePath}');
+                                  }
+                                  await mapBox.deleteAt(mapBox.values.toList().indexOf(map));
+                                  if (widget.currentMapFilePath == map.filePath) {
+                                    final defaultMap = mapBox.values.isNotEmpty
+                                        ? mapBox.values.first
+                                        : null;
+                                    widget.onLoadMap(defaultMap?.filePath ?? '');
+                                  }
+                                  // No setState needed due to ValueListenableBuilder
+                                },
+                              ),
+                        onTap: () {
+                          print('Selecting map: ${map.name}, path: ${map.filePath}');
+                          widget.onLoadMap(map.filePath);
+                          Navigator.pop(context);
+                        },
+                      )),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class GospelPage extends StatefulWidget {
   @override
   _GospelPageState createState() => _GospelPageState();
@@ -334,7 +441,7 @@ class _GospelPageState extends State<GospelPage> {
   void _loadMap(String mapFilePath) {
     print('Loading map: $mapFilePath');
     setState(() {
-      _currentMapFilePath = mapFilePath;
+      _currentMapFilePath = mapFilePath.isNotEmpty ? mapFilePath : null;
     });
   }
 
@@ -438,16 +545,16 @@ class _GospelPageState extends State<GospelPage> {
         _loadMap(mapFilePath);
       });
 
-      Navigator.pop(context);
+      Navigator.pop(context); // Close download dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Downloaded $mapName')),
       );
 
-      // Reopen map selection dialog to show the new map
-      _showMapSelectionDialog();
+      // Redirect to GospelPage with the new map
+      Navigator.pop(context); // Ensure MapManagerPage is closed
     } catch (e) {
       print('Error downloading map $mapName: $e');
-      Navigator.pop(context);
+      Navigator.pop(context); // Close download dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error downloading $mapName: $e')),
       );
@@ -460,82 +567,18 @@ class _GospelPageState extends State<GospelPage> {
     }
   }
 
-  void _showMapSelectionDialog() {
-    print('Showing map selection dialog, local maps: ${_mapBox.values.map((m) => m.name).toList()}');
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Manage Maps'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Available Maps to Download:'),
-              ..._availableMaps.map((map) {
-                final isDownloaded = _mapBox.values.any(
-                  (m) => m.name == map['name'],
-                );
-                return ListTile(
-                  title: Text(map['name']!),
-                  trailing: isDownloaded
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : IconButton(
-                          icon: const Icon(Icons.download),
-                          onPressed: () => _downloadMap(map['url']!, map['name']!),
-                        ),
-                );
-              }),
-              const Divider(),
-              const Text('Local Maps:'),
-              ..._mapBox.values.map((map) => ListTile(
-                    title: Text(map.name),
-                    trailing: _currentMapFilePath == map.filePath
-                        ? const Icon(Icons.check, color: Colors.green)
-                        : IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              print('Deleting map: ${map.name}, path: ${map.filePath}');
-                              final file = File(map.filePath);
-                              if (await file.exists()) {
-                                await file.delete();
-                                print('Deleted file: ${map.filePath}');
-                              }
-                              await _mapBox.deleteAt(_mapBox.values.toList().indexOf(map));
-                              if (_currentMapFilePath == map.filePath) {
-                                final defaultMap = _mapBox.values.isNotEmpty
-                                    ? _mapBox.values.first
-                                    : null;
-                                setState(() {
-                                  _currentMapFilePath = defaultMap?.filePath;
-                                  print('Switched to default map: ${defaultMap?.filePath}');
-                                });
-                              }
-                              setState(() {});
-                              Navigator.pop(context);
-                              _showMapSelectionDialog();
-                            },
-                          ),
-                    onTap: () {
-                      print('Selecting map: ${map.name}, path: ${map.filePath}');
-                      setState(() {
-                        _currentMapFilePath = map.filePath;
-                        _loadMap(map.filePath);
-                      });
-                      Navigator.pop(context);
-                    },
-                  )),
-            ],
-          ),
+  void _navigateToMapManager() {
+    print('Navigating to MapManagerPage');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapManagerPage(
+          availableMaps: _availableMaps,
+          mapBox: _mapBox,
+          currentMapFilePath: _currentMapFilePath,
+          onLoadMap: _loadMap,
+          onDownloadMap: _downloadMap,
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              print('Closing map selection dialog');
-              Navigator.pop(context);
-            },
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }
@@ -549,7 +592,7 @@ class _GospelPageState extends State<GospelPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.map),
-            onPressed: _showMapSelectionDialog,
+            onPressed: _navigateToMapManager,
             tooltip: 'Manage Maps',
           ),
         ],
