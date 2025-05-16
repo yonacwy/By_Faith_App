@@ -1,3 +1,6 @@
+// lib/Gospel/gospel_page.dart
+
+import 'dart:convert';
 import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -13,11 +16,20 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 
-// Hive model for map metadata
-class MapInfo {
+part 'gospel_page.g.dart';
+
+@HiveType(typeId: 1)
+class MapInfo extends HiveObject {
+  @HiveField(0)
   final String name;
+
+  @HiveField(1)
   final String filePath;
+
+  @HiveField(2)
   final String downloadUrl;
+
+  @HiveField(3)
   final bool isTemporary;
 
   MapInfo({
@@ -27,58 +39,105 @@ class MapInfo {
     this.isTemporary = false,
   });
 
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'filePath': filePath,
-        'downloadUrl': downloadUrl,
-        'isTemporary': isTemporary,
-      };
-
-  factory MapInfo.fromJson(Map<String, dynamic> json) => MapInfo(
-        name: json['name'],
-        filePath: json['filePath'],
-        downloadUrl: json['downloadUrl'],
-        isTemporary: json['isTemporary'] ?? false,
-      );
-}
-
-// Hive adapter for MapInfo
-class MapInfoAdapter extends TypeAdapter<MapInfo> {
-  @override
-  final int typeId = 1;
-
-  @override
-  MapInfo read(BinaryReader reader) {
-    final json = reader.read() as Map<dynamic, dynamic>;
-    return MapInfo.fromJson(json.cast<String, dynamic>());
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'filePath': filePath,
+      'downloadUrl': downloadUrl,
+      'isTemporary': isTemporary,
+    };
   }
 
-  @override
-  void write(BinaryWriter writer, MapInfo obj) {
-    writer.write(obj.toJson());
+  factory MapInfo.fromJson(Map<String, dynamic> json) {
+    return MapInfo(
+      name: json['name'] as String,
+      filePath: json['filePath'] as String,
+      downloadUrl: json['downloadUrl'] as String,
+      isTemporary: json['isTemporary'] as bool? ?? false,
+    );
   }
 }
 
-// Data structure for directory hierarchy
 class MapEntry {
   final String name;
-  final String url;
-  MapEntry({required this.name, required this.url});
+  final String primaryUrl;
+  final String fallbackUrl;
+
+  MapEntry({
+    required this.name,
+    required this.primaryUrl,
+    required this.fallbackUrl,
+  });
+
+  factory MapEntry.fromJson(Map<String, dynamic> json) {
+    return MapEntry(
+      name: json['name'] as String,
+      primaryUrl: json['primaryUrl'] as String,
+      fallbackUrl: json['fallbackUrl'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'primaryUrl': primaryUrl,
+      'fallbackUrl': fallbackUrl,
+    };
+  }
 }
 
 class SubDirectory {
   final String name;
   final List<MapEntry> maps;
-  SubDirectory({required this.name, required this.maps});
+
+  SubDirectory({
+    required this.name,
+    required this.maps,
+  });
+
+  factory SubDirectory.fromJson(Map<String, dynamic> json) {
+    return SubDirectory(
+      name: json['name'] as String,
+      maps: (json['maps'] as List<dynamic>?)
+          ?.map((m) => MapEntry.fromJson(m as Map<String, dynamic>))
+          .toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'maps': maps.map((m) => m.toJson()).toList(),
+    };
+  }
 }
 
 class Directory {
   final String name;
   final List<SubDirectory> subDirectories;
-  Directory({required this.name, required this.subDirectories});
+
+  Directory({
+    required this.name,
+    required this.subDirectories,
+  });
+
+  factory Directory.fromJson(Map<String, dynamic> json) {
+    return Directory(
+      name: json['name'] as String,
+      subDirectories: (json['subDirectories'] as List<dynamic>?)
+          ?.map((s) => SubDirectory.fromJson(s as Map<String, dynamic>))
+          .toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'subDirectories': subDirectories.map((s) => s.toJson()).toList(),
+    };
+  }
 }
 
-// MapManagerPage with manual download/upload and uploaded maps sections
 class MapManagerPage extends StatefulWidget {
   final List<Directory> directories;
   final Box<MapInfo> mapBox;
@@ -88,14 +147,14 @@ class MapManagerPage extends StatefulWidget {
   final Function(String, String, bool) onUploadMap;
 
   const MapManagerPage({
-    Key? key,
+    super.key,
     required this.directories,
     required this.mapBox,
     required this.currentMapFilePath,
     required this.onLoadMap,
     required this.onDownloadMap,
     required this.onUploadMap,
-  }) : super(key: key);
+  });
 
   @override
   _MapManagerPageState createState() => _MapManagerPageState();
@@ -119,7 +178,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['map', 'MAP', 'zip', 'ZIP'], // Include both cases
+        allowedExtensions: ['map', 'MAP', 'zip', 'ZIP'],
         allowMultiple: false,
       );
       if (result == null || result.files.isEmpty) {
@@ -146,7 +205,8 @@ class _MapManagerPageState extends State<MapManagerPage> {
       await sourceFile.copy(tempFilePath);
 
       String mapFilePath = tempFilePath;
-      String mapName = fileName.replaceAll(RegExp(r'\.(map|zip)$', caseSensitive: false), '');
+      String mapName =
+          fileName.replaceAll(RegExp(r'\.(map|zip)$', caseSensitive: false), '');
 
       if (fileName.toLowerCase().endsWith('.zip')) {
         print('Processing zip file: $tempFilePath');
@@ -154,11 +214,13 @@ class _MapManagerPageState extends State<MapManagerPage> {
         final archive = ZipDecoder().decodeBytes(bytes);
         bool mapFound = false;
         for (final archivedFile in archive) {
-          if (archivedFile.isFile && archivedFile.name.toLowerCase().endsWith('.map')) {
+          if (archivedFile.isFile &&
+              archivedFile.name.toLowerCase().endsWith('.map')) {
             mapFilePath = '${tempDir.path}/${archivedFile.name}';
             final mapFile = io.File(mapFilePath);
             await mapFile.writeAsBytes(archivedFile.content as List<int>);
-            mapName = archivedFile.name.replaceAll(RegExp(r'\.map$', caseSensitive: false), '');
+            mapName =
+                archivedFile.name.replaceAll(RegExp(r'\.map$', caseSensitive: false), '');
             mapFound = true;
             print('Extracted .map file: ${archivedFile.name} to $mapFilePath');
             break;
@@ -203,7 +265,8 @@ class _MapManagerPageState extends State<MapManagerPage> {
         await mapsDir.create(recursive: true);
       }
 
-      final sanitizedMapName = mapInfo.name.replaceAll(RegExp(r'[\s-]'), '_').toLowerCase();
+      final sanitizedMapName =
+          mapInfo.name.replaceAll(RegExp(r'[\s-]'), '_').toLowerCase();
       final newFilePath = '${mapsDir.path}/$sanitizedMapName.map';
       final sourceFile = io.File(mapInfo.filePath);
       await sourceFile.copy(newFilePath);
@@ -258,7 +321,8 @@ class _MapManagerPageState extends State<MapManagerPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('Building MapManagerPage, local maps: ${widget.mapBox.values.map((m) => m.name).toList()}');
+    print(
+        'Building MapManagerPage, local maps: ${widget.mapBox.values.map((m) => m.name).toList()}');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Maps'),
@@ -286,57 +350,70 @@ class _MapManagerPageState extends State<MapManagerPage> {
                   const SizedBox(height: 8),
                   ...widget.directories.map((directory) => ExpansionTile(
                         title: Text(directory.name),
-                        children: directory.subDirectories.map((subDir) => ExpansionTile(
-                              title: Text(subDir.name),
-                              children: subDir.maps.map((map) {
-                                final isDownloaded = mapBox.values.any(
-                                  (m) => m.name == map.name && !m.isTemporary,
-                                );
-                                return ListTile(
-                                  title: Text(map.name),
-                                  trailing: isDownloaded
-                                      ? const Icon(Icons.check_circle, color: Colors.green)
-                                      : IconButton(
-                                          icon: const Icon(Icons.download),
-                                          onPressed: () => widget.onDownloadMap(map.url, map.name),
-                                        ),
-                                );
-                              }).toList(),
-                            )).toList(),
+                        children: directory.subDirectories
+                            .map((subDir) => ExpansionTile(
+                                  title: Text(subDir.name),
+                                  children: subDir.maps.map((map) {
+                                    final isDownloaded = mapBox.values.any(
+                                      (m) => m.name == map.name && !m.isTemporary,
+                                    );
+                                    return ListTile(
+                                      title: Text(map.name),
+                                      trailing: isDownloaded
+                                          ? const Icon(Icons.check_circle,
+                                              color: Colors.green)
+                                          : IconButton(
+                                              icon: const Icon(Icons.download),
+                                              onPressed: () => widget.onDownloadMap(
+                                                  map.primaryUrl, map.name),
+                                            ),
+                                    );
+                                  }).toList(),
+                                ))
+                            .toList(),
                       )),
                   const Divider(),
                   const Text(
                     'Local Maps:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  ...mapBox.values.where((map) => !map.isTemporary).map((map) => ListTile(
-                        title: Text(map.name),
-                        trailing: widget.currentMapFilePath == map.filePath
-                            ? const Icon(Icons.check, color: Colors.green)
-                            : IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () async {
-                                  print('Deleting map: ${map.name}, path: ${map.filePath}');
-                                  final file = io.File(map.filePath);
-                                  if (await file.exists()) {
-                                    await file.delete();
-                                    print('Deleted file: ${map.filePath}');
-                                  }
-                                  await mapBox.deleteAt(mapBox.values.toList().indexOf(map));
-                                  if (widget.currentMapFilePath == map.filePath) {
-                                    final defaultMap = mapBox.values.isNotEmpty
-                                        ? mapBox.values.firstWhere((m) => !m.isTemporary, orElse: () => mapBox.values.first)
-                                        : null;
-                                    widget.onLoadMap(defaultMap?.filePath ?? '');
-                                  }
-                                },
-                              ),
-                        onTap: () {
-                          print('Selecting map: ${map.name}, path: ${map.filePath}');
-                          widget.onLoadMap(map.filePath);
-                          Navigator.pop(context);
-                        },
-                      )),
+                  ...mapBox.values
+                      .where((map) => !map.isTemporary)
+                      .map((map) => ListTile(
+                            title: Text(map.name),
+                            trailing: widget.currentMapFilePath == map.filePath
+                                ? const Icon(Icons.check, color: Colors.green)
+                                : IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () async {
+                                      print(
+                                          'Deleting map: ${map.name}, path: ${map.filePath}');
+                                      final file = io.File(map.filePath);
+                                      if (await file.exists()) {
+                                        await file.delete();
+                                        print('Deleted file: ${map.filePath}');
+                                      }
+                                      await mapBox.deleteAt(
+                                          mapBox.values.toList().indexOf(map));
+                                      if (widget.currentMapFilePath ==
+                                          map.filePath) {
+                                        final defaultMap = mapBox.values.isNotEmpty
+                                            ? mapBox.values.firstWhere(
+                                                (m) => !m.isTemporary,
+                                                orElse: () => mapBox.values.first)
+                                            : null;
+                                        widget.onLoadMap(
+                                            defaultMap?.filePath ?? '');
+                                      }
+                                    },
+                                  ),
+                            onTap: () {
+                              print(
+                                  'Selecting map: ${map.name}, path: ${map.filePath}');
+                              widget.onLoadMap(map.filePath);
+                              Navigator.pop(context);
+                            },
+                          )),
                   const Divider(),
                   const Text(
                     'Manual Download & Upload Maps:',
@@ -349,24 +426,23 @@ class _MapManagerPageState extends State<MapManagerPage> {
                   ),
                   const SizedBox(height: 8),
                   InkWell(
-                    onTap: () => _launchUrl('https://download.mapsforge.org/maps/v5/'),
+                    onTap: () =>
+                        _launchUrl('https://download.mapsforge.org/maps/v5/'),
                     child: const Text(
                       'Mapsforge Server (not suitable for mass downloads)',
-                      style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                      style: TextStyle(
+                          color: Colors.blue, decoration: TextDecoration.underline),
                     ),
                   ),
                   const SizedBox(height: 4),
                   InkWell(
-                    onTap: () => _launchUrl('https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/'),
+                    onTap: () => _launchUrl(
+                        'https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/'),
                     child: const Text(
                       'Mirror Rechenzentrum der Hochschule Esslingen, University of Applied Sciences (fast)',
-                      style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                      style: TextStyle(
+                          color: Colors.blue, decoration: TextDecoration.underline),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Note: The Esslingen mirror may be unreliable for some networks. Try the Mapsforge server if downloads fail.',
-                    style: TextStyle(color: Colors.red),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
@@ -407,6 +483,8 @@ class _MapManagerPageState extends State<MapManagerPage> {
 }
 
 class GospelPage extends StatefulWidget {
+  const GospelPage({super.key});
+
   @override
   _GospelPageState createState() => _GospelPageState();
 }
@@ -415,235 +493,32 @@ class _GospelPageState extends State<GospelPage> {
   late DisplayModel _displayModel;
   String? _currentMapFilePath;
   late Box<MapInfo> _mapBox;
-  ViewModel? _viewModel; // Store ViewModel for zoom control
-
-  final List<Directory> _availableMaps = [
-    Directory(
-      name: 'Africa',
-      subDirectories: [
-        SubDirectory(
-          name: 'Countries',
-          maps: [
-            MapEntry(
-              name: 'Egypt',
-              url: 'https://download.mapsforge.org/maps/v5/africa/egypt.map',
-            ),
-            MapEntry(
-              name: 'Morocco',
-              url: 'https://download.mapsforge.org/maps/v5/africa/morocco.map',
-            ),
-            MapEntry(
-              name: 'South Africa',
-              url: 'https://download.openandromaps.org/maps/africa/South_Africa.zip',
-            ),
-          ],
-        ),
-      ],
-    ),
-    Directory(
-      name: 'Asia',
-      subDirectories: [
-        SubDirectory(
-          name: 'Countries',
-          maps: [
-            MapEntry(
-              name: 'India',
-              url: 'https://download.mapsforge.org/maps/v5/asia/india.map',
-            ),
-            MapEntry(
-              name: 'Israel and Palestine',
-              url: 'https://download.mapsforge.org/maps/v5/asia/israel-and-palestine.map',
-            ),
-            MapEntry(
-              name: 'South Korea',
-              url: 'https://download.mapsforge.org/maps/v5/asia/south-korea.map',
-            ),
-            MapEntry(
-              name: 'Japan',
-              url: 'https://download.openandromaps.org/maps/asia/Japan.zip',
-            ),
-            MapEntry(
-              name: 'Thailand',
-              url: 'https://download.openandromaps.org/maps/asia/Thailand.zip',
-            ),
-          ],
-        ),
-      ],
-    ),
-    Directory(
-      name: 'Europe',
-      subDirectories: [
-        SubDirectory(
-          name: 'Countries',
-          maps: [
-            MapEntry(
-              name: 'Germany',
-              url: 'https://download.openandromaps.org/maps/europe/Germany.zip',
-            ),
-            MapEntry(
-              name: 'France',
-              url: 'https://download.openandromaps.org/maps/europe/France.zip',
-            ),
-            MapEntry(
-              name: 'United Kingdom',
-              url: 'https://download.openandromaps.org/maps/europe/United_Kingdom.zip',
-            ),
-            MapEntry(
-              name: 'Italy',
-              url: 'https://download.openandromaps.org/maps/europe/Italy.zip',
-            ),
-            MapEntry(
-              name: 'Spain',
-              url: 'https://download.openandromaps.org/maps/europe/Spain.zip',
-            ),
-            MapEntry(
-              name: 'Poland',
-              url: 'https://download.openandromaps.org/maps/europe/Poland.zip',
-            ),
-            MapEntry(
-              name: 'Netherlands',
-              url: 'https://download.openandromaps.org/maps/europe/Netherlands.zip',
-            ),
-          ],
-        ),
-      ],
-    ),
-    Directory(
-      name: 'North America',
-      subDirectories: [
-        SubDirectory(
-          name: 'United States',
-          maps: [
-            MapEntry(
-              name: 'United States - Alabama',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/alabama.map',
-            ),
-            MapEntry(
-              name: 'United States - Arkansas',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/arkansas.map',
-            ),
-            MapEntry(
-              name: 'United States - Georgia',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/georgia.map',
-            ),
-            MapEntry(
-              name: 'United States - Kentucky',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/kentucky.map',
-            ),
-            MapEntry(
-              name: 'United States - Mississippi',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/mississippi.map',
-            ),
-            MapEntry(
-              name: 'United States - Missouri',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/missouri.map',
-            ),
-            MapEntry(
-              name: 'United States - North Carolina',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/north-carolina.map',
-            ),
-            MapEntry(
-              name: 'United States - Tennessee',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/tennessee.map',
-            ),
-            MapEntry(
-              name: 'United States - Virginia',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/us/virginia.map',
-            ),
-          ],
-        ),
-        SubDirectory(
-          name: 'Other',
-          maps: [
-            MapEntry(
-              name: 'Canada',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/canada.map',
-            ),
-            MapEntry(
-              name: 'Mexico',
-              url: 'https://download.mapsforge.org/maps/v5/north-america/mexico.map',
-            ),
-          ],
-        ),
-      ],
-    ),
-    Directory(
-      name: 'South America',
-      subDirectories: [
-        SubDirectory(
-          name: 'Countries',
-          maps: [
-            MapEntry(
-              name: 'Argentina',
-              url: 'https://download.mapsforge.org/maps/v5/south-america/argentina.map',
-            ),
-            MapEntry(
-              name: 'Chile',
-              url: 'https://download.mapsforge.org/maps/v5/south-america/chile.map',
-            ),
-            MapEntry(
-              name: 'Brazil',
-              url: 'https://download.openandromaps.org/maps/south-america/Brazil.zip',
-            ),
-          ],
-        ),
-      ],
-    ),
-    Directory(
-      name: 'Oceania',
-      subDirectories: [
-        SubDirectory(
-          name: 'Countries',
-          maps: [
-            MapEntry(
-              name: 'Australia',
-              url: 'https://download.openandromaps.org/maps/oceania/Australia.zip',
-            ),
-            MapEntry(
-              name: 'New Zealand',
-              url: 'https://download.openandromaps.org/maps/oceania/New_Zealand.zip',
-            ),
-          ],
-        ),
-      ],
-    ),
-    Directory(
-      name: 'World',
-      subDirectories: [
-        SubDirectory(
-          name: 'Global',
-          maps: [
-            MapEntry(
-              name: 'World',
-              url: 'https://download.mapsforge.org/maps/v5/world/world.map',
-            ),
-          ],
-        ),
-      ],
-    ),
-  ];
+  ViewModel? _viewModel;
+  List<Directory> _availableMaps = [];
+  bool _isLoadingMaps = true;
 
   @override
   void initState() {
     super.initState();
     _displayModel = DisplayModel(deviceScaleFactor: 2.0);
     _initHive();
+    _loadMapData();
   }
 
   Future<void> _initHive() async {
     await Hive.initFlutter();
-    if (!Hive.isAdapterRegistered(MapInfoAdapter().typeId)) {
+    if (!Hive.isAdapterRegistered(1)) {
       Hive.registerAdapter(MapInfoAdapter());
     }
     _mapBox = await Hive.openBox<MapInfo>('maps');
 
-    // Initialize default map (world.map, 3.1MB from provided URL)
     const defaultMapName = 'world.map';
     String? defaultMapPath;
     try {
       await DefaultAssetBundle.of(context).load('lib/assets/maps/$defaultMapName');
       defaultMapPath = await _copyAssetToFile(defaultMapName);
-      if (!_mapBox.values.any((map) => map.filePath == defaultMapPath && !map.isTemporary)) {
+      if (!_mapBox.values
+          .any((map) => map.filePath == defaultMapPath && !map.isTemporary)) {
         await _mapBox.add(MapInfo(
           name: 'World',
           filePath: defaultMapPath,
@@ -653,20 +528,36 @@ class _GospelPageState extends State<GospelPage> {
       }
     } catch (e) {
       print('Default map (world.map) not found in assets: $e');
-      final worldDir = _availableMaps.firstWhere((dir) => dir.name == 'World');
-      final globalSubDir = worldDir.subDirectories.firstWhere((subDir) => subDir.name == 'Global');
-      final map = globalSubDir.maps.firstWhere((m) => m.name == 'World');
-      if (!_mapBox.values.any((m) => m.name == 'World' && !m.isTemporary)) {
-        await _downloadMap(map.url, map.name);
+      if (_availableMaps.isNotEmpty) {
+        final worldDir = _availableMaps.firstWhere(
+          (dir) => dir.name == 'World',
+          orElse: () => Directory(name: '', subDirectories: []),
+        );
+        if (worldDir.subDirectories.isNotEmpty) {
+          final globalSubDir = worldDir.subDirectories.firstWhere(
+            (subDir) => subDir.name == 'Global',
+            orElse: () => SubDirectory(name: '', maps: []),
+          );
+          final map = globalSubDir.maps.firstWhere(
+            (m) => m.name == 'World',
+            orElse: () => MapEntry(name: '', primaryUrl: '', fallbackUrl: ''),
+          );
+          if (map.primaryUrl.isNotEmpty &&
+              !_mapBox.values.any((m) => m.name == 'World' && !m.isTemporary)) {
+            await _downloadMap(map, map.name);
+          }
+        }
       }
     }
 
     MapInfo? lastMap;
     try {
-      lastMap = _mapBox.values.firstWhere((map) => map.name == 'World' && !map.isTemporary);
+      lastMap =
+          _mapBox.values.firstWhere((map) => map.name == 'World' && !map.isTemporary);
     } catch (e) {
       if (_mapBox.values.isNotEmpty) {
-        lastMap = _mapBox.values.firstWhere((m) => !m.isTemporary, orElse: () => _mapBox.values.first);
+        lastMap = _mapBox.values.firstWhere((m) => !m.isTemporary,
+            orElse: () => _mapBox.values.first);
       }
     }
 
@@ -683,6 +574,67 @@ class _GospelPageState extends State<GospelPage> {
     setState(() {});
   }
 
+  Future<void> _loadMapData() async {
+    try {
+      final jsonString =
+          await DefaultAssetBundle.of(context).loadString('lib/assets/maps.json');
+      print('jsonString: $jsonString');
+      final decodedJson = jsonDecode(jsonString);
+      print('decodedJson type: ${decodedJson.runtimeType}');
+      final List<dynamic> jsonData = decodedJson;
+      if (jsonData.isNotEmpty) {
+        final topLevelJson = jsonData.first as Map<String, dynamic>; // Get the "/Maps" object JSON
+        if (topLevelJson.containsKey('subDirectories')) {
+          final List<dynamic> topLevelSubDirsJson = topLevelJson['subDirectories']; // Get the list containing "V5" JSON
+          final v5Json = topLevelSubDirsJson.firstWhere(
+            (subDirJson) => (subDirJson as Map<String, dynamic>)['name'] == 'V5',
+            orElse: () => null, // Handle case where V5 is not found
+          );
+
+          if (v5Json != null && v5Json.containsKey('subDirectories')) {
+            final List<dynamic> continentDirsJson = v5Json['subDirectories']; // Get the list of continent/region JSON objects
+
+            setState(() {
+              _availableMaps = continentDirsJson.map((continentDirJson) {
+                final Map<String, dynamic> continentMap = continentDirJson as Map<String, dynamic>;
+                // Each continentMap is like {"name": "Africa", "subDirectories": [{"name": "Maps", "maps": [...]}]}
+                // We need to map this to a Directory object.
+                // The Directory class expects a list of SubDirectory.
+                // The continentMap has a "subDirectories" list containing a single SubDirectory ("Maps").
+                final List<dynamic> continentSubDirsJson = continentMap['subDirectories'];
+                final List<SubDirectory> continentSubDirs = continentSubDirsJson.map((subDirJson) => SubDirectory.fromJson(subDirJson as Map<String, dynamic>)).toList();
+
+                return Directory(
+                  name: continentMap['name'],
+                  subDirectories: continentSubDirs,
+                );
+              }).toList();
+              _isLoadingMaps = false;
+            });
+            print('Loaded ${_availableMaps.length} map directories');
+          } else {
+             setState(() { _isLoadingMaps = false; });
+             print('Error loading map data: V5 directory or its subdirectories not found');
+          }
+        } else {
+          setState(() { _isLoadingMaps = false; });
+          print('Error loading map data: Top level subDirectories not found');
+        }
+      } else {
+        setState(() { _isLoadingMaps = false; });
+        print('Error loading map data: Top level directory not found');
+      }
+    } catch (e) {
+      print('Error loading map data: $e');
+      setState(() {
+        _isLoadingMaps = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load map data')),
+      );
+    }
+  }
+
   Future<MapModel> _createMapModelFuture() async {
     if (_currentMapFilePath == null) {
       throw StateError('No map file path available.');
@@ -691,7 +643,8 @@ class _GospelPageState extends State<GospelPage> {
     try {
       final mapFile = await MapFile.from(io.File(_currentMapFilePath!).path, null, null);
       final renderThemeBuilder = RenderThemeBuilder();
-      final xml = await rootBundle.loadString('lib/assets/maps/render_themes/defaultrender.xml');
+      final xml = await rootBundle
+          .loadString('lib/assets/maps/render_themes/defaultrender.xml');
       renderThemeBuilder.parseXml(_displayModel, xml);
       final renderTheme = renderThemeBuilder.build();
       final renderer = MapDataStoreRenderer(
@@ -713,7 +666,7 @@ class _GospelPageState extends State<GospelPage> {
 
   Future<ViewModel> _createViewModelFuture() async {
     final viewModel = ViewModel(displayModel: _displayModel);
-    _viewModel = viewModel; // Store ViewModel for zoom control
+    _viewModel = viewModel;
     double latitude = 0.0;
     double longitude = 0.0;
     int zoomLevel = 2;
@@ -722,7 +675,8 @@ class _GospelPageState extends State<GospelPage> {
       final mapName = _mapBox.values
           .firstWhere(
             (map) => map.filePath == _currentMapFilePath,
-            orElse: () => MapInfo(name: '', filePath: '', downloadUrl: '', isTemporary: false),
+            orElse: () => MapInfo(
+                name: '', filePath: '', downloadUrl: '', isTemporary: false),
           )
           .name;
       if (mapName.startsWith('United States -')) {
@@ -761,7 +715,7 @@ class _GospelPageState extends State<GospelPage> {
   void _zoomIn() {
     if (_viewModel != null && _viewModel!.mapViewPosition != null) {
       final currentZoom = _viewModel!.mapViewPosition!.zoomLevel;
-      final newZoom = (currentZoom + 1).clamp(2, 18); // Max zoom: 18
+      final newZoom = (currentZoom + 1).clamp(2, 18);
       _viewModel!.setMapViewPosition(
         _viewModel!.mapViewPosition!.latitude!,
         _viewModel!.mapViewPosition!.longitude!,
@@ -775,7 +729,7 @@ class _GospelPageState extends State<GospelPage> {
   void _zoomOut() {
     if (_viewModel != null && _viewModel!.mapViewPosition != null) {
       final currentZoom = _viewModel!.mapViewPosition!.zoomLevel;
-      final newZoom = (currentZoom - 1).clamp(2, 18); // Min zoom: 2
+      final newZoom = (currentZoom - 1).clamp(2, 18);
       _viewModel!.setMapViewPosition(
         _viewModel!.mapViewPosition!.latitude!,
         _viewModel!.mapViewPosition!.longitude!,
@@ -813,10 +767,11 @@ class _GospelPageState extends State<GospelPage> {
     return connectivityResult != ConnectivityResult.none;
   }
 
-  Future<void> _downloadMap(String url, String mapName) async {
+  Future<void> _downloadMap(MapEntry map, String mapName) async {
     if (!await _checkNetwork()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No internet connection. Please check your network.')),
+        SnackBar(
+            content: Text('No internet connection. Please check your network.')),
       );
       return;
     }
@@ -830,27 +785,23 @@ class _GospelPageState extends State<GospelPage> {
     final mapFilePath = '${mapsDir.path}/$sanitizedMapName.map';
     final tempZipPath = '${mapsDir.path}/$sanitizedMapName.zip';
 
-    print('Downloading map: $mapName from $url to $mapFilePath');
+    print('Downloading map: $mapName from ${map.primaryUrl}');
 
-    // List of mirror URLs
     final mirrors = [
-      url,
-      url.replaceFirst('download.mapsforge.org', 'ftp-stud.hs-esslingen.de'),
-      url.replaceFirst('ftp-stud.hs-esslingen.de', 'download.mapsforge.org'),
+      map.primaryUrl,
+      map.fallbackUrl,
     ];
 
-    // Create a Completer to pass the dialog context
     final completer = Completer<BuildContext>();
 
-    // Show progress dialog
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
-        completer.complete(dialogContext); // Pass dialog context
+        completer.complete(dialogContext);
         return _DownloadProgressDialog(
           mapName: mapName,
-          url: url,
+          url: map.primaryUrl,
         );
       },
     );
@@ -866,18 +817,19 @@ class _GospelPageState extends State<GospelPage> {
           final client = http.Client();
           final request = http.Request('GET', Uri.parse(mirrorUrl));
           print('Attempt $attempt/$maxRetries for $mirrorUrl');
-          final response = await client.send(request).timeout(const Duration(seconds: 30));
+          final response =
+              await client.send(request).timeout(const Duration(seconds: 30));
 
           if (response.statusCode != 200) {
-            throw Exception('HTTP ${response.statusCode}: Failed to download $mapName from $mirrorUrl');
+            throw Exception(
+                'HTTP ${response.statusCode}: Failed to download $mapName from $mirrorUrl');
           }
 
-          final totalBytes = response.contentLength ?? -1; // -1 indicates unknown size
+          final totalBytes = response.contentLength ?? -1;
           final tempFile = io.File(tempZipPath);
           final sink = tempFile.openWrite();
           int receivedBytes = 0;
 
-          // Stream download and update progress
           await for (var chunk in response.stream) {
             receivedBytes += chunk.length;
             sink.add(chunk);
@@ -885,7 +837,8 @@ class _GospelPageState extends State<GospelPage> {
             if (totalBytes > 0) {
               progress = (receivedBytes / totalBytes * 100).toStringAsFixed(0) + '%';
             } else {
-              progress = '${(receivedBytes / 1024 / 1024).toStringAsFixed(1)} MB';
+              progress =
+                  '${(receivedBytes / 1024 / 1024).toStringAsFixed(1)} MB';
             }
             print('Download progress: $progress from $mirrorUrl');
             DownloadProgressNotification(progress).dispatch(dialogContext);
@@ -924,17 +877,18 @@ class _GospelPageState extends State<GospelPage> {
           print('Validating map file: $mapFilePath');
           await MapFile.from(mapFilePath, null, null);
           print('Map file validated successfully');
-          break; // Success, exit retry loop
+          break;
         } catch (e) {
-          print('Error downloading from $mirrorUrl (attempt $attempt/$maxRetries): $e');
+          print(
+              'Error downloading from $mirrorUrl (attempt $attempt/$maxRetries): $e');
           lastError = e is Exception ? e : Exception('Unknown error: $e');
           if (attempt == maxRetries) {
-            continue; // Move to next mirror
+            continue;
           }
-          await Future.delayed(Duration(seconds: attempt * 2)); // Exponential backoff
+          await Future.delayed(Duration(seconds: attempt * 2));
         }
       }
-      if (mapFile != null) break; // Exit mirror loop if successful
+      if (mapFile != null) break;
     }
 
     try {
@@ -945,7 +899,7 @@ class _GospelPageState extends State<GospelPage> {
       await _mapBox.add(MapInfo(
         name: mapName,
         filePath: mapFilePath,
-        downloadUrl: url,
+        downloadUrl: map.primaryUrl,
         isTemporary: false,
       ));
       print('Stored in Hive: $mapName, path: $mapFilePath');
@@ -966,9 +920,9 @@ class _GospelPageState extends State<GospelPage> {
       }
     } catch (e) {
       print('Error downloading map $mapName: $e');
-      Navigator.of(context, rootNavigator: true).pop(); // Ensure dialog is closed
+      Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error downloading $mapName: $e')),
+        SnackBar(content: Text('Error downloading map: $e')),
       );
     } finally {
       final tempFile = io.File(tempZipPath);
@@ -1002,7 +956,8 @@ class _GospelPageState extends State<GospelPage> {
         final bytes = await tempFile.readAsBytes();
         final archive = ZipDecoder().decodeBytes(bytes);
         for (final archivedFile in archive) {
-          if (archivedFile.isFile && archivedFile.name.toLowerCase().endsWith('.map')) {
+          if (archivedFile.isFile &&
+              archivedFile.name.toLowerCase().endsWith('.map')) {
             mapFile = io.File(mapFilePath);
             await mapFile.writeAsBytes(archivedFile.content as List<int>);
             print('Extracted .map file: ${archivedFile.name} to $mapFilePath');
@@ -1047,7 +1002,15 @@ class _GospelPageState extends State<GospelPage> {
           mapBox: _mapBox,
           currentMapFilePath: _currentMapFilePath,
           onLoadMap: _loadMap,
-          onDownloadMap: _downloadMap,
+          onDownloadMap: (url, name) => _downloadMap(
+            MapEntry(
+              name: name,
+              primaryUrl: url,
+              fallbackUrl:
+                  url.replaceFirst('ftp-stud.hs-esslingen.de', 'download.mapsforge.org'),
+            ),
+            name,
+          ),
           onUploadMap: _uploadMap,
         ),
       ),
@@ -1063,7 +1026,7 @@ class _GospelPageState extends State<GospelPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.map),
-            onPressed: _navigateToMapManager,
+            onPressed: _isLoadingMaps ? null : _navigateToMapManager,
             tooltip: 'Manage Maps',
           ),
         ],
@@ -1078,7 +1041,6 @@ class _GospelPageState extends State<GospelPage> {
                   changeKey: _currentMapFilePath,
                 )
               : const Center(child: CircularProgressIndicator()),
-          // Zoom controls
           if (_currentMapFilePath != null)
             Positioned(
               top: 16,
@@ -1138,18 +1100,19 @@ class _GospelPageState extends State<GospelPage> {
   }
 }
 
-// Notification for download progress
 class DownloadProgressNotification extends Notification {
   final String progress;
   DownloadProgressNotification(this.progress);
 }
 
-// Download progress dialog
 class _DownloadProgressDialog extends StatefulWidget {
   final String mapName;
   final String url;
 
-  const _DownloadProgressDialog({required this.mapName, required this.url});
+  const _DownloadProgressDialog({
+    required this.mapName,
+    required this.url,
+  });
 
   @override
   _DownloadProgressDialogState createState() => _DownloadProgressDialogState();
@@ -1173,13 +1136,13 @@ class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_progress == '0%') const CircularProgressIndicator(), // Show spinner at start
+            if (_progress == '0%') const CircularProgressIndicator(),
             if (_progress != '0%')
               _progress.endsWith('%')
                   ? LinearProgressIndicator(
                       value: double.tryParse(_progress.replaceAll('%', ''))! / 100,
                     )
-                  : const LinearProgressIndicator(), // Indeterminate for MB
+                  : const LinearProgressIndicator(),
             const SizedBox(height: 16),
             Text('Downloading ${widget.mapName}... $_progress'),
           ],
