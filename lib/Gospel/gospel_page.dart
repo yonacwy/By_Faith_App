@@ -89,18 +89,25 @@ class MapEntry {
 class SubDirectory {
   final String name;
   final List<MapEntry> maps;
+  final List<SubDirectory> subDirectories; // Support nested subdirectories
 
   SubDirectory({
     required this.name,
-    required this.maps,
+    this.maps = const [],
+    this.subDirectories = const [],
   });
 
   factory SubDirectory.fromJson(Map<String, dynamic> json) {
     return SubDirectory(
       name: json['name'] as String,
       maps: (json['maps'] as List<dynamic>?)
-          ?.map((m) => MapEntry.fromJson(m as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((m) => MapEntry.fromJson(m as Map<String, dynamic>))
+              .toList() ??
+          [],
+      subDirectories: (json['subDirectories'] as List<dynamic>?)
+              ?.map((s) => SubDirectory.fromJson(s as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -108,6 +115,7 @@ class SubDirectory {
     return {
       'name': name,
       'maps': maps.map((m) => m.toJson()).toList(),
+      'subDirectories': subDirectories.map((s) => s.toJson()).toList(),
     };
   }
 }
@@ -125,8 +133,9 @@ class Directory {
     return Directory(
       name: json['name'] as String,
       subDirectories: (json['subDirectories'] as List<dynamic>?)
-          ?.map((s) => SubDirectory.fromJson(s as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((s) => SubDirectory.fromJson(s as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -319,6 +328,32 @@ class _MapManagerPageState extends State<MapManagerPage> {
     }
   }
 
+  Widget _buildSubDirectoryTile(SubDirectory subDir, int depth) {
+    return ExpansionTile(
+      title: Text(subDir.name),
+      children: [
+        // Render maps if present
+        ...subDir.maps.map((map) {
+          final isDownloaded = widget.mapBox.values.any(
+            (m) => m.name == map.name && !m.isTemporary,
+          );
+          return ListTile(
+            title: Text(map.name),
+            leading: SizedBox(width: depth * 16.0), // Indent based on depth
+            trailing: isDownloaded
+                ? const Icon(Icons.check_circle, color: Colors.green)
+                : IconButton(
+                    icon: const Icon(Icons.download),
+                    onPressed: () => widget.onDownloadMap(map.primaryUrl, map.name),
+                  ),
+          );
+        }),
+        // Recursively render nested subdirectories
+        ...subDir.subDirectories.map((nestedSubDir) => _buildSubDirectoryTile(nestedSubDir, depth + 1)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     print(
@@ -351,25 +386,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
                   ...widget.directories.map((directory) => ExpansionTile(
                         title: Text(directory.name),
                         children: directory.subDirectories
-                            .map((subDir) => ExpansionTile(
-                                  title: Text(subDir.name),
-                                  children: subDir.maps.map((map) {
-                                    final isDownloaded = mapBox.values.any(
-                                      (m) => m.name == map.name && !m.isTemporary,
-                                    );
-                                    return ListTile(
-                                      title: Text(map.name),
-                                      trailing: isDownloaded
-                                          ? const Icon(Icons.check_circle,
-                                              color: Colors.green)
-                                          : IconButton(
-                                              icon: const Icon(Icons.download),
-                                              onPressed: () => widget.onDownloadMap(
-                                                  map.primaryUrl, map.name),
-                                            ),
-                                    );
-                                  }).toList(),
-                                ))
+                            .map((subDir) => _buildSubDirectoryTile(subDir, 1))
                             .toList(),
                       )),
                   const Divider(),
@@ -498,6 +515,7 @@ class _GospelPageState extends State<GospelPage> {
   bool _isLoadingMaps = true;
 
   @override
+  @override
   void initState() {
     super.initState();
     _displayModel = DisplayModel(deviceScaleFactor: 2.0);
@@ -582,48 +600,45 @@ class _GospelPageState extends State<GospelPage> {
       final decodedJson = jsonDecode(jsonString);
       print('decodedJson type: ${decodedJson.runtimeType}');
       final List<dynamic> jsonData = decodedJson;
-      if (jsonData.isNotEmpty) {
-        final topLevelJson = jsonData.first as Map<String, dynamic>; // Get the "/Maps" object JSON
-        if (topLevelJson.containsKey('subDirectories')) {
-          final List<dynamic> topLevelSubDirsJson = topLevelJson['subDirectories']; // Get the list containing "V5" JSON
-          final v5Json = topLevelSubDirsJson.firstWhere(
-            (subDirJson) => (subDirJson as Map<String, dynamic>)['name'] == 'V5',
-            orElse: () => null, // Handle case where V5 is not found
-          );
 
-          if (v5Json != null && v5Json.containsKey('subDirectories')) {
-            final List<dynamic> continentDirsJson = v5Json['subDirectories']; // Get the list of continent/region JSON objects
-
-            setState(() {
-              _availableMaps = continentDirsJson.map((continentDirJson) {
-                final Map<String, dynamic> continentMap = continentDirJson as Map<String, dynamic>;
-                // Each continentMap is like {"name": "Africa", "subDirectories": [{"name": "Maps", "maps": [...]}]}
-                // We need to map this to a Directory object.
-                // The Directory class expects a list of SubDirectory.
-                // The continentMap has a "subDirectories" list containing a single SubDirectory ("Maps").
-                final List<dynamic> continentSubDirsJson = continentMap['subDirectories'];
-                final List<SubDirectory> continentSubDirs = continentSubDirsJson.map((subDirJson) => SubDirectory.fromJson(subDirJson as Map<String, dynamic>)).toList();
-
-                return Directory(
-                  name: continentMap['name'],
-                  subDirectories: continentSubDirs,
-                );
-              }).toList();
-              _isLoadingMaps = false;
-            });
-            print('Loaded ${_availableMaps.length} map directories');
-          } else {
-             setState(() { _isLoadingMaps = false; });
-             print('Error loading map data: V5 directory or its subdirectories not found');
-          }
-        } else {
-          setState(() { _isLoadingMaps = false; });
-          print('Error loading map data: Top level subDirectories not found');
-        }
-      } else {
-        setState(() { _isLoadingMaps = false; });
-        print('Error loading map data: Top level directory not found');
+      if (jsonData.isEmpty) {
+        throw Exception('Top level directory not found');
       }
+
+      // Parse the top-level "/Maps " directory
+      final topLevelJson = jsonData.first as Map<String, dynamic>;
+      if (!topLevelJson.containsKey('subDirectories')) {
+        throw Exception('Top level subDirectories not found');
+      }
+
+      // Find the "V5" directory
+      final List<dynamic> topLevelSubDirsJson = topLevelJson['subDirectories'];
+      final v5Json = topLevelSubDirsJson.firstWhere(
+        (subDirJson) => (subDirJson as Map<String, dynamic>)['name'] == 'V5',
+        orElse: () => null,
+      );
+
+      if (v5Json == null || !v5Json.containsKey('subDirectories')) {
+        throw Exception('V5 directory or its subdirectories not found');
+      }
+
+      // Parse continent/region directories
+      final List<dynamic> continentDirsJson = v5Json['subDirectories'];
+      final List<Directory> directories = continentDirsJson.map((continentDirJson) {
+        final Map<String, dynamic> continentMap = continentDirJson as Map<String, dynamic>;
+        // Recursively collect all subdirectories
+        final List<SubDirectory> allSubDirs = _parseSubDirectories(continentMap['subDirectories']);
+        return Directory(
+          name: continentMap['name'],
+          subDirectories: allSubDirs,
+        );
+      }).toList();
+
+      setState(() {
+        _availableMaps = directories;
+        _isLoadingMaps = false;
+      });
+      print('Loaded ${_availableMaps.length} map directories');
     } catch (e) {
       print('Error loading map data: $e');
       setState(() {
@@ -633,6 +648,20 @@ class _GospelPageState extends State<GospelPage> {
         SnackBar(content: Text('Failed to load map data')),
       );
     }
+  }
+
+  // Helper function to recursively parse subdirectories
+  List<SubDirectory> _parseSubDirectories(List<dynamic>? subDirsJson) {
+    if (subDirsJson == null) return [];
+
+    final List<SubDirectory> subDirectories = [];
+    for (var subDirJson in subDirsJson) {
+      final subDir = SubDirectory.fromJson(subDirJson as Map<String, dynamic>);
+      subDirectories.add(subDir);
+      // Recursively add nested subdirectories
+      subDirectories.addAll(_parseSubDirectories(subDirJson['subDirectories']));
+    }
+    return subDirectories;
   }
 
   Future<MapModel> _createMapModelFuture() async {
