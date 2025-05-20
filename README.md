@@ -1,4 +1,4 @@
-# By_Faith_App
+# By Faith App
 
 A cross platform application built with Flutter, designed to provide resources for reading, studying, and praying.
 
