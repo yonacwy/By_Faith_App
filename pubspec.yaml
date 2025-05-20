@@ -79,6 +79,7 @@ flutter:
     - lib/assets/maps/world.map
     - lib/assets/maps/render_themes/defaultrender.xml
     - lib/assets/maps.json
+    - lib/assets/map_coordinates.json
 
 
   # To add assets to your application, add an assets section, like this:

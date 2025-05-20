@@ -1,49 +1,46 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gospel_page.dart';
+part of 'map_entry_data.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class MapInfoAdapter extends TypeAdapter<MapInfo> {
+class MapEntryDataAdapter extends TypeAdapter<MapEntryData> {
   @override
-  final int typeId = 1;
+  final int typeId = 2;
 
   @override
-  MapInfo read(BinaryReader reader) {
+  MapEntryData read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return MapInfo(
+    return MapEntryData(
       name: fields[0] as String,
-      filePath: fields[1] as String,
-      downloadUrl: fields[2] as String,
-      isTemporary: fields[3] as bool,
-      latitude: fields[4] as double,
-      longitude: fields[5] as double,
-      zoomLevel: fields[6] as int,
+      primaryUrl: fields[1] as String,
+      fallbackUrl: fields[2] as String,
+      latitude: fields[3] as double,
+      longitude: fields[4] as double,
+      zoomLevel: fields[5] as int,
     );
   }
 
   @override
-  void write(BinaryWriter writer, MapInfo obj) {
+  void write(BinaryWriter writer, MapEntryData obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.filePath)
+      ..write(obj.primaryUrl)
       ..writeByte(2)
-      ..write(obj.downloadUrl)
+      ..write(obj.fallbackUrl)
       ..writeByte(3)
-      ..write(obj.isTemporary)
-      ..writeByte(4)
       ..write(obj.latitude)
-      ..writeByte(5)
+      ..writeByte(4)
       ..write(obj.longitude)
-      ..writeByte(6)
+      ..writeByte(5)
       ..write(obj.zoomLevel);
   }
 
@@ -53,7 +50,7 @@ class MapInfoAdapter extends TypeAdapter<MapInfo> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MapInfoAdapter &&
+      other is MapEntryDataAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

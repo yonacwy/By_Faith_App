@@ -1,0 +1,2009 @@
+{
+  "maps": {
+    "Algeria": {
+      "latitude": 28.0000272,
+      "longitude": 2.9999825,
+      "zoomLevel": 6
+    },
+    "Angola": {
+      "latitude": -11.8775768,
+      "longitude": 17.5691241,
+      "zoomLevel": 6
+    },
+    "Benin": {
+      "latitude": 9.5293472,
+      "longitude": 2.2584408,
+      "zoomLevel": 6
+    },
+    "Botswana": {
+      "latitude": -23.1681782,
+      "longitude": 24.5928742,
+      "zoomLevel": 6
+    },
+    "Burkina Faso": {
+      "latitude": 12.0753083,
+      "longitude": -1.6880314,
+      "zoomLevel": 6
+    },
+    "Burundi": {
+      "latitude": -3.426449,
+      "longitude": 29.9324519,
+      "zoomLevel": 6
+    },
+    "Cameroon": {
+      "latitude": 4.6125522,
+      "longitude": 13.1535811,
+      "zoomLevel": 6
+    },
+    "Canary Islands": {
+      "latitude": 28.2935785,
+      "longitude": -16.6214471,
+      "zoomLevel": 6
+    },
+    "Cape Verde": {
+      "latitude": 16.0000552,
+      "longitude": -24.0083947,
+      "zoomLevel": 6
+    },
+    "Central African Republic": {
+      "latitude": 7.0323598,
+      "longitude": 19.9981227,
+      "zoomLevel": 6
+    },
+    "Chad": {
+      "latitude": 15.6134137,
+      "longitude": 19.0156172,
+      "zoomLevel": 6
+    },
+    "Comores": {
+      "latitude": -12.2045176,
+      "longitude": 44.2832964,
+      "zoomLevel": 6
+    },
+    "Congo Brazzaville": {
+      "latitude": -0.7264327,
+      "longitude": 15.6419155,
+      "zoomLevel": 6
+    },
+    "Congo Democratic Republic": {
+      "latitude": -2.9814344,
+      "longitude": 23.8222636,
+      "zoomLevel": 6
+    },
+    "Djibouti": {
+      "latitude": 11.8145966,
+      "longitude": 42.8453061,
+      "zoomLevel": 6
+    },
+    "Egypt": {
+      "latitude": 26.2540493,
+      "longitude": 29.2675469,
+      "zoomLevel": 6
+    },
+    "Equatorial Guinea": {
+      "latitude": 1.613172,
+      "longitude": 10.5170357,
+      "zoomLevel": 6
+    },
+    "Eritrea": {
+      "latitude": 15.9500319,
+      "longitude": 37.9999668,
+      "zoomLevel": 6
+    },
+    "Ethiopia": {
+      "latitude": 10.2116702,
+      "longitude": 38.6521203,
+      "zoomLevel": 6
+    },
+    "Gabon": {
+      "latitude": -0.8999695,
+      "longitude": 11.6899699,
+      "zoomLevel": 6
+    },
+    "Ghana": {
+      "latitude": 8.0300284,
+      "longitude": -1.0800271,
+      "zoomLevel": 6
+    },
+    "Guinea Bissau": {
+      "latitude": 11.815215,
+      "longitude": -15.2351044,
+      "zoomLevel": 6
+    },
+    "Guinea": {
+      "latitude": 10.7226226,
+      "longitude": -10.7083587,
+      "zoomLevel": 6
+    },
+    "Ivory Coast": {
+      "latitude": 7.9897371,
+      "longitude": -5.5679458,
+      "zoomLevel": 6
+    },
+    "Kenya": {
+      "latitude": 1.4419683,
+      "longitude": 38.4313975,
+      "zoomLevel": 6
+    },
+    "Lesotho": {
+      "latitude": -29.6039267,
+      "longitude": 28.3350193,
+      "zoomLevel": 6
+    },
+    "Liberia": {
+      "latitude": 5.7499721,
+      "longitude": -9.3658524,
+      "zoomLevel": 6
+    },
+    "Libya": {
+      "latitude": 26.8234472,
+      "longitude": 18.1236723,
+      "zoomLevel": 6
+    },
+    "Madagascar": {
+      "latitude": -18.9249604,
+      "longitude": 46.4416422,
+      "zoomLevel": 6
+    },
+    "Malawi": {
+      "latitude": -13.2687204,
+      "longitude": 33.9301963,
+      "zoomLevel": 6
+    },
+    "Mali": {
+      "latitude": 16.3700359,
+      "longitude": -2.2900239,
+      "zoomLevel": 6
+    },
+    "Mauritania": {
+      "latitude": 20.2540382,
+      "longitude": -9.2399263,
+      "zoomLevel": 6
+    },
+    "Mauritius": {
+      "latitude": -20.2759451,
+      "longitude": 57.5703566,
+      "zoomLevel": 6
+    },
+    "Morocco": {
+      "latitude": 28.3347722,
+      "longitude": -10.3713379,
+      "zoomLevel": 6
+    },
+    "Mozambique": {
+      "latitude": -19.302233,
+      "longitude": 34.9144977,
+      "zoomLevel": 6
+    },
+    "Namibia": {
+      "latitude": -23.2335499,
+      "longitude": 17.3231107,
+      "zoomLevel": 6
+    },
+    "Niger": {
+      "latitude": 17.7356214,
+      "longitude": 9.3238432,
+      "zoomLevel": 6
+    },
+    "Nigeria": {
+      "latitude": 9.6000359,
+      "longitude": 7.9999721,
+      "zoomLevel": 6
+    },
+    "Rwanda": {
+      "latitude": -1.9646631,
+      "longitude": 30.0644358,
+      "zoomLevel": 6
+    },
+    "Saint Helena Ascension And Tristan Da Cunha": {
+      "latitude": -37.2465,
+      "longitude": -12.4870385,
+      "zoomLevel": 6
+    },
+    "Sao Tome And Principe": {
+      "latitude": 0.9713095,
+      "longitude": 7.02255,
+      "zoomLevel": 6
+    },
+    "Seychelles": {
+      "latitude": -4.6574977,
+      "longitude": 55.4540146,
+      "zoomLevel": 6
+    },
+    "Sierra Leone": {
+      "latitude": 8.6400349,
+      "longitude": -11.8400269,
+      "zoomLevel": 6
+    },
+    "Somalia": {
+      "latitude": 8.3676771,
+      "longitude": 49.083416,
+      "zoomLevel": 6
+    },
+    "South Sudan": {
+      "latitude": 7.8699431,
+      "longitude": 29.6667897,
+      "zoomLevel": 6
+    },
+    "Sudan": {
+      "latitude": 34.0678644,
+      "longitude": -102.524362,
+      "zoomLevel": 6
+    },
+    "Swaziland": {
+      "latitude": -26.5624806,
+      "longitude": 31.3991317,
+      "zoomLevel": 6
+    },
+    "Tanzania": {
+      "latitude": -6.5247123,
+      "longitude": 35.7878438,
+      "zoomLevel": 6
+    },
+    "Togo": {
+      "latitude": 8.7800265,
+      "longitude": 1.0199765,
+      "zoomLevel": 6
+    },
+    "Tunisia": {
+      "latitude": 36.8002068,
+      "longitude": 10.1857757,
+      "zoomLevel": 6
+    },
+    "Uganda": {
+      "latitude": 1.5333554,
+      "longitude": 32.2166578,
+      "zoomLevel": 6
+    },
+    "Zambia": {
+      "latitude": -14.5189121,
+      "longitude": 27.5589884,
+      "zoomLevel": 6
+    },
+    "Zimbabwe": {
+      "latitude": -18.4554963,
+      "longitude": 29.7468414,
+      "zoomLevel": 6
+    },
+    "Afghanistan": {
+      "latitude": 33.7680065,
+      "longitude": 66.2385139,
+      "zoomLevel": 6
+    },
+    "Armenia": {
+      "latitude": 4.4919761,
+      "longitude": -75.7413509,
+      "zoomLevel": 6
+    },
+    "Azerbaijan": {
+      "latitude": 40.3936294,
+      "longitude": 47.7872508,
+      "zoomLevel": 6
+    },
+    "Bangladesh": {
+      "latitude": 24.4769288,
+      "longitude": 90.2934413,
+      "zoomLevel": 6
+    },
+    "Bhutan": {
+      "latitude": 27.549511,
+      "longitude": 90.5119273,
+      "zoomLevel": 6
+    },
+    "Cambodia": {
+      "latitude": 12.5433216,
+      "longitude": 104.8144914,
+      "zoomLevel": 6
+    },
+    "East Timor": {
+      "latitude": -8.7443169,
+      "longitude": 126.063482,
+      "zoomLevel": 6
+    },
+    "India": {
+      "latitude": 22.3511148,
+      "longitude": 78.6677428,
+      "zoomLevel": 6
+    },
+    "Indonesia": {
+      "latitude": -2.4833826,
+      "longitude": 117.8902853,
+      "zoomLevel": 6
+    },
+    "Iran": {
+      "latitude": 32.6475314,
+      "longitude": 54.5643516,
+      "zoomLevel": 6
+    },
+    "Iraq": {
+      "latitude": 33.0955793,
+      "longitude": 44.1749775,
+      "zoomLevel": 6
+    },
+    "Israel And Palestine": {
+      "latitude": 31.7858328,
+      "longitude": 35.2459061,
+      "zoomLevel": 6
+    },
+    "Japan": {
+      "latitude": 36.5748441,
+      "longitude": 139.2394179,
+      "zoomLevel": 6
+    },
+    "Jordan": {
+      "latitude": 44.6663146,
+      "longitude": -93.6261918,
+      "zoomLevel": 6
+    },
+    "Kazakhstan": {
+      "latitude": 48.1012954,
+      "longitude": 66.7780818,
+      "zoomLevel": 6
+    },
+    "Kyrgyzstan": {
+      "latitude": 41.5089324,
+      "longitude": 74.724091,
+      "zoomLevel": 6
+    },
+    "Laos": {
+      "latitude": 20.0171109,
+      "longitude": 103.378253,
+      "zoomLevel": 6
+    },
+    "Lebanon": {
+      "latitude": 40.375713,
+      "longitude": -76.4626118,
+      "zoomLevel": 6
+    },
+    "Maldives": {
+      "latitude": 3.7203503,
+      "longitude": 73.2244152,
+      "zoomLevel": 6
+    },
+    "Mongolia": {
+      "latitude": 46.8250388,
+      "longitude": 103.8499736,
+      "zoomLevel": 6
+    },
+    "Myanmar": {
+      "latitude": 17.1750495,
+      "longitude": 95.9999652,
+      "zoomLevel": 6
+    },
+    "Nepal": {
+      "latitude": 28.3780464,
+      "longitude": 83.9999901,
+      "zoomLevel": 6
+    },
+    "North Korea": {
+      "latitude": 40.3736611,
+      "longitude": 127.0870417,
+      "zoomLevel": 6
+    },
+    "Pakistan": {
+      "latitude": 30.3308401,
+      "longitude": 71.247499,
+      "zoomLevel": 6
+    },
+    "Philippines": {
+      "latitude": 12.7503486,
+      "longitude": 122.7312101,
+      "zoomLevel": 6
+    },
+    "South Korea": {
+      "latitude": 36.638392,
+      "longitude": 127.6961188,
+      "zoomLevel": 6
+    },
+    "Sri Lanka": {
+      "latitude": 7.5554942,
+      "longitude": 80.7137847,
+      "zoomLevel": 6
+    },
+    "Syria": {
+      "latitude": 34.8147886,
+      "longitude": 38.4231781,
+      "zoomLevel": 6
+    },
+    "Taiwan": {
+      "latitude": 23.5983227,
+      "longitude": 120.8353769,
+      "zoomLevel": 6
+    },
+    "Tajikistan": {
+      "latitude": 38.6281733,
+      "longitude": 70.8156541,
+      "zoomLevel": 6
+    },
+    "Thailand": {
+      "latitude": 14.8971921,
+      "longitude": 100.83273,
+      "zoomLevel": 6
+    },
+    "Turkmenistan": {
+      "latitude": 39.3763807,
+      "longitude": 59.3924609,
+      "zoomLevel": 6
+    },
+    "Uzbekistan": {
+      "latitude": 41.32373,
+      "longitude": 63.9528098,
+      "zoomLevel": 6
+    },
+    "Vietnam": {
+      "latitude": 15.9266657,
+      "longitude": 107.9650855,
+      "zoomLevel": 6
+    },
+    "Yemen": {
+      "latitude": 16.3471243,
+      "longitude": 47.8915271,
+      "zoomLevel": 6
+    },
+    "Anhui": {
+      "latitude": 32.0,
+      "longitude": 117.0,
+      "zoomLevel": 6
+    },
+    "Beijing": {
+      "latitude": 40.190632,
+      "longitude": 116.412144,
+      "zoomLevel": 6
+    },
+    "Chongqing": {
+      "latitude": 30.05518,
+      "longitude": 107.8748712,
+      "zoomLevel": 6
+    },
+    "Fujian": {
+      "latitude": 26.193218,
+      "longitude": 118.2208721,
+      "zoomLevel": 6
+    },
+    "Gansu": {
+      "latitude": 38.0000001,
+      "longitude": 101.9999999,
+      "zoomLevel": 6
+    },
+    "Guangdong": {
+      "latitude": 23.1357694,
+      "longitude": 113.1982688,
+      "zoomLevel": 6
+    },
+    "Guangxi": {
+      "latitude": 24.0,
+      "longitude": 109.0,
+      "zoomLevel": 6
+    },
+    "Guizhou": {
+      "latitude": 27.0,
+      "longitude": 107.0,
+      "zoomLevel": 6
+    },
+    "Hainan": {
+      "latitude": 19.2000001,
+      "longitude": 109.5999999,
+      "zoomLevel": 6
+    },
+    "Hebei": {
+      "latitude": 39.0000001,
+      "longitude": 116.0,
+      "zoomLevel": 6
+    },
+    "Heilongjiang": {
+      "latitude": 48.0000047,
+      "longitude": 127.999992,
+      "zoomLevel": 6
+    },
+    "Henan": {
+      "latitude": 34.0000001,
+      "longitude": 113.9999999,
+      "zoomLevel": 6
+    },
+    "Hong Kong": {
+      "latitude": 22.350627,
+      "longitude": 114.1849161,
+      "zoomLevel": 6
+    },
+    "Hubei": {
+      "latitude": 39.0000001,
+      "longitude": 116.0,
+      "zoomLevel": 6
+    },
+    "Hunan": {
+      "latitude": 27.6662087,
+      "longitude": 111.7487063,
+      "zoomLevel": 6
+    },
+    "Inner Mongolia": {
+      "latitude": 43.2443242,
+      "longitude": 114.3251664,
+      "zoomLevel": 6
+    },
+    "Jiangsu": {
+      "latitude": 33.0000001,
+      "longitude": 119.9999999,
+      "zoomLevel": 6
+    },
+    "Jiangxi": {
+      "latitude": 28.0,
+      "longitude": 116.0,
+      "zoomLevel": 6
+    },
+    "Jilin": {
+      "latitude": 43.7289674,
+      "longitude": 126.1997366,
+      "zoomLevel": 6
+    },
+    "Liaoning": {
+      "latitude": 41.2374106,
+      "longitude": 122.9955469,
+      "zoomLevel": 6
+    },
+    "Macau": {
+      "latitude": 22.1757605,
+      "longitude": 113.5514142,
+      "zoomLevel": 6
+    },
+    "Ningxia": {
+      "latitude": 37.0000001,
+      "longitude": 105.9999999,
+      "zoomLevel": 6
+    },
+    "Qinghai": {
+      "latitude": 36.0,
+      "longitude": 96.0,
+      "zoomLevel": 6
+    },
+    "Shaanxi": {
+      "latitude": 35.5895959,
+      "longitude": 109.3013107,
+      "zoomLevel": 6
+    },
+    "Shandong": {
+      "latitude": 36.398987,
+      "longitude": 118.5055691,
+      "zoomLevel": 6
+    },
+    "Shanghai": {
+      "latitude": 31.2312707,
+      "longitude": 121.4700152,
+      "zoomLevel": 6
+    },
+    "Shanxi": {
+      "latitude": 37.0,
+      "longitude": 112.0,
+      "zoomLevel": 6
+    },
+    "Sichuan": {
+      "latitude": 30.5000001,
+      "longitude": 102.4999999,
+      "zoomLevel": 6
+    },
+    "Tianjin": {
+      "latitude": 39.3032619,
+      "longitude": 117.4163641,
+      "zoomLevel": 6
+    },
+    "Tibet": {
+      "latitude": 31.6692025,
+      "longitude": 87.473225,
+      "zoomLevel": 6
+    },
+    "Xinjiang": {
+      "latitude": 42.4804953,
+      "longitude": 85.4633464,
+      "zoomLevel": 6
+    },
+    "Yunnan": {
+      "latitude": 25.0,
+      "longitude": 102.0,
+      "zoomLevel": 6
+    },
+    "Zhejiang": {
+      "latitude": 29.0000001,
+      "longitude": 119.9999999,
+      "zoomLevel": 6
+    },
+    "Central Zone": {
+      "latitude": -5.669617,
+      "longitude": 33.7856345,
+      "zoomLevel": 6
+    },
+    "Eastern Zone": {
+      "latitude": -28.7530193,
+      "longitude": 155.9328429,
+      "zoomLevel": 6
+    },
+    "North Eastern Zone": {
+      "latitude": -66.2836111,
+      "longitude": 110.544154,
+      "zoomLevel": 6
+    },
+    "Northern Zone": {
+      "latitude": -3.84791,
+      "longitude": 36.3932597,
+      "zoomLevel": 6
+    },
+    "Southern Zone": {
+      "latitude": -9.3145757,
+      "longitude": 34.1320241,
+      "zoomLevel": 6
+    },
+    "Western Zone": {
+      "latitude": -5.221763,
+      "longitude": 30.5087472,
+      "zoomLevel": 6
+    },
+    "Java": {
+      "latitude": -6.7115076,
+      "longitude": 110.6337137,
+      "zoomLevel": 6
+    },
+    "Kalimantan": {
+      "latitude": 1.4297828,
+      "longitude": 114.7410413,
+      "zoomLevel": 6
+    },
+    "Maluku": {
+      "latitude": -3.4593849,
+      "longitude": 126.656549,
+      "zoomLevel": 6
+    },
+    "Nusa Tenggara": {
+      "latitude": -9.0,
+      "longitude": 120.0,
+      "zoomLevel": 6
+    },
+    "Papua": {
+      "latitude": -5.6816069,
+      "longitude": 144.2489081,
+      "zoomLevel": 6
+    },
+    "Sulawesi": {
+      "latitude": -1.0074826,
+      "longitude": 121.4798411,
+      "zoomLevel": 6
+    },
+    "Sumatra": {
+      "latitude": -0.1432942,
+      "longitude": 101.6241024,
+      "zoomLevel": 6
+    },
+    "Chubu": {
+      "latitude": 36.586766,
+      "longitude": 137.3439224,
+      "zoomLevel": 6
+    },
+    "Chugoku": {
+      "latitude": 35.0789441,
+      "longitude": 134.009336,
+      "zoomLevel": 6
+    },
+    "Hokkaido": {
+      "latitude": 43.4519831,
+      "longitude": 142.8197834,
+      "zoomLevel": 6
+    },
+    "Kansai": {
+      "latitude": 21.6826139,
+      "longitude": 74.4132972,
+      "zoomLevel": 6
+    },
+    "Kanto": {
+      "latitude": 35.3028999,
+      "longitude": 139.8340282,
+      "zoomLevel": 6
+    },
+    "Kyushu": {
+      "latitude": 32.4821421,
+      "longitude": 131.1008966,
+      "zoomLevel": 6
+    },
+    "Shikoku": {
+      "latitude": 33.560875,
+      "longitude": 133.3718857,
+      "zoomLevel": 6
+    },
+    "Tohoku": {
+      "latitude": 39.1736183,
+      "longitude": 140.7319147,
+      "zoomLevel": 6
+    },
+    "Australia": {
+      "latitude": -24.7761086,
+      "longitude": 134.755,
+      "zoomLevel": 4
+    },
+    "Cook Islands": {
+      "latitude": -19.9969716,
+      "longitude": -157.7858714,
+      "zoomLevel": 6
+    },
+    "Fiji 1": {
+      "latitude": -37.9288642,
+      "longitude": 145.1604751,
+      "zoomLevel": 6
+    },
+    "Fiji 2": {
+      "latitude": -37.929007,
+      "longitude": 145.1604377,
+      "zoomLevel": 6
+    },
+    "Ile De Clipperton": {
+      "latitude": 10.3036471,
+      "longitude": -109.2163215,
+      "zoomLevel": 6
+    },
+    "Kiribati 1": {
+      "latitude": 60.1525508,
+      "longitude": 24.9075266,
+      "zoomLevel": 6
+    },
+    "Kiribati 2": {
+      "latitude": 60.152133,
+      "longitude": 24.9069756,
+      "zoomLevel": 6
+    },
+    "Kiribati 3": {
+      "latitude": 25.8282494,
+      "longitude": -97.5572402,
+      "zoomLevel": 6
+    },
+    "Marshall Islands": {
+      "latitude": 8.9995549,
+      "longitude": 168.0002575,
+      "zoomLevel": 6
+    },
+    "Micronesia": {
+      "latitude": 8.6062347,
+      "longitude": 151.8327443,
+      "zoomLevel": 6
+    },
+    "Nauru": {
+      "latitude": -0.5252306,
+      "longitude": 166.9324426,
+      "zoomLevel": 6
+    },
+    "New Caledonia": {
+      "latitude": -20.6378428,
+      "longitude": 161.2117626,
+      "zoomLevel": 6
+    },
+    "New Zealand 1": {
+      "latitude": 46.4007982,
+      "longitude": -62.3096532,
+      "zoomLevel": 6
+    },
+    "New Zealand 2": {
+      "latitude": 46.4009697,
+      "longitude": -62.309722,
+      "zoomLevel": 6
+    },
+    "Niue": {
+      "latitude": -19.0536414,
+      "longitude": -169.861341,
+      "zoomLevel": 6
+    },
+    "Palau": {
+      "latitude": 42.5717989,
+      "longitude": 2.9600905,
+      "zoomLevel": 6
+    },
+    "Papua New Guinea": {
+      "latitude": -5.6816069,
+      "longitude": 144.2489081,
+      "zoomLevel": 6
+    },
+    "Pitcairn Islands": {
+      "latitude": -25.0657719,
+      "longitude": -130.101782,
+      "zoomLevel": 6
+    },
+    "Polynesie Francaise": {
+      "latitude": -17.0243749,
+      "longitude": -144.6434898,
+      "zoomLevel": 6
+    },
+    "Samoa": {
+      "latitude": -13.7693895,
+      "longitude": -172.12005,
+      "zoomLevel": 6
+    },
+    "Solomon Islands": {
+      "latitude": -8.7053941,
+      "longitude": 159.1070694,
+      "zoomLevel": 6
+    },
+    "Tokelau": {
+      "latitude": -9.1676396,
+      "longitude": -171.819687,
+      "zoomLevel": 6
+    },
+    "Tonga": {
+      "latitude": -19.9160819,
+      "longitude": -175.202642,
+      "zoomLevel": 6
+    },
+    "Tuvalu 1": {
+      "latitude": -8.5263841,
+      "longitude": 179.1954862,
+      "zoomLevel": 6
+    },
+    "Tuvalu 2": {
+      "latitude": -8.5122098,
+      "longitude": 179.1993801,
+      "zoomLevel": 6
+    },
+    "Vanuatu": {
+      "latitude": -16.5255069,
+      "longitude": 168.1069154,
+      "zoomLevel": 6
+    },
+    "Wallis Et Futuna": {
+      "latitude": -13.289402,
+      "longitude": -176.204224,
+      "zoomLevel": 6
+    },
+    "Bahamas": {
+      "latitude": 24.7736546,
+      "longitude": -78.0000547,
+      "zoomLevel": 6
+    },
+    "Belize": {
+      "latitude": 17.1204943,
+      "longitude": -88.6859028,
+      "zoomLevel": 6
+    },
+    "Costa Rica": {
+      "latitude": 10.2735633,
+      "longitude": -84.0739102,
+      "zoomLevel": 6
+    },
+    "Cuba": {
+      "latitude": 23.0131338,
+      "longitude": -80.8328748,
+      "zoomLevel": 6
+    },
+    "El Salvador": {
+      "latitude": 13.8000382,
+      "longitude": -88.9140683,
+      "zoomLevel": 6
+    },
+    "Guatemala": {
+      "latitude": 15.5855545,
+      "longitude": -90.345759,
+      "zoomLevel": 6
+    },
+    "Honduras": {
+      "latitude": 15.2572432,
+      "longitude": -86.0755145,
+      "zoomLevel": 6
+    },
+    "Jamaica": {
+      "latitude": 18.1850507,
+      "longitude": -77.3947693,
+      "zoomLevel": 6
+    },
+    "Nicaragua": {
+      "latitude": 12.6090157,
+      "longitude": -85.2936911,
+      "zoomLevel": 6
+    },
+    "Panama": {
+      "latitude": 8.559559,
+      "longitude": -81.1308434,
+      "zoomLevel": 6
+    },
+    "Albania": {
+      "latitude": 5.7587654,
+      "longitude": -73.9151617,
+      "zoomLevel": 6
+    },
+    "Andorra": {
+      "latitude": 42.5407167,
+      "longitude": 1.5732033,
+      "zoomLevel": 6
+    },
+    "Austria": {
+      "latitude": 47.59397,
+      "longitude": 14.12456,
+      "zoomLevel": 6
+    },
+    "Azores": {
+      "latitude": 37.8085564,
+      "longitude": -25.4731374,
+      "zoomLevel": 6
+    },
+    "Belarus": {
+      "latitude": 53.4250605,
+      "longitude": 27.6971358,
+      "zoomLevel": 6
+    },
+    "Belgium": {
+      "latitude": 50.6402809,
+      "longitude": 4.6667145,
+      "zoomLevel": 6
+    },
+    "Bosnia Herzegovina": {
+      "latitude": 44.3053476,
+      "longitude": 17.5961467,
+      "zoomLevel": 6
+    },
+    "Bulgaria": {
+      "latitude": 42.6073975,
+      "longitude": 25.4856617,
+      "zoomLevel": 6
+    },
+    "Croatia": {
+      "latitude": 45.3658443,
+      "longitude": 15.6575209,
+      "zoomLevel": 6
+    },
+    "Cyprus": {
+      "latitude": 34.9174159,
+      "longitude": 32.8899027,
+      "zoomLevel": 6
+    },
+    "Czech Republic": {
+      "latitude": 49.7439047,
+      "longitude": 15.3381061,
+      "zoomLevel": 6
+    },
+    "Denmark": {
+      "latitude": 55.670249,
+      "longitude": 10.3333283,
+      "zoomLevel": 6
+    },
+    "Estonia": {
+      "latitude": 58.7523778,
+      "longitude": 25.3319078,
+      "zoomLevel": 6
+    },
+    "Faroe Islands": {
+      "latitude": 62.1988704,
+      "longitude": -6.8178451,
+      "zoomLevel": 6
+    },
+    "Finland": {
+      "latitude": 63.2467777,
+      "longitude": 25.9209164,
+      "zoomLevel": 6
+    },
+    "France": {
+      "latitude": 46.603354,
+      "longitude": 1.8883335,
+      "zoomLevel": 6
+    },
+    "Georgia": {
+      "latitude": 32.3293809,
+      "longitude": -83.1137366,
+      "zoomLevel": 6
+    },
+    "Germany": {
+      "latitude": 51.1638175,
+      "longitude": 10.4478313,
+      "zoomLevel": 6
+    },
+    "Great Britain": {
+      "latitude": 54.3151594,
+      "longitude": -1.9181532,
+      "zoomLevel": 6
+    },
+    "Greece": {
+      "latitude": 38.9953683,
+      "longitude": 21.9877132,
+      "zoomLevel": 6
+    },
+    "Guernsey Jersey": {
+      "latitude": 40.043148,
+      "longitude": -81.3004588,
+      "zoomLevel": 6
+    },
+    "Hungary": {
+      "latitude": 47.1817585,
+      "longitude": 19.5060937,
+      "zoomLevel": 6
+    },
+    "Iceland": {
+      "latitude": 64.9841821,
+      "longitude": -18.1059013,
+      "zoomLevel": 6
+    },
+    "Ireland And Northern Ireland": {
+      "latitude": 54.5369242,
+      "longitude": -5.9080827,
+      "zoomLevel": 6
+    },
+    "Isle Of Man": {
+      "latitude": 54.1936805,
+      "longitude": -4.5591148,
+      "zoomLevel": 6
+    },
+    "Italy": {
+      "latitude": 42.6384261,
+      "longitude": 12.674297,
+      "zoomLevel": 6
+    },
+    "Kosovo": {
+      "latitude": 42.5869578,
+      "longitude": 20.9021231,
+      "zoomLevel": 6
+    },
+    "Latvia": {
+      "latitude": 56.8406494,
+      "longitude": 24.7537645,
+      "zoomLevel": 6
+    },
+    "Liechtenstein": {
+      "latitude": 47.1416307,
+      "longitude": 9.5531527,
+      "zoomLevel": 6
+    },
+    "Lithuania": {
+      "latitude": 55.3500003,
+      "longitude": 23.7499997,
+      "zoomLevel": 6
+    },
+    "Luxembourg": {
+      "latitude": 49.6112768,
+      "longitude": 6.129799,
+      "zoomLevel": 6
+    },
+    "Macedonia": {
+      "latitude": 41.1927739,
+      "longitude": -95.4256198,
+      "zoomLevel": 6
+    },
+    "Malta": {
+      "latitude": 35.8885993,
+      "longitude": 14.4476911,
+      "zoomLevel": 6
+    },
+    "Moldova": {
+      "latitude": 47.2879608,
+      "longitude": 28.5670941,
+      "zoomLevel": 6
+    },
+    "Monaco": {
+      "latitude": 43.7323492,
+      "longitude": 7.4276832,
+      "zoomLevel": 6
+    },
+    "Montenegro": {
+      "latitude": -29.6826112,
+      "longitude": -51.4687455,
+      "zoomLevel": 6
+    },
+    "Netherlands": {
+      "latitude": 52.2434979,
+      "longitude": 5.6343227,
+      "zoomLevel": 6
+    },
+    "Norway": {
+      "latitude": 64.5731537,
+      "longitude": 11.5280364,
+      "zoomLevel": 6
+    },
+    "Poland": {
+      "latitude": 52.215933,
+      "longitude": 19.134422,
+      "zoomLevel": 6
+    },
+    "Portugal": {
+      "latitude": 39.6621648,
+      "longitude": -8.1353519,
+      "zoomLevel": 6
+    },
+    "Romania": {
+      "latitude": 45.9852129,
+      "longitude": 24.6859225,
+      "zoomLevel": 6
+    },
+    "Serbia": {
+      "latitude": 44.0243229,
+      "longitude": 21.0765743,
+      "zoomLevel": 6
+    },
+    "Slovakia": {
+      "latitude": 48.7411522,
+      "longitude": 19.4528646,
+      "zoomLevel": 6
+    },
+    "Slovenia": {
+      "latitude": 46.1199444,
+      "longitude": 14.8153333,
+      "zoomLevel": 6
+    },
+    "Spain": {
+      "latitude": 39.3260685,
+      "longitude": -4.8379791,
+      "zoomLevel": 6
+    },
+    "Sweden": {
+      "latitude": 59.6749712,
+      "longitude": 14.5208584,
+      "zoomLevel": 6
+    },
+    "Switzerland": {
+      "latitude": 46.7985624,
+      "longitude": 8.2319736,
+      "zoomLevel": 6
+    },
+    "Turkey": {
+      "latitude": 39.294076,
+      "longitude": 35.2316631,
+      "zoomLevel": 6
+    },
+    "Ukraine": {
+      "latitude": 49.4871968,
+      "longitude": 31.2718321,
+      "zoomLevel": 6
+    },
+    "United Kingdom": {
+      "latitude": 54.7023545,
+      "longitude": -3.2765753,
+      "zoomLevel": 6
+    },
+    "Alsace": {
+      "latitude": 33.98279,
+      "longitude": -118.4123635,
+      "zoomLevel": 6
+    },
+    "Aquitaine": {
+      "latitude": 44.2462064,
+      "longitude": -0.1839979,
+      "zoomLevel": 6
+    },
+    "Auvergne": {
+      "latitude": 49.6522098,
+      "longitude": -107.443137,
+      "zoomLevel": 6
+    },
+    "Basse Normandie": {
+      "latitude": 48.9536845,
+      "longitude": -0.5733654,
+      "zoomLevel": 6
+    },
+    "Bourgogne": {
+      "latitude": 47.2780872,
+      "longitude": 4.2224863,
+      "zoomLevel": 6
+    },
+    "Bretagne": {
+      "latitude": 48.2640845,
+      "longitude": -2.9202408,
+      "zoomLevel": 6
+    },
+    "Centre": {
+      "latitude": 47.5490251,
+      "longitude": 1.7324062,
+      "zoomLevel": 6
+    },
+    "Champagne Ardenne": {
+      "latitude": 48.873066,
+      "longitude": 4.20791,
+      "zoomLevel": 6
+    },
+    "Corse": {
+      "latitude": 42.1880896,
+      "longitude": 9.0684138,
+      "zoomLevel": 6
+    },
+    "Franche Comte": {
+      "latitude": 48.6834736,
+      "longitude": 2.1776625,
+      "zoomLevel": 6
+    },
+    "Guadeloupe": {
+      "latitude": 16.2528827,
+      "longitude": -61.5686855,
+      "zoomLevel": 6
+    },
+    "Guyane": {
+      "latitude": 4.0039882,
+      "longitude": -52.999998,
+      "zoomLevel": 6
+    },
+    "Haute Normandie": {
+      "latitude": 49.371127,
+      "longitude": 1.026055,
+      "zoomLevel": 6
+    },
+    "Ile De France": {
+      "latitude": 48.6443057,
+      "longitude": 2.7537863,
+      "zoomLevel": 6
+    },
+    "Languedoc Roussillon": {
+      "latitude": 43.654203,
+      "longitude": 3.6746699,
+      "zoomLevel": 6
+    },
+    "Limousin": {
+      "latitude": 45.6879095,
+      "longitude": 1.6347606,
+      "zoomLevel": 6
+    },
+    "Lorraine": {
+      "latitude": 38.5688999,
+      "longitude": -98.3171492,
+      "zoomLevel": 6
+    },
+    "Martinique": {
+      "latitude": 14.6113732,
+      "longitude": -60.9620777,
+      "zoomLevel": 6
+    },
+    "Mayotte": {
+      "latitude": -12.823048,
+      "longitude": 45.1520755,
+      "zoomLevel": 6
+    },
+    "Midi Pyrenees": {
+      "latitude": 43.8099068,
+      "longitude": 1.4344926,
+      "zoomLevel": 6
+    },
+    "Nord Pas De Calais": {
+      "latitude": 50.5289634,
+      "longitude": 2.4545158,
+      "zoomLevel": 6
+    },
+    "Pays De La Loire": {
+      "latitude": 47.6594864,
+      "longitude": -0.8186143,
+      "zoomLevel": 6
+    },
+    "Picardie": {
+      "latitude": 49.601756,
+      "longitude": 2.8716339,
+      "zoomLevel": 6
+    },
+    "Poitou Charentes": {
+      "latitude": 46.1324478,
+      "longitude": -0.1545535,
+      "zoomLevel": 6
+    },
+    "Provence Alpes Cote D Azur": {
+      "latitude": 44.0580563,
+      "longitude": 6.0638506,
+      "zoomLevel": 6
+    },
+    "Reunion": {
+      "latitude": -21.1309332,
+      "longitude": 55.5265771,
+      "zoomLevel": 6
+    },
+    "Rhone Alpes": {
+      "latitude": 45.3175313,
+      "longitude": 5.7212944,
+      "zoomLevel": 6
+    },
+    "Baden Wuerttemberg": {
+      "latitude": 48.53775,
+      "longitude": 9.041169,
+      "zoomLevel": 6
+    },
+    "Bayern": {
+      "latitude": 48.9467562,
+      "longitude": 11.4038717,
+      "zoomLevel": 6
+    },
+    "Berlin": {
+      "latitude": 52.510885,
+      "longitude": 13.3989367,
+      "zoomLevel": 6
+    },
+    "Brandenburg": {
+      "latitude": 52.8455492,
+      "longitude": 13.2461296,
+      "zoomLevel": 6
+    },
+    "Bremen": {
+      "latitude": 53.0758196,
+      "longitude": 8.8071646,
+      "zoomLevel": 6
+    },
+    "Hamburg": {
+      "latitude": 53.550341,
+      "longitude": 10.000654,
+      "zoomLevel": 6
+    },
+    "Hessen": {
+      "latitude": 50.6080651,
+      "longitude": 9.0284647,
+      "zoomLevel": 6
+    },
+    "Mecklenburg Vorpommern": {
+      "latitude": 53.7735064,
+      "longitude": 12.5755471,
+      "zoomLevel": 6
+    },
+    "Niedersachsen": {
+      "latitude": 52.8398531,
+      "longitude": 9.075962,
+      "zoomLevel": 6
+    },
+    "Nordrhein Westfalen": {
+      "latitude": 51.4789205,
+      "longitude": 7.5543751,
+      "zoomLevel": 6
+    },
+    "Rheinland Pfalz": {
+      "latitude": 49.9531599,
+      "longitude": 7.310646,
+      "zoomLevel": 6
+    },
+    "Saarland": {
+      "latitude": 49.3841872,
+      "longitude": 6.9537369,
+      "zoomLevel": 6
+    },
+    "Sachsen Anhalt": {
+      "latitude": 51.9280976,
+      "longitude": 11.6812243,
+      "zoomLevel": 6
+    },
+    "Sachsen": {
+      "latitude": 50.9295798,
+      "longitude": 13.4585052,
+      "zoomLevel": 6
+    },
+    "Schleswig Holstein": {
+      "latitude": 54.1853998,
+      "longitude": 9.8220089,
+      "zoomLevel": 6
+    },
+    "Thueringen": {
+      "latitude": 50.9014721,
+      "longitude": 11.0377839,
+      "zoomLevel": 6
+    },
+    "Centro": {
+      "latitude": 47.5490251,
+      "longitude": 1.7324062,
+      "zoomLevel": 6
+    },
+    "Isole": {
+      "latitude": 17.789187,
+      "longitude": -64.7080574,
+      "zoomLevel": 6
+    },
+    "Nord Est": {
+      "latitude": 19.5178468,
+      "longitude": -71.8728225,
+      "zoomLevel": 6
+    },
+    "Nord Ovest": {
+      "latitude": 45.477417,
+      "longitude": 10.9736252,
+      "zoomLevel": 6
+    },
+    "Sud": {
+      "latitude": 18.2612839,
+      "longitude": -73.8444985,
+      "zoomLevel": 6
+    },
+    "Drenthe": {
+      "latitude": 52.9067922,
+      "longitude": 6.6368423,
+      "zoomLevel": 6
+    },
+    "Flevoland": {
+      "latitude": 52.4484375,
+      "longitude": 5.4235397,
+      "zoomLevel": 6
+    },
+    "Friesland": {
+      "latitude": 53.467993,
+      "longitude": 8.0221914,
+      "zoomLevel": 6
+    },
+    "Gelderland": {
+      "latitude": 52.1014041,
+      "longitude": 5.9515701,
+      "zoomLevel": 6
+    },
+    "Groningen": {
+      "latitude": 53.2190652,
+      "longitude": 6.5680077,
+      "zoomLevel": 6
+    },
+    "Limburg": {
+      "latitude": 51.2015196,
+      "longitude": 5.9046302,
+      "zoomLevel": 6
+    },
+    "Noord Brabant": {
+      "latitude": 51.6017723,
+      "longitude": 5.4441391,
+      "zoomLevel": 6
+    },
+    "Noord Holland": {
+      "latitude": 52.7212825,
+      "longitude": 4.820665,
+      "zoomLevel": 6
+    },
+    "Overijssel": {
+      "latitude": 52.4254143,
+      "longitude": 6.4610611,
+      "zoomLevel": 6
+    },
+    "Utrecht": {
+      "latitude": 52.0907006,
+      "longitude": 5.1215634,
+      "zoomLevel": 6
+    },
+    "Zeeland": {
+      "latitude": 51.4162975,
+      "longitude": 3.7028061,
+      "zoomLevel": 6
+    },
+    "Zuid Holland": {
+      "latitude": 51.9966792,
+      "longitude": 4.5597397,
+      "zoomLevel": 6
+    },
+    "Andalucia": {
+      "latitude": 37.3399964,
+      "longitude": -4.5811614,
+      "zoomLevel": 6
+    },
+    "Aragon": {
+      "latitude": 41.3787291,
+      "longitude": -0.7639373,
+      "zoomLevel": 6
+    },
+    "Asturias": {
+      "latitude": 43.3133868,
+      "longitude": -5.94192,
+      "zoomLevel": 6
+    },
+    "Cantabria": {
+      "latitude": 43.1595664,
+      "longitude": -4.0878382,
+      "zoomLevel": 6
+    },
+    "Castilla La Mancha": {
+      "latitude": 39.4177902,
+      "longitude": -2.6232332,
+      "zoomLevel": 6
+    },
+    "Castilla Y Leon": {
+      "latitude": 41.55005,
+      "longitude": -5.1387401,
+      "zoomLevel": 6
+    },
+    "Cataluna": {
+      "latitude": 41.8523094,
+      "longitude": 1.5745043,
+      "zoomLevel": 6
+    },
+    "Ceuta": {
+      "latitude": 35.894422,
+      "longitude": -5.3558174,
+      "zoomLevel": 6
+    },
+    "Extremadura": {
+      "latitude": 39.1748426,
+      "longitude": -6.1529891,
+      "zoomLevel": 6
+    },
+    "Galicia": {
+      "latitude": 42.61946,
+      "longitude": -7.863112,
+      "zoomLevel": 6
+    },
+    "Islas Baleares": {
+      "latitude": 39.613432,
+      "longitude": 2.8829185,
+      "zoomLevel": 6
+    },
+    "La Rioja": {
+      "latitude": 42.3285528,
+      "longitude": -2.4674917,
+      "zoomLevel": 6
+    },
+    "Madrid": {
+      "latitude": 40.4167047,
+      "longitude": -3.7035825,
+      "zoomLevel": 6
+    },
+    "Melilla": {
+      "latitude": 35.2929114,
+      "longitude": -2.9507202,
+      "zoomLevel": 6
+    },
+    "Murcia": {
+      "latitude": 37.9923795,
+      "longitude": -1.1305431,
+      "zoomLevel": 6
+    },
+    "Navarra": {
+      "latitude": 42.6125488,
+      "longitude": -1.8307877,
+      "zoomLevel": 6
+    },
+    "Pais Vasco": {
+      "latitude": 42.7286531,
+      "longitude": -1.9738375,
+      "zoomLevel": 6
+    },
+    "Valencia": {
+      "latitude": 39.4697065,
+      "longitude": -0.3763353,
+      "zoomLevel": 6
+    },
+    "England": {
+      "latitude": 52.5310214,
+      "longitude": -1.2649062,
+      "zoomLevel": 6
+    },
+    "Scotland": {
+      "latitude": 56.7861112,
+      "longitude": -4.1140518,
+      "zoomLevel": 6
+    },
+    "Wales": {
+      "latitude": 52.2928116,
+      "longitude": -3.73893,
+      "zoomLevel": 6
+    },
+    "Greenland": {
+      "latitude": 43.0361995,
+      "longitude": -70.8328322,
+      "zoomLevel": 6
+    },
+    "Mexico": {
+      "latitude": 23.6585116,
+      "longitude": -102.0077097,
+      "zoomLevel": 6
+    },
+    "Us Midwest": {
+      "latitude": 43.411391,
+      "longitude": -106.280075,
+      "zoomLevel": 6
+    },
+    "Us Northeast": {
+      "latitude": 45.0157576,
+      "longitude": -93.2512895,
+      "zoomLevel": 6
+    },
+    "Us South": {
+      "latitude": 57.0894077,
+      "longitude": -135.2543402,
+      "zoomLevel": 6
+    },
+    "Us West": {
+      "latitude": 47.213055,
+      "longitude": -122.4475893,
+      "zoomLevel": 6
+    },
+    "Alberta": {
+      "latitude": 55.001251,
+      "longitude": -115.002136,
+      "zoomLevel": 6
+    },
+    "British Columbia": {
+      "latitude": 55.001251,
+      "longitude": -125.002441,
+      "zoomLevel": 6
+    },
+    "Manitoba": {
+      "latitude": 55.001251,
+      "longitude": -97.001038,
+      "zoomLevel": 6
+    },
+    "New Brunswick": {
+      "latitude": 46.500283,
+      "longitude": -66.750183,
+      "zoomLevel": 6
+    },
+    "Newfoundland And Labrador": {
+      "latitude": 53.8217327,
+      "longitude": -61.2295532,
+      "zoomLevel": 6
+    },
+    "Northwest Territories": {
+      "latitude": 65.0000004,
+      "longitude": -118.0,
+      "zoomLevel": 6
+    },
+    "Nova Scotia": {
+      "latitude": 45.1960403,
+      "longitude": -63.1653789,
+      "zoomLevel": 6
+    },
+    "Nunavut": {
+      "latitude": 65.0377727,
+      "longitude": -92.5540791,
+      "zoomLevel": 6
+    },
+    "Ontario": {
+      "latitude": 50.000678,
+      "longitude": -86.000977,
+      "zoomLevel": 6
+    },
+    "Prince Edward Island": {
+      "latitude": 46.3355508,
+      "longitude": -63.1466676,
+      "zoomLevel": 6
+    },
+    "Quebec": {
+      "latitude": 52.4760892,
+      "longitude": -71.8258668,
+      "zoomLevel": 6
+    },
+    "Saskatchewan": {
+      "latitude": 55.5321257,
+      "longitude": -106.141224,
+      "zoomLevel": 6
+    },
+    "Yukon": {
+      "latitude": 63.000147,
+      "longitude": -136.002502,
+      "zoomLevel": 6
+    },
+    "Alabama": {
+      "latitude": 33.2588817,
+      "longitude": -86.8295337,
+      "zoomLevel": 6
+    },
+    "Alaska 1": {
+      "latitude": 35.1080762,
+      "longitude": 33.3773182,
+      "zoomLevel": 6
+    },
+    "Alaska 2": {
+      "latitude": 45.2307172,
+      "longitude": 19.7802557,
+      "zoomLevel": 6
+    },
+    "Arizona": {
+      "latitude": 34.395342,
+      "longitude": -111.763275,
+      "zoomLevel": 6
+    },
+    "Arkansas": {
+      "latitude": 35.2048883,
+      "longitude": -92.4479108,
+      "zoomLevel": 6
+    },
+    "California": {
+      "latitude": 36.7014631,
+      "longitude": -118.755997,
+      "zoomLevel": 6
+    },
+    "Colorado": {
+      "latitude": 38.7251776,
+      "longitude": -105.607716,
+      "zoomLevel": 6
+    },
+    "Connecticut": {
+      "latitude": 41.6500201,
+      "longitude": -72.7342163,
+      "zoomLevel": 6
+    },
+    "Delaware": {
+      "latitude": 38.6920451,
+      "longitude": -75.4013315,
+      "zoomLevel": 6
+    },
+    "District Of Columbia": {
+      "latitude": 38.8950368,
+      "longitude": -77.0365427,
+      "zoomLevel": 6
+    },
+    "Florida": {
+      "latitude": 27.7567667,
+      "longitude": -81.4639835,
+      "zoomLevel": 6
+    },
+    "Hawaii": {
+      "latitude": 19.5938015,
+      "longitude": -155.4283701,
+      "zoomLevel": 6
+    },
+    "Idaho": {
+      "latitude": 43.6447642,
+      "longitude": -114.015407,
+      "zoomLevel": 6
+    },
+    "Illinois": {
+      "latitude": 40.0796606,
+      "longitude": -89.4337288,
+      "zoomLevel": 6
+    },
+    "Indiana": {
+      "latitude": 40.3270127,
+      "longitude": -86.1746933,
+      "zoomLevel": 6
+    },
+    "Iowa": {
+      "latitude": 41.9216734,
+      "longitude": -93.3122705,
+      "zoomLevel": 6
+    },
+    "Kansas": {
+      "latitude": 38.27312,
+      "longitude": -98.5821872,
+      "zoomLevel": 6
+    },
+    "Kentucky": {
+      "latitude": 37.5726028,
+      "longitude": -85.1551411,
+      "zoomLevel": 6
+    },
+    "Louisiana": {
+      "latitude": 30.8703881,
+      "longitude": -92.007126,
+      "zoomLevel": 6
+    },
+    "Maine": {
+      "latitude": 45.709097,
+      "longitude": -68.8590201,
+      "zoomLevel": 6
+    },
+    "Maryland": {
+      "latitude": 39.5162401,
+      "longitude": -76.9382069,
+      "zoomLevel": 6
+    },
+    "Massachusetts": {
+      "latitude": 42.3788774,
+      "longitude": -72.032366,
+      "zoomLevel": 6
+    },
+    "Michigan": {
+      "latitude": 43.6211955,
+      "longitude": -84.6824346,
+      "zoomLevel": 6
+    },
+    "Minnesota": {
+      "latitude": 45.9896587,
+      "longitude": -94.6113288,
+      "zoomLevel": 6
+    },
+    "Mississippi": {
+      "latitude": 32.9715285,
+      "longitude": -89.7348497,
+      "zoomLevel": 6
+    },
+    "Missouri": {
+      "latitude": 38.7604815,
+      "longitude": -92.5617875,
+      "zoomLevel": 6
+    },
+    "Montana": {
+      "latitude": 47.3752671,
+      "longitude": -109.638757,
+      "zoomLevel": 6
+    },
+    "Nebraska": {
+      "latitude": 41.7370229,
+      "longitude": -99.5873816,
+      "zoomLevel": 6
+    },
+    "Nevada": {
+      "latitude": 39.5158825,
+      "longitude": -116.853722,
+      "zoomLevel": 6
+    },
+    "New Hampshire": {
+      "latitude": 43.4849133,
+      "longitude": -71.6553992,
+      "zoomLevel": 6
+    },
+    "New Jersey": {
+      "latitude": 40.0757384,
+      "longitude": -74.4041622,
+      "zoomLevel": 6
+    },
+    "New Mexico": {
+      "latitude": 34.5802074,
+      "longitude": -105.996047,
+      "zoomLevel": 6
+    },
+    "New York": {
+      "latitude": 40.7127281,
+      "longitude": -74.0060152,
+      "zoomLevel": 6
+    },
+    "North Carolina": {
+      "latitude": 35.6729639,
+      "longitude": -79.0392919,
+      "zoomLevel": 6
+    },
+    "North Dakota": {
+      "latitude": 47.6201461,
+      "longitude": -100.540737,
+      "zoomLevel": 6
+    },
+    "Ohio": {
+      "latitude": 40.2253569,
+      "longitude": -82.6881395,
+      "zoomLevel": 6
+    },
+    "Oklahoma": {
+      "latitude": 34.9550817,
+      "longitude": -97.2684063,
+      "zoomLevel": 6
+    },
+    "Oregon": {
+      "latitude": 43.9792797,
+      "longitude": -120.737257,
+      "zoomLevel": 6
+    },
+    "Pennsylvania": {
+      "latitude": 40.9699889,
+      "longitude": -77.7278831,
+      "zoomLevel": 6
+    },
+    "Puerto Rico": {
+      "latitude": 18.2247706,
+      "longitude": -66.4858295,
+      "zoomLevel": 6
+    },
+    "Rhode Island": {
+      "latitude": 41.7962409,
+      "longitude": -71.5992372,
+      "zoomLevel": 6
+    },
+    "South Carolina": {
+      "latitude": 33.6874388,
+      "longitude": -80.4363743,
+      "zoomLevel": 6
+    },
+    "South Dakota": {
+      "latitude": 44.6471761,
+      "longitude": -100.348761,
+      "zoomLevel": 6
+    },
+    "Tennessee": {
+      "latitude": 35.7730076,
+      "longitude": -86.2820081,
+      "zoomLevel": 6
+    },
+    "Texas": {
+      "latitude": 31.2638905,
+      "longitude": -98.5456116,
+      "zoomLevel": 6
+    },
+    "Us Virgin Islands": {
+      "latitude": 17.789187,
+      "longitude": -64.7080574,
+      "zoomLevel": 6
+    },
+    "Utah": {
+      "latitude": 39.4225192,
+      "longitude": -111.714358,
+      "zoomLevel": 6
+    },
+    "Vermont": {
+      "latitude": 44.5990718,
+      "longitude": -72.5002608,
+      "zoomLevel": 6
+    },
+    "Virginia": {
+      "latitude": 37.1232245,
+      "longitude": -78.4927721,
+      "zoomLevel": 6
+    },
+    "Washington": {
+      "latitude": 38.8950368,
+      "longitude": -77.0365427,
+      "zoomLevel": 6
+    },
+    "West Virginia": {
+      "latitude": 38.4758406,
+      "longitude": -80.8408415,
+      "zoomLevel": 6
+    },
+    "Wisconsin": {
+      "latitude": 44.4308975,
+      "longitude": -89.6884637,
+      "zoomLevel": 6
+    },
+    "Wyoming": {
+      "latitude": 43.1700264,
+      "longitude": -107.568534,
+      "zoomLevel": 6
+    },
+    "Kaliningrad": {
+      "latitude": 54.7046485,
+      "longitude": 20.4565666,
+      "zoomLevel": 6
+    },
+    "Argentina": {
+      "latitude": -34.9964963,
+      "longitude": -64.9672817,
+      "zoomLevel": 6
+    },
+    "Bolivia": {
+      "latitude": -17.0568696,
+      "longitude": -64.9912286,
+      "zoomLevel": 6
+    },
+    "Brazil": {
+      "latitude": -10.3333333,
+      "longitude": -53.2,
+      "zoomLevel": 6
+    },
+    "Chile": {
+      "latitude": -31.7613365,
+      "longitude": -71.3187697,
+      "zoomLevel": 6
+    },
+    "Colombia": {
+      "latitude": 4.099917,
+      "longitude": -72.9088133,
+      "zoomLevel": 6
+    },
+    "Ecuador": {
+      "latitude": -1.3397668,
+      "longitude": -79.3666965,
+      "zoomLevel": 6
+    },
+    "Guyana": {
+      "latitude": 4.8417097,
+      "longitude": -58.6416891,
+      "zoomLevel": 6
+    },
+    "Paraguay": {
+      "latitude": -23.3165935,
+      "longitude": -58.1693445,
+      "zoomLevel": 6
+    },
+    "Peru": {
+      "latitude": -6.8699697,
+      "longitude": -75.0458515,
+      "zoomLevel": 6
+    },
+    "Suriname": {
+      "latitude": 4.1413025,
+      "longitude": -56.0771187,
+      "zoomLevel": 6
+    },
+    "Uruguay": {
+      "latitude": -32.8755548,
+      "longitude": -56.0201525,
+      "zoomLevel": 6
+    },
+    "Venezuela": {
+      "latitude": 8.0018709,
+      "longitude": -66.1109318,
+      "zoomLevel": 6
+    },
+    "Centro Oeste": {
+      "latitude": -15.6985,
+      "longitude": -53.5339827,
+      "zoomLevel": 6
+    },
+    "Nordeste": {
+      "latitude": 37.8182511,
+      "longitude": -25.2203287,
+      "zoomLevel": 6
+    },
+    "Norte": {
+      "latitude": 50.5289615,
+      "longitude": 3.0883508,
+      "zoomLevel": 6
+    },
+    "Sudeste": {
+      "latitude": -24.6299492,
+      "longitude": 26.0454758,
+      "zoomLevel": 6
+    },
+    "Sul": {
+      "latitude": 37.5666791,
+      "longitude": 126.9782914,
+      "zoomLevel": 6
+    },
+    "World": {
+      "latitude": 33.9744819,
+      "longitude": -118.269835,
+      "zoomLevel": 2
+    }
+  }
+}
