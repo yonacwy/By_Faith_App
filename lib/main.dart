@@ -13,6 +13,7 @@ import 'models/sub_directory.dart';
 import 'models/directory.dart';
 import 'package:provider/provider.dart'; // Import Provider
 import 'providers/theme_notifier.dart';
+import 'package:onboarding/onboarding.dart'; // Import onboarding package
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,22 +42,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, themeNotifier, child) {
-        return MaterialApp(
-          title: 'By Faith App',
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
-          ),
-          themeMode: themeNotifier.themeMode,
-          home: const RootPage(),
-        );
-      },
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final userPreferencesBox = Hive.box('userPreferences');
+    final bool onboardingComplete = userPreferencesBox.get('onboardingComplete') ?? false;
+
+    return MaterialApp(
+      title: 'By Faith App',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
+      ),
+      themeMode: themeNotifier.themeMode,
+      home: onboardingComplete ? const RootPage() : OnboardingScreen(), // Show OnboardingScreen if not complete
     );
   }
 }
@@ -128,6 +129,34 @@ class _RootPageState extends State<RootPage> {
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
         onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+// Placeholder Onboarding Screen
+class OnboardingScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Welcome')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('This is the Onboarding Screen'),
+            ElevatedButton(
+              onPressed: () {
+                // Mark onboarding as complete and navigate to RootPage
+                Hive.box('userPreferences').put('onboardingComplete', true);
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const RootPage()),
+                );
+              },
+              child: Text('Skip Onboarding'),
+            ),
+          ],
+        ),
       ),
     );
   }
