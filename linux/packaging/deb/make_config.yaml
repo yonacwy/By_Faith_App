@@ -1,0 +1,36 @@
+display_name: By Faith App
+package_name: by-faith-app
+maintainer:
+  name: Barry Smith
+  email: barry.b.smith@gmail.com
+priority: optional
+section: x11
+installed_size: 6604
+essential: false
+icon: web/icons/Icon-192.png
+
+postinstall_scripts:
+  - echo "Installed By Faith App"
+postuninstall_scripts:
+  - echo "Surprised Pickachu face"
+
+keywords:
+  - Bible
+  - Study
+  - Prayer
+  - Gospel
+  - Faith
+  - Religion
+  - Christian
+
+generic_name: Faith Application
+
+categories:
+  - Education
+  - Religion
+  - Utility
+
+startup_notify: true
+# You can also specify [metainfo](https://freedesktop.org/software/appstream/docs/chap-Quickstart.html) file
+# which contains metadata of the app.
+# metainfo: linux/packaging/myappid.appdata.xml

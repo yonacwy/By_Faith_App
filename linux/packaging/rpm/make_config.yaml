@@ -1,0 +1,27 @@
+icon: web/icons/Icon-512.png
+summary: By Faith App
+group: Application/Emulator
+vendor: Barry Smith
+packager: Barry Smith
+packagerEmail: barry.b.smith@gmail.com
+license: GPLv3
+url: https://github.com/byfaithapp/by_faith_app
+
+display_name: By Faith App
+
+keywords:
+  - Faith
+  - Bible
+  - Christian
+  - App
+
+generic_name: Christian Application
+
+categories:
+  - Religion
+  - Education
+
+startup_notify: true
+# You can also specify [metainfo](https://freedesktop.org/software/appstream/docs/chap-Quickstart.html) file
+# which contains metadata of the app.
+# metainfo: linux/packaging/myappid.appdata.xml
