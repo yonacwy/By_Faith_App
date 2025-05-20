@@ -1,3 +1,4 @@
+import 'providers/page_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -10,7 +11,7 @@ import 'models/prayer.dart';
 import 'models/map_entry_data.dart';
 import 'models/sub_directory.dart';
 import 'models/directory.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart'; // Import Provider
 import 'providers/theme_notifier.dart';
 
 void main() async {
@@ -25,8 +26,11 @@ void main() async {
   final themeBox = await Hive.openBox('themeBox'); // For theme persistence
   await Hive.openBox('userPreferences'); // For ReadPage book and chapter persistence
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeNotifier(themeBox),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeNotifier(themeBox)),
+        ChangeNotifierProvider(create: (_) => PageNotifier()), // Add PageNotifier
+      ],
       child: const MyApp(),
     ),
   );
@@ -60,11 +64,18 @@ class MyApp extends StatelessWidget {
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
 
+  // Public method to navigate to a specific page
+  void navigateToPage(BuildContext context, int index) {
+    // Find the state object and call its private method
+    context.findAncestorStateOfType<_RootPageState>()?._onItemTapped(index);
+  }
+
   @override
   State<RootPage> createState() => _RootPageState();
 }
 
 class _RootPageState extends State<RootPage> {
+  // Listen to PageNotifier for index changes
   int _selectedIndex = 0;
   final List<Widget> _pages = [
     HomePage(),
@@ -74,10 +85,16 @@ class _RootPageState extends State<RootPage> {
     StudyPage(),
   ];
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Update selected index when PageNotifier changes
+    _selectedIndex = Provider.of<PageNotifier>(context).selectedIndex;
+  }
+
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    // Update PageNotifier, which will trigger didChangeDependencies
+    Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(index);
   }
 
   @override

@@ -485,7 +485,7 @@ class _GospelPageState extends State<GospelPage> {
     super.initState();
     _displayModel = DisplayModel(deviceScaleFactor: 2.0);
     _viewModel = ViewModel(displayModel: _displayModel); // Initialize ViewModel here
-    _initHive().then((_) {
+    _initHive().then((_) async { // Added async here
       // Set initial map position after Hive is ready and _currentMapFilePath is set
       if (_currentMapFilePath != null) {
         final mapInfo = _mapBox.values.firstWhere(
@@ -496,8 +496,8 @@ class _GospelPageState extends State<GospelPage> {
         _viewModel?.setZoomLevel(mapInfo.zoomLevel);
       }
       setState(() {}); // Trigger a rebuild now that _viewModel is initialized
+      await _loadMapData(); // Moved this line inside the then block
     });
-    _loadMapData();
   }
 
   Future<void> _initHive() async {
