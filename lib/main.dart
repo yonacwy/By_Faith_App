@@ -26,6 +26,12 @@ void main() async {
   await Hive.openBox<Prayer>('prayers'); // For Prayer model
   final themeBox = await Hive.openBox('themeBox'); // For theme persistence
   await Hive.openBox('userPreferences'); // For ReadPage book and chapter persistence
+
+  // Clear Hive data for a clean start
+  await Hive.box<Prayer>('prayers').clear();
+  await Hive.box('themeBox').clear();
+  await Hive.box('userPreferences').clear();
+
   runApp(
     MultiProvider(
       providers: [
