@@ -50,6 +50,7 @@ dependencies:
   onboarding: ^4.0.2
   fastforge: ^0.5.1
 
+
 characters: ^0.3.0 # Add characters package
 collection: ^1.18.0 # Add collection package
 vector_math: ^2.1.4 # Add vector_math package

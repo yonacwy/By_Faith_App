@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'study_search.dart';
 import 'study_settings.dart';
 import 'study_dictionary.dart';
+import 'study_notes.dart'; // Added import for study_notes.dart
 
 class StudyPage extends StatefulWidget {
   final String? initialBook;
@@ -29,6 +30,7 @@ class _StudyPageState extends State<StudyPage> {
   late Box userPrefsBox;
   String selectedFont = 'Roboto';
   double selectedFontSize = 16.0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -244,7 +246,7 @@ class _StudyPageState extends State<StudyPage> {
           initialFontSize: selectedFontSize,
         ),
       ),
-    );
+    ).then((_) => _scaffoldKey.currentState?.closeEndDrawer());
   }
 
   void _openSearchPage() {
@@ -253,10 +255,19 @@ class _StudyPageState extends State<StudyPage> {
       delegate: BibleSearchDelegate(
         bibleData: bibleData,
       ),
-    );
+    ).then((_) => _scaffoldKey.currentState?.closeEndDrawer());
   }
 
-  void _openDictionaryPage(String strongsNumber, String? bookName) {
+  void _openNotesPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const StudyNotesPage(), // Assuming StudyNotesPage exists
+      ),
+    ).then((_) => _scaffoldKey.currentState?.closeEndDrawer());
+  }
+
+  void _openDictionaryPage(strongsNumber, String? bookName) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -276,6 +287,7 @@ class _StudyPageState extends State<StudyPage> {
     final double dropdownFontSize = screenWidth < 360 ? 14 : 16;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Bible Study'),
@@ -288,18 +300,46 @@ class _StudyPageState extends State<StudyPage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _openSearchPage,
-            tooltip: 'Search',
-            padding: const EdgeInsets.all(8),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _openSettingsPage,
-            tooltip: 'Settings',
+            icon: const Icon(Icons.menu),
+            onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+            tooltip: 'Menu',
             padding: const EdgeInsets.all(8),
           ),
         ],
+      ),
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              child: Text(
+                'Menu',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Search'),
+              onTap: _openSearchPage,
+            ),
+            ListTile(
+              leading: const Icon(Icons.note),
+              title: const Text('Notes'),
+              onTap: _openNotesPage,
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: _openSettingsPage,
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: Column(
