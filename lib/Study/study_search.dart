@@ -51,6 +51,39 @@ class BibleSearchDelegate extends SearchDelegate {
     return spans;
   }
 
+  bool _isNewTestamentBook(String book) {
+    final newTestamentBooks = [
+      "Matthew",
+      "Mark",
+      "Luke",
+      "John",
+      "Acts",
+      "Romans",
+      "1 Corinthians",
+      "2 Corinthians",
+      "Galatians",
+      "Ephesians",
+      "Philippians",
+      "Colossians",
+      "1 Thessalonians",
+      "2 Thessalonians",
+      "1 Timothy",
+      "2 Timothy",
+      "Titus",
+      "Philemon",
+      "Hebrews",
+      "James",
+      "1 Peter",
+      "2 Peter",
+      "1 John",
+      "2 John",
+      "3 John",
+      "Jude",
+      "Revelation"
+    ];
+    return newTestamentBooks.contains(book);
+  }
+
   void _performSearch(String query) {
     isLoading = true;
     searchResults.clear();
@@ -67,21 +100,52 @@ class BibleSearchDelegate extends SearchDelegate {
             })
         .toList();
 
-    final Map<String, List<Map<String, dynamic>>> groupedResults = {};
+    final Map<String, List<Map<String, dynamic>>> oldTestamentResults = {};
+    final Map<String, List<Map<String, dynamic>>> newTestamentResults = {};
+
     for (var result in allResults) {
       final book = result['book'] as String;
-      if (!groupedResults.containsKey(book)) {
-        groupedResults[book] = [];
+      if (_isNewTestamentBook(book)) {
+        if (!newTestamentResults.containsKey(book)) {
+          newTestamentResults[book] = [];
+        }
+        newTestamentResults[book]!.add(result);
+      } else {
+        if (!oldTestamentResults.containsKey(book)) {
+          oldTestamentResults[book] = [];
+        }
+        oldTestamentResults[book]!.add(result);
       }
-      groupedResults[book]!.add(result);
     }
 
-    searchResults = groupedResults.entries
-        .map((entry) => {
-              'book': entry.key,
-              'verses': entry.value,
-            })
-        .toList();
+    searchResults = [
+      if (oldTestamentResults.isNotEmpty)
+        {
+          'testament': 'Old Testament',
+          'count': oldTestamentResults.values.fold<int>(
+              0, (sum, verses) => sum + verses.length),
+          'books': oldTestamentResults.entries
+              .map((entry) => {
+                    'book': entry.key,
+                    'verses': entry.value,
+                    'count': entry.value.length,
+                  })
+              .toList(),
+        },
+      if (newTestamentResults.isNotEmpty)
+        {
+          'testament': 'New Testament',
+          'count': newTestamentResults.values.fold<int>(
+              0, (sum, verses) => sum + verses.length),
+          'books': newTestamentResults.entries
+              .map((entry) => {
+                    'book': entry.key,
+                    'verses': entry.value,
+                    'count': entry.value.length,
+                  })
+              .toList(),
+        },
+    ];
 
     isLoading = false;
   }
@@ -129,9 +193,10 @@ class BibleSearchDelegate extends SearchDelegate {
                   padding: const EdgeInsets.all(16.0),
                   itemCount: searchResults.length,
                   itemBuilder: (context, index) {
-                    final result = searchResults[index];
-                    final book = result['book'] as String;
-                    final verses = result['verses'] as List<Map<String, dynamic>>;
+                    final testament = searchResults[index];
+                    final String testamentName = testament['testament'] as String;
+                    final int testamentCount = testament['count'] as int;
+                    final List<dynamic> books = testament['books'] as List;
 
                     return Card(
                       elevation: 0,
@@ -143,41 +208,83 @@ class BibleSearchDelegate extends SearchDelegate {
                       ),
                       child: ExpansionTile(
                         title: Text(
-                          book,
+                          '$testamentName ($testamentCount)',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                         ),
-                        children: verses.map((verse) {
-                          final text = verse['text'].toString();
-                          final queryLower = query.toLowerCase();
-                          final spans =
-                              _buildHighlightedText(text, queryLower, context);
+                        children: books.map((bookEntry) {
+                          final String book = bookEntry['book'] as String;
+                          final List<Map<String, dynamic>> verses =
+                              bookEntry['verses'] as List<Map<String, dynamic>>;
+                          final int bookCount = bookEntry['count'] as int;
 
-                          return ListTile(
+                          return ExpansionTile(
                             title: Text(
-                              '${verse['chapter']}:${verse['verse']}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            subtitle: RichText(
-                              text: TextSpan(
-                                children: spans,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => StudyPage(
-                                    initialBook: verse['book'],
-                                    initialChapter: verse['chapter'],
+                              '$book ($bookCount)',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
                                   ),
+                            ),
+                            children: verses.map((verse) {
+                              final text = verse['text'].toString();
+                              final queryLower = query.toLowerCase();
+                              final spans = _buildHighlightedText(
+                                  text, queryLower, context);
+
+                              return ListTile(
+                                title: Text(
+                                  '${verse['chapter']}:${verse['verse']}',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
                                 ),
+                                subtitle: RichText(
+                                  text: TextSpan(
+                                    children: spans,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                onTap: () {
+                                  // Ensure book and chapter are valid before navigating
+                                  final String? bookName = verse['book'];
+                                  final int? chapter = verse['chapter'];
+                                  if (bookName != null && chapter != null) {
+                                    try {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => StudyPage(
+                                            initialBook: bookName,
+                                            initialChapter: chapter,
+                                          ),
+                                        ),
+                                      ).then((_) {
+                                        // Close the search delegate after navigation
+                                        close(context, null);
+                                      });
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Error navigating to $bookName $chapter: $e'),
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Invalid book or chapter data'),
+                                      ),
+                                    );
+                                  }
+                                },
                               );
-                              close(context, null);
-                            },
+                            }).toList(),
                           );
                         }).toList(),
                       ),
