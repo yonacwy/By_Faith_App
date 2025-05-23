@@ -265,9 +265,8 @@ class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
                   controller: quillController,
                   scrollController: ScrollController(),
                   focusNode: FocusNode(),
-                  configurations: quill.QuillEditorConfigurations(
-                    showCursor: false,
-                    padding: const EdgeInsets.all(0),
+                  config: const quill.QuillEditorConfig(
+                    padding: EdgeInsets.all(0),
                     maxHeight: 40,
                   ),
                 ),
@@ -620,9 +619,9 @@ class _EditPrayerPageState extends State<_EditPrayerPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                quill.QuillToolbar.simple(
-                  configurations: quill.QuillSimpleToolbarConfigurations(
-                    controller: _quillController,
+                quill.QuillSimpleToolbar(
+                  controller: _quillController,
+                  config: const quill.QuillSimpleToolbarConfig(
                     multiRowsDisplay: false,
                     showAlignmentButtons: false,
                     showBackgroundColorButton: false,
@@ -643,7 +642,7 @@ class _EditPrayerPageState extends State<_EditPrayerPage> {
                     controller: _quillController,
                     scrollController: ScrollController(),
                     focusNode: FocusNode()..requestFocus(),
-                    configurations: quill.QuillEditorConfigurations(
+                    config: quill.QuillEditorConfig(
                       autoFocus: true,
                       expands: false,
                       padding: const EdgeInsets.all(8),
@@ -731,9 +730,9 @@ class _NewPrayerPageState extends State<_NewPrayerPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                quill.QuillToolbar.simple(
-                  configurations: quill.QuillSimpleToolbarConfigurations(
-                    controller: _quillController,
+                quill.QuillSimpleToolbar(
+                  controller: _quillController,
+                  config: const quill.QuillSimpleToolbarConfig(
                     multiRowsDisplay: false,
                     showAlignmentButtons: false,
                     showBackgroundColorButton: false,
@@ -752,7 +751,7 @@ class _NewPrayerPageState extends State<_NewPrayerPage> {
                     controller: _quillController,
                     scrollController: ScrollController(),
                     focusNode: FocusNode()..requestFocus(),
-                    configurations: quill.QuillEditorConfigurations(
+                    config: quill.QuillEditorConfig(
                       autoFocus: true,
                       expands: false,
                       padding: const EdgeInsets.all(0),

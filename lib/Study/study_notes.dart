@@ -75,9 +75,9 @@ class _StudyNotesPageState extends State<StudyNotesPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               color: Theme.of(context).colorScheme.surfaceContainer,
-              child: quill.QuillToolbar.simple(
-                configurations: quill.QuillSimpleToolbarConfigurations(
-                  controller: _quillController, // Fixed: Added controller here
+              child: quill.QuillSimpleToolbar(
+                controller: _quillController,
+                config: const quill.QuillSimpleToolbarConfig(
                   multiRowsDisplay: false,
                   showBoldButton: true,
                   showItalicButton: true,
@@ -122,8 +122,8 @@ class _StudyNotesPageState extends State<StudyNotesPage> {
                 controller: _quillController,
                 scrollController: ScrollController(),
                 focusNode: FocusNode(),
-                configurations: quill.QuillEditorConfigurations(
-                  padding: const EdgeInsets.all(8.0),
+                config: const quill.QuillEditorConfig(
+                  padding: EdgeInsets.all(8.0),
                   placeholder: 'Enter your note...',
                 ),
               ),
@@ -174,9 +174,8 @@ class _StudyNotesPageState extends State<StudyNotesPage> {
                               controller: noteController,
                               scrollController: ScrollController(),
                               focusNode: FocusNode(),
-                              configurations: quill.QuillEditorConfigurations(
-                                padding: const EdgeInsets.all(8.0),
-                                showCursor: false,
+                              config: const quill.QuillEditorConfig(
+                                padding: EdgeInsets.all(8.0),
                               ),
                             ),
                             trailing: IconButton(
