@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
-import 'sub_directory.dart'; // Import the SubDirectory model
+import 'gospel_map_sub_directory_model.dart'; // Import the SubDirectory model
 
-part 'directory.g.dart';
+part 'gospel_map_directory_model.g.dart';
 
 @HiveType(typeId: 4)
 class Directory extends HiveObject {

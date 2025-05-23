@@ -2,29 +2,32 @@ import 'providers/page_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'Home/home_page.dart';
-import 'Gospel/gospel_page.dart';
-import 'Pray/pray_page.dart';
-import 'Read/read_page.dart';
-import 'Study/study_page.dart';
-import 'models/prayer.dart';
-import 'models/map_entry_data.dart';
-import 'models/sub_directory.dart';
-import 'models/directory.dart';
+import 'ui/home_page_ui.dart';
+import 'ui/gospel_page_ui.dart';
+import 'ui/pray_page_ui.dart';
+import 'ui/read_page_ui.dart';
+import 'ui/study_page_ui.dart';
+import 'models/pray_model.dart';
+import 'models/gospel_map_entry_data_model.dart';
+import 'models/gospel_map_sub_directory_model.dart';
+import 'models/gospel_map_directory_model.dart';
 import 'package:provider/provider.dart'; // Import Provider
 import 'providers/theme_notifier.dart';
 import 'package:onboarding/onboarding.dart'; // Import onboarding package
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 
+import 'adapters/gospel_map_directory_adapter.dart';
+import 'adapters/gospel_map_entry_adapter.dart';
+import 'adapters/gospel_map_sub_directory_adapter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(PrayerAdapter());
   Hive.registerAdapter(MapInfoAdapter()); // Register MapInfoAdapter
-  Hive.registerAdapter(MapEntryDataAdapter());
-  Hive.registerAdapter(SubDirectoryAdapter());
-  Hive.registerAdapter(DirectoryAdapter());
+  Hive.registerAdapter(GospelMapEntryAdapter());
+  Hive.registerAdapter(GospelMapSubDirectoryAdapter());
+  Hive.registerAdapter(GospelMapDirectoryAdapter());
   await Hive.openBox<Prayer>('prayers'); // For Prayer model
   final themeBox = await Hive.openBox('themeBox'); // For theme persistence
   await Hive.openBox('userPreferences'); // For ReadPage book and chapter persistence
@@ -95,11 +98,11 @@ class _RootPageState extends State<RootPage> {
   // Listen to PageNotifier for index changes
   int _selectedIndex = 0;
   final List<Widget> _pages = [
-    HomePage(),
-    GospelPage(),
-    PrayPage(),
-    ReadPage(),
-    StudyPage(),
+    HomePageUi(),
+    GospelPageUi(),
+    PrayPageUi(),
+    ReadPageUi(),
+    StudyPageUi(),
   ];
 
   @override

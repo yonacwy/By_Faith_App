@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-class StrongsDictionaryPage extends StatelessWidget {
+class StrongsDictionaryPageUi extends StatelessWidget {
   final String strongsNumber;
   final String? bookName;
   final Map<String, dynamic> hebrewDictionary;
   final Map<String, dynamic> greekDictionary;
 
-  const StrongsDictionaryPage({
-    super.key,
+  StrongsDictionaryPageUi({
+    Key? key,
     required this.strongsNumber,
     this.bookName,
     required this.hebrewDictionary,
     required this.greekDictionary,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

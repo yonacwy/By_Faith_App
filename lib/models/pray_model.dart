@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 
-part 'prayer.g.dart';
+part 'pray_model.g.dart';
 
 @HiveType(typeId: 0)
 class Prayer extends HiveObject {

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'prayer.dart';
+part of 'pray_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'study_page.dart';
+import 'study_page_ui.dart';
 
 class BibleSearchDelegate extends SearchDelegate {
   final List<dynamic> bibleData;
@@ -354,7 +354,7 @@ class BibleSearchDelegate extends SearchDelegate {
                                           Navigator.pushReplacement(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => StudyPage(
+                                              builder: (context) => StudyPageUi(
                                                 initialBook: bookName,
                                                 initialChapter: chapter,
                                               ),
@@ -512,7 +512,7 @@ class BibleSearchDelegate extends SearchDelegate {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => StudyPage(
+                                        builder: (context) => StudyPageUi(
                                           initialBook: bookName,
                                           initialChapter: chapter,
                                         ),

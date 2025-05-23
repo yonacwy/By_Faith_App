@@ -1,22 +1,22 @@
 import '../providers/page_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../models/prayer.dart';
-import '../models/map_entry_data.dart';
-import '../models/directory.dart';
-import '../models/sub_directory.dart';
-import 'package:by_faith_app/Gospel/gospel_page.dart';
+import '../models/pray_model.dart';
+import '../models/gospel_map_entry_data_model.dart';
+import '../models/gospel_map_directory_model.dart';
+import '../models/gospel_map_sub_directory_model.dart';
+import 'package:by_faith_app/ui/gospel_page_ui.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart'; // Add this for theme switching
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomePageUi extends StatefulWidget {
+  HomePageUi({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _HomePageUiState createState() => _HomePageUiState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageUiState extends State<HomePageUi> {
   late Box<Prayer> _prayerBox;
   late Box _userPrefsBox;
   late Box<MapInfo> _mapBox;

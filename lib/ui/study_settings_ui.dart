@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 
-class StudySettingsPage extends StatefulWidget {
+class StudySettingsPageUi extends StatefulWidget {
   final Function(String, double) onFontChanged;
   final String initialFont;
   final double initialFontSize;
 
-  const StudySettingsPage({
-    super.key,
+  StudySettingsPageUi({
+    Key? key,
     required this.onFontChanged,
     required this.initialFont,
     required this.initialFontSize,
-  });
+  }) : super(key: key);
 
   @override
-  _StudySettingsPageState createState() => _StudySettingsPageState();
+  _StudySettingsPageUiState createState() => _StudySettingsPageUiState();
 }
 
-class _StudySettingsPageState extends State<StudySettingsPage> {
+class _StudySettingsPageUiState extends State<StudySettingsPageUi> {
   late String currentFont;
   late double currentFontSize;
 

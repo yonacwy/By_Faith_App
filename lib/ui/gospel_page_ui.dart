@@ -14,11 +14,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 
-import 'package:by_faith_app/models/map_entry_data.dart';
-import 'package:by_faith_app/models/sub_directory.dart';
-import 'package:by_faith_app/models/directory.dart';
+import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
+import 'package:by_faith_app/models/gospel_map_sub_directory_model.dart';
+import 'package:by_faith_app/models/gospel_map_directory_model.dart';
 
-part 'gospel_page.g.dart';
+part 'gospel_page_ui.g.dart';
 
 @HiveType(typeId: 1)
 class MapInfo extends HiveObject {
@@ -72,62 +72,6 @@ class MapInfo extends HiveObject {
         longitude: json['longitude'] as double,
         zoomLevel: json['zoomLevel'] as int,
       );
-}
-
-class SubDirectory {
-  final String name;
-
-  final List<MapEntryData> maps;
-
-  final List<SubDirectory> subDirectories;
-
-  SubDirectory({
-    required this.name,
-    this.maps = const [],
-    this.subDirectories = const [],
-  });
-
-  factory SubDirectory.fromJson(Map<String, dynamic> json, Map<String, Map<String, dynamic>> coordinateMap) => SubDirectory(
-        name: json['name'] as String,
-        maps: (json['maps'] as List<dynamic>?)
-                ?.map((m) => MapEntryData.fromJson(m as Map<String, dynamic>, coordinateMap))
-                .toList() ??
-            [],
-        subDirectories: (json['subDirectories'] as List<dynamic>?)
-                ?.map((s) => SubDirectory.fromJson(s as Map<String, dynamic>, coordinateMap))
-                .toList() ??
-            [],
-      );
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'maps': maps.map((m) => m.toJson()).toList(),
-        'subDirectories': subDirectories.map((s) => s.toJson()).toList(),
-      };
-}
-
-class Directory {
-  final String name;
-
-  final List<SubDirectory> subDirectories;
-
-  Directory({
-    required this.name,
-    required this.subDirectories,
-  });
-
-  factory Directory.fromJson(Map<String, dynamic> json, Map<String, Map<String, dynamic>> coordinateMap) => Directory(
-        name: json['name'] as String,
-        subDirectories: (json['subDirectories'] as List<dynamic>?)
-                ?.map((s) => SubDirectory.fromJson(s as Map<String, dynamic>, coordinateMap))
-                .toList() ??
-            [],
-      );
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'subDirectories': subDirectories.map((s) => s.toJson()).toList(),
-      };
 }
 
 class MapManagerPage extends StatefulWidget {
@@ -465,14 +409,14 @@ class _MapManagerPageState extends State<MapManagerPage> {
   }
 }
 
-class GospelPage extends StatefulWidget {
-  const GospelPage({super.key});
+class GospelPageUi extends StatefulWidget {
+  GospelPageUi({Key? key}) : super(key: key);
 
   @override
   _GospelPageState createState() => _GospelPageState();
 }
 
-class _GospelPageState extends State<GospelPage> {
+class _GospelPageState extends State<GospelPageUi> {
   late DisplayModel _displayModel;
   String? _currentMapFilePath;
   late Box<MapInfo> _mapBox;
@@ -535,7 +479,7 @@ class _GospelPageState extends State<GospelPage> {
           );
           final map = globalSubDir.maps.firstWhere(
             (m) => m.name == 'World',
-            orElse: () => MapEntryData(
+            orElse: () => GospelMapEntryData(
               name: '',
               primaryUrl: '',
               fallbackUrl: '',
@@ -687,6 +631,7 @@ class _GospelPageState extends State<GospelPage> {
     );
     setState(() {
       _currentMapFilePath = mapFilePath.isNotEmpty ? mapFilePath : null;
+      _viewModel?.dispose(); // Dispose old ViewModel
       _viewModel = ViewModel(
         displayModel: _displayModel,
       );
@@ -715,7 +660,7 @@ class _GospelPageState extends State<GospelPage> {
     return connectivityResult != ConnectivityResult.none;
   }
 
-  Future<void> _downloadMap(MapEntryData map, String mapName) async {
+  Future<void> _downloadMap(GospelMapEntryData map, String mapName) async {
     if (!await _checkNetwork()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No internet connection. Please check your network.')),
@@ -966,7 +911,7 @@ class _GospelPageState extends State<GospelPage> {
           currentMapFilePath: _currentMapFilePath,
           onLoadMap: _loadMap,
           onDownloadMap: (url, name) => _downloadMap(
-            MapEntryData(
+            GospelMapEntryData(
               name: name,
               primaryUrl: url,
               fallbackUrl: url.replaceFirst('ftp-stud.hs-esslingen.de', 'download.mapsforge.org'),
@@ -1067,6 +1012,7 @@ class _GospelPageState extends State<GospelPage> {
   @override
   void dispose() {
     print('Disposing GospelPage');
+    _viewModel?.dispose(); // Dispose the ViewModel
     super.dispose();
   }
 }

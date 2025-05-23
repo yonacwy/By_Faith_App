@@ -1,7 +1,9 @@
 import 'package:hive/hive.dart';
-import '../gospel_page.dart';
+import '../ui/gospel_page_ui.dart';
+import '../models/gospel_map_directory_model.dart';
+import '../models/gospel_map_sub_directory_model.dart';
 
-class DirectoryAdapter extends TypeAdapter<Directory> {
+class GospelMapDirectoryAdapter extends TypeAdapter<Directory> {
   @override
   final int typeId = 4;
 
@@ -33,7 +35,7 @@ class DirectoryAdapter extends TypeAdapter<Directory> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is DirectoryAdapter &&
+      other is GospelMapDirectoryAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

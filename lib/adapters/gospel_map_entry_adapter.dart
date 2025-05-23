@@ -1,22 +1,18 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+import 'package:hive/hive.dart';
+import '../ui/gospel_page_ui.dart';
+import '../models/gospel_map_entry_data_model.dart';
 
-part of 'map_entry_data.dart';
-
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
-
-class MapEntryDataAdapter extends TypeAdapter<MapEntryData> {
+class GospelMapEntryAdapter extends TypeAdapter<GospelMapEntryData> {
   @override
   final int typeId = 2;
 
   @override
-  MapEntryData read(BinaryReader reader) {
+  GospelMapEntryData read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return MapEntryData(
+    return GospelMapEntryData(
       name: fields[0] as String,
       primaryUrl: fields[1] as String,
       fallbackUrl: fields[2] as String,
@@ -27,7 +23,7 @@ class MapEntryDataAdapter extends TypeAdapter<MapEntryData> {
   }
 
   @override
-  void write(BinaryWriter writer, MapEntryData obj) {
+  void write(BinaryWriter writer, GospelMapEntryData obj) {
     writer
       ..writeByte(6)
       ..writeByte(0)
@@ -50,7 +46,7 @@ class MapEntryDataAdapter extends TypeAdapter<MapEntryData> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MapEntryDataAdapter &&
+      other is GospelMapEntryAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:hive_flutter/hive_flutter.dart';
 
-class StudyNotesPage extends StatefulWidget {
-  const StudyNotesPage({super.key});
+class StudyNotesPageUi extends StatefulWidget {
+  const StudyNotesPageUi({Key? key}) : super(key: key);
 
   @override
-  _StudyNotesPageState createState() => _StudyNotesPageState();
+  _StudyNotesPageUiState createState() => _StudyNotesPageUiState();
 }
 
-class _StudyNotesPageState extends State<StudyNotesPage> {
+class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
   late Box notesBox;
   final quill.QuillController _quillController = quill.QuillController.basic();
   List<String> notes = []; // Stores JSON strings of Quill Delta

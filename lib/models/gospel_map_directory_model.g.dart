@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'directory.dart';
+part of 'gospel_map_directory_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator

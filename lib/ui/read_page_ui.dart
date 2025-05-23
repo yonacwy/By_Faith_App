@@ -4,14 +4,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 
-class ReadPage extends StatefulWidget {
-  const ReadPage({super.key});
+class ReadPageUi extends StatefulWidget {
+  ReadPageUi({Key? key}) : super(key: key);
 
   @override
-  _ReadPageState createState() => _ReadPageState();
+  _ReadPageUiState createState() => _ReadPageUiState();
 }
 
-class _ReadPageState extends State<ReadPage> {
+class _ReadPageUiState extends State<ReadPageUi> {
   String? selectedBook;
   int? selectedChapter;
   List<dynamic> books = [];

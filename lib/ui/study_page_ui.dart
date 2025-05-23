@@ -3,22 +3,22 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'study_search.dart';
-import 'study_settings.dart';
-import 'study_dictionary.dart';
-import 'study_notes.dart'; // Added import for study_notes.dart
+import 'study_search_ui.dart';
+import 'study_settings_ui.dart';
+import 'study_dictionary_ui.dart';
+import 'study_notes_ui.dart'; // Added import for study_notes.dart
 
-class StudyPage extends StatefulWidget {
+class StudyPageUi extends StatefulWidget {
   final String? initialBook;
   final int? initialChapter;
 
-  const StudyPage({super.key, this.initialBook, this.initialChapter});
+  StudyPageUi({Key? key, this.initialBook, this.initialChapter}) : super(key: key);
 
   @override
-  _StudyPageState createState() => _StudyPageState();
+  _StudyPageUiState createState() => _StudyPageUiState();
 }
 
-class _StudyPageState extends State<StudyPage> {
+class _StudyPageUiState extends State<StudyPageUi> {
   String? selectedBook;
   int? selectedChapter;
   List<dynamic> books = [];
@@ -234,7 +234,7 @@ class _StudyPageState extends State<StudyPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => StudySettingsPage(
+        builder: (context) => StudySettingsPageUi(
           onFontChanged: (font, size) {
             setState(() {
               selectedFont = font;
@@ -262,7 +262,7 @@ class _StudyPageState extends State<StudyPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const StudyNotesPage(), // Assuming StudyNotesPage exists
+        builder: (context) => const StudyNotesPageUi(), // Assuming StudyNotesPage exists
       ),
     ).then((_) => _scaffoldKey.currentState?.closeEndDrawer());
   }
@@ -271,7 +271,7 @@ class _StudyPageState extends State<StudyPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => StrongsDictionaryPage(
+        builder: (context) => StrongsDictionaryPageUi(
           strongsNumber: strongsNumber,
           bookName: bookName,
           hebrewDictionary: hebrewDictionary,

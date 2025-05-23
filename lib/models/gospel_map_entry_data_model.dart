@@ -1,9 +1,9 @@
 import 'package:hive/hive.dart';
 
-part 'map_entry_data.g.dart';
+part 'gospel_map_entry_data_model.g.dart';
 
 @HiveType(typeId: 2)
-class MapEntryData extends HiveObject {
+class GospelMapEntryData extends HiveObject {
   @HiveField(0)
   final String name;
 
@@ -22,7 +22,7 @@ class MapEntryData extends HiveObject {
   @HiveField(5)
   final int zoomLevel;
 
-  MapEntryData({
+  GospelMapEntryData({
     required this.name,
     required this.primaryUrl,
     required this.fallbackUrl,
@@ -31,10 +31,10 @@ class MapEntryData extends HiveObject {
     required this.zoomLevel,
   });
 
-  factory MapEntryData.fromJson(Map<String, dynamic> json, Map<String, Map<String, dynamic>> coordinateMap) {
+  factory GospelMapEntryData.fromJson(Map<String, dynamic> json, Map<String, Map<String, dynamic>> coordinateMap) {
     final name = json['name'] as String;
     final coords = coordinateMap[name] ?? {'latitude': 0.0, 'longitude': 0.0, 'zoomLevel': 2};
-    return MapEntryData(
+    return GospelMapEntryData(
       name: name,
       primaryUrl: json['primaryUrl'] as String,
       fallbackUrl: json['fallbackUrl'] as String,

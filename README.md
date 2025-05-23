@@ -1,11 +1,12 @@
 # By Faith App
 
-A cross platform application built with Flutter, designed to provide resources for reading, studying, and praying.
+A cross platform application built with Flutter, designed to provide resources for reading, studying, praying, and evangelism
 
 ## Features
 
-- **Gospel:** Content related to the Gospel, and integration of map data, potentially for         geographical context related to biblical events or missions.
-- **Pray:** Features to support prayer life.
+- **Home:** Features a dashboard.
+- **Gospel:** Content related to the Gospel, and integration of map data, potentially for         geographical context related to soul winning or missions.
+- **Pray:** Features to support a prayer life.
 - **Read:** Access to read the KJV Bible.
 - **Study:** Tools and resources for in-depth study of the scriptures using Strong's Greek and Hebrew KJV definitions.
 
@@ -34,15 +35,14 @@ This project is a Flutter application. To get started:
 ## Project Structure
 
 - `lib/`: Contains the main application code.
-  - `bible_data/`: Bible texts and dictionaries.
-  - `Gospel/`: Gospel features.
-  - `Home/`: Home page with Dasboard.
-  - `models/`: Data models.
-  - `Pray/`: Prayer features.
-  - `providers/`: State management providers.
-  - `Read/`: Reading features.
-  - `Study/`: Study features.
+  - `adapters/`: Adapters for various data models.
   - `assets/`: Application assets, including maps and map data.
+    - `maps/`: Map files and render themes.
+  - `bible_data/`: Bible texts and dictionaries.
+  - `models/`: Data models.
+  - `providers/`: State management providers.
+  - `ui/`: User interface components and pages.
+  - `main.dart`: Application entry point.
 
 ## Contributing
 

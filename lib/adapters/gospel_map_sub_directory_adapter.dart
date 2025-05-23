@@ -1,12 +1,10 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+import 'package:hive/hive.dart';
+import '../ui/gospel_page_ui.dart';
+import '../models/gospel_map_directory_model.dart';
+import '../models/gospel_map_sub_directory_model.dart';
+import '../models/gospel_map_entry_data_model.dart';
 
-part of 'sub_directory.dart';
-
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
-
-class SubDirectoryAdapter extends TypeAdapter<SubDirectory> {
+class GospelMapSubDirectoryAdapter extends TypeAdapter<SubDirectory> {
   @override
   final int typeId = 3;
 
@@ -18,7 +16,7 @@ class SubDirectoryAdapter extends TypeAdapter<SubDirectory> {
     };
     return SubDirectory(
       name: fields[0] as String,
-      maps: (fields[1] as List).cast<MapEntryData>(),
+      maps: (fields[1] as List).cast<GospelMapEntryData>(),
       subDirectories: (fields[2] as List).cast<SubDirectory>(),
     );
   }
@@ -41,7 +39,7 @@ class SubDirectoryAdapter extends TypeAdapter<SubDirectory> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is SubDirectoryAdapter &&
+      other is GospelMapSubDirectoryAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

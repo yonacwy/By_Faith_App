@@ -3,18 +3,18 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import '../models/prayer.dart';
+import '../models/pray_model.dart';
 import '../providers/theme_notifier.dart';
 import 'dart:convert';
 
-class PrayPage extends StatefulWidget {
-  const PrayPage({super.key});
+class PrayPageUi extends StatefulWidget {
+  PrayPageUi({Key? key}) : super(key: key);
 
   @override
-  _PrayPageState createState() => _PrayPageState();
+  _PrayPageUiState createState() => _PrayPageUiState();
 }
 
-class _PrayPageState extends State<PrayPage> with TickerProviderStateMixin {
+class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   late Box<Prayer> _prayerBox;
   String _searchQuery = '';
