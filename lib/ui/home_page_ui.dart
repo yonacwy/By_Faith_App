@@ -6,6 +6,7 @@ import '../models/gospel_map_entry_data_model.dart';
 import '../models/gospel_map_directory_model.dart';
 import '../models/gospel_map_sub_directory_model.dart';
 import 'package:by_faith_app/ui/gospel_page_ui.dart';
+import 'package:by_faith_app/ui/gospel_map_manager_ui.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart'; // Add this for theme switching
 

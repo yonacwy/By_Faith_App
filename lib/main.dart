@@ -20,6 +20,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'adapters/gospel_map_directory_adapter.dart';
 import 'adapters/gospel_map_entry_adapter.dart';
 import 'adapters/gospel_map_sub_directory_adapter.dart';
+import 'ui/gospel_map_manager_ui.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();

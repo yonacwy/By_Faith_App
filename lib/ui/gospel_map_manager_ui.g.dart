@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gospel_page_ui.dart';
+part of 'gospel_map_manager_ui.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
