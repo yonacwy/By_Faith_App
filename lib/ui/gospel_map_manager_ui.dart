@@ -1,3 +1,4 @@
+import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -12,68 +13,13 @@ import 'package:by_faith_app/models/gospel_map_directory_model.dart';
 import 'package:by_faith_app/models/gospel_map_sub_directory_model.dart';
 import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
 
-part 'gospel_map_manager_ui.g.dart';
-
-@HiveType(typeId: 1)
-class MapInfo extends HiveObject {
-  @HiveField(0)
-  final String name;
-
-  @HiveField(1)
-  final String filePath;
-
-  @HiveField(2)
-  final String downloadUrl;
-
-  @HiveField(3)
-  final bool isTemporary;
-
-  @HiveField(4)
-  final double latitude;
-
-  @HiveField(5)
-  final double longitude;
-
-  @HiveField(6)
-  final int zoomLevel;
-
-  MapInfo({
-    required this.name,
-    required this.filePath,
-    required this.downloadUrl,
-    this.isTemporary = false,
-    required this.latitude,
-    required this.longitude,
-    required this.zoomLevel,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'filePath': filePath,
-        'downloadUrl': downloadUrl,
-        'isTemporary': isTemporary,
-        'latitude': latitude,
-        'longitude': longitude,
-        'zoomLevel': zoomLevel,
-      };
-
-  factory MapInfo.fromJson(Map<String, dynamic> json) => MapInfo(
-        name: json['name'] as String,
-        filePath: json['filePath'] as String,
-        downloadUrl: json['downloadUrl'] as String,
-        isTemporary: json['isTemporary'] as bool? ?? false,
-        latitude: json['latitude'] as double,
-        longitude: json['longitude'] as double,
-        zoomLevel: json['zoomLevel'] as int,
-      );
-}
 
 class MapManagerPage extends StatefulWidget {
   final List<Directory> directories;
   final Box<MapInfo> mapBox;
   final String? currentMapFilePath;
   final Function(String) onLoadMap;
-  final Function(String, String) onDownloadMap;
+  final Function(GospelMapEntryData, String) onDownloadMap;
   final Function(String, String, bool) onUploadMap;
 
   const MapManagerPage({
@@ -256,7 +202,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
       title: Text(subDir.name),
       children: [
         ...subDir.maps.map((map) {
-          final isDownloaded = widget.mapBox.values.any((m) => m.name == map.name && !m.isTemporary);
+          final isDownloaded = widget.mapBox.values.any((m) => (m as MapInfo).name == map.name && !(m as MapInfo).isTemporary);
           return ListTile(
             title: Text(map.name),
             leading: SizedBox(width: depth * 16.0),
@@ -264,7 +210,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
                 ? const Icon(Icons.check_circle, color: Colors.green)
                 : IconButton(
                     icon: const Icon(Icons.download),
-                    onPressed: () => widget.onDownloadMap(map.primaryUrl, map.name),
+                    onPressed: () => widget.onDownloadMap(map, map.name),
                   ),
           );
         }),
@@ -275,7 +221,7 @@ class _MapManagerPageState extends State<MapManagerPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('Building MapManagerPage, local maps: ${widget.mapBox.values.map((m) => m.name).toList()}');
+    print('Building MapManagerPage, local maps: ${widget.mapBox.values.map((m) => (m as MapInfo).name).toList()}');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Maps'),
@@ -310,31 +256,31 @@ class _MapManagerPageState extends State<MapManagerPage> {
                     'Local Maps:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  ...mapBox.values.where((map) => !map.isTemporary).map((map) => ListTile(
-                        title: Text(map.name),
-                        trailing: widget.currentMapFilePath == map.filePath
+                  ...mapBox.values.where((map) => !(map as MapInfo).isTemporary).map((map) => ListTile(
+                        title: Text((map as MapInfo).name),
+                        trailing: widget.currentMapFilePath == (map as MapInfo).filePath
                             ? const Icon(Icons.check, color: Colors.green)
                             : IconButton(
                                 icon: const Icon(Icons.delete),
                                 onPressed: () async {
-                                  print('Deleting map: ${map.name}, path: ${map.filePath}');
-                                  final file = io.File(map.filePath);
+                                  print('Deleting map: ${(map as MapInfo).name}, path: ${(map as MapInfo).filePath}');
+                                  final file = io.File((map as MapInfo).filePath);
                                   if (await file.exists()) {
                                     await file.delete();
-                                    print('Deleted file: ${map.filePath}');
+                                    print('Deleted file: ${(map as MapInfo).filePath}');
                                   }
                                   await mapBox.deleteAt(mapBox.values.toList().indexOf(map));
-                                  if (widget.currentMapFilePath == map.filePath) {
+                                  if (widget.currentMapFilePath == (map as MapInfo).filePath) {
                                     final defaultMap = mapBox.values.isNotEmpty
-                                        ? mapBox.values.firstWhere((m) => !m.isTemporary, orElse: () => mapBox.values.first)
+                                        ? mapBox.values.firstWhere((m) => !(m as MapInfo).isTemporary, orElse: () => mapBox.values.first)
                                         : null;
                                     widget.onLoadMap(defaultMap?.filePath ?? '');
                                   }
                                 },
                               ),
                         onTap: () {
-                          print('Selecting map: ${map.name}, path: ${map.filePath}');
-                          widget.onLoadMap(map.filePath);
+                          print('Selecting map: ${(map as MapInfo).name}, path: ${(map as MapInfo).filePath}');
+                          widget.onLoadMap((map as MapInfo).filePath);
                           Navigator.pop(context);
                         },
                       )),

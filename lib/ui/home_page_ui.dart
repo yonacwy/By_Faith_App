@@ -1,3 +1,5 @@
+import 'package:by_faith_app/models/gospel_map_info_model.dart';
+import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import '../providers/page_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -78,7 +80,7 @@ class _HomePageUiState extends State<HomePageUi> {
           ? '$lastStudiedBook $lastStudiedChapter'
           : 'N/A';
 
-      _downloadedMapsCount = _mapBox.values.where((map) => !map.isTemporary).length;
+      _downloadedMapsCount = _mapBox.values.where((map) => map is MapInfo && !map.isTemporary).length;
     });
   }
 
@@ -134,26 +136,20 @@ class _HomePageUiState extends State<HomePageUi> {
               fontWeight: FontWeight.bold,
             ),
         centerTitle: true,
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _openSettingsPage,
-            tooltip: 'Settings',
-            padding: const EdgeInsets.all(8),
+        actions: [ // Move menu icon to actions for right side
+          Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer(); // Open end drawer
+                },
+              );
+            },
           ),
         ],
       ),
-      drawer: Drawer(
+      endDrawer: Drawer( // Changed to endDrawer for right side
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -190,6 +186,14 @@ class _HomePageUiState extends State<HomePageUi> {
                   applicationVersion: '1.0.0',
                   applicationLegalese: '© 2025 By Faith App',
                 );
+              },
+            ),
+            ListTile( // Add settings to the drawer
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                _openSettingsPage();
               },
             ),
           ],

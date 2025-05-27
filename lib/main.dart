@@ -1,48 +1,60 @@
-import 'providers/page_notifier.dart';
+import 'package:by_faith_app/adapters/gospel_map_directory_adapter.dart';
+import 'package:by_faith_app/adapters/gospel_map_entry_adapter.dart';
+import 'package:by_faith_app/adapters/gospel_map_sub_directory_adapter.dart';
+import 'package:by_faith_app/models/gospel_contacts_model.dart';
+import 'package:by_faith_app/models/gospel_map_directory_model.dart';
+import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
+import 'package:by_faith_app/models/gospel_map_info_model.dart';
+import 'package:by_faith_app/models/gospel_map_sub_directory_model.dart';
+import 'package:by_faith_app/models/pray_model.dart';
+import 'package:by_faith_app/providers/page_notifier.dart';
+import 'package:by_faith_app/providers/theme_notifier.dart';
+import 'package:by_faith_app/ui/gospel_map_manager_ui.dart';
+import 'package:by_faith_app/ui/gospel_page_ui.dart';
+import 'package:by_faith_app/ui/home_page_ui.dart';
+import 'package:by_faith_app/ui/pray_page_ui.dart';
+import 'package:by_faith_app/ui/read_page_ui.dart';
+import 'package:by_faith_app/ui/study_page_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:material_symbols_icons/symbols.dart';
-import 'ui/home_page_ui.dart';
-import 'ui/gospel_page_ui.dart';
-import 'ui/pray_page_ui.dart';
-import 'ui/read_page_ui.dart';
-import 'ui/study_page_ui.dart';
-import 'models/pray_model.dart';
-import 'models/gospel_map_entry_data_model.dart';
-import 'models/gospel_map_sub_directory_model.dart';
-import 'models/gospel_map_directory_model.dart';
-import 'package:provider/provider.dart'; // Import Provider
-import 'providers/theme_notifier.dart';
-import 'package:onboarding/onboarding.dart'; // Import onboarding package
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:onboarding/onboarding.dart';
+import 'package:provider/provider.dart';
 
-import 'adapters/gospel_map_directory_adapter.dart';
-import 'adapters/gospel_map_entry_adapter.dart';
-import 'adapters/gospel_map_sub_directory_adapter.dart';
-import 'ui/gospel_map_manager_ui.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+
+  // Delete Hive boxes for a clean start
+  await Hive.deleteBoxFromDisk('prayers');
+  await Hive.deleteBoxFromDisk('themeBox');
+  await Hive.deleteBoxFromDisk('userPreferences');
+  await Hive.deleteBoxFromDisk('maps');
+  await Hive.deleteBoxFromDisk('contacts');
+  await Hive.deleteBoxFromDisk('studyNotes');
+
+  // Register Hive adapters
+  Hive.registerAdapter(ContactAdapter());
   Hive.registerAdapter(PrayerAdapter());
-  Hive.registerAdapter(MapInfoAdapter()); // Register MapInfoAdapter
+  Hive.registerAdapter(MapInfoAdapter());
   Hive.registerAdapter(GospelMapEntryAdapter());
   Hive.registerAdapter(GospelMapSubDirectoryAdapter());
   Hive.registerAdapter(GospelMapDirectoryAdapter());
-  await Hive.openBox<Prayer>('prayers'); // For Prayer model
-  final themeBox = await Hive.openBox('themeBox'); // For theme persistence
-  await Hive.openBox('userPreferences'); // For ReadPage book and chapter persistence
 
-  // Clear Hive data for a clean start
-  await Hive.box<Prayer>('prayers').clear();
-  await Hive.box('themeBox').clear();
-  await Hive.box('userPreferences').clear();
+  // Open Hive boxes
+  final themeBox = await Hive.openBox('themeBox'); // For theme persistence
+  await Hive.openBox<Prayer>('prayers'); // For Prayer model
+  await Hive.openBox('userPreferences'); // For ReadPage book and chapter
+  await Hive.openBox<MapInfo>('maps'); // For maps
+  // Contacts box is opened in GospelPageUi._initHive
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeNotifier(themeBox)),
-        ChangeNotifierProvider(create: (_) => PageNotifier()), // Add PageNotifier
+        ChangeNotifierProvider(create: (_) => PageNotifier()),
       ],
       child: const MyApp(),
     ),
@@ -77,7 +89,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
       ),
       themeMode: themeNotifier.themeMode,
-      home: onboardingComplete ? const RootPage() : OnboardingScreen(), // Show OnboardingScreen if not complete
+      home: onboardingComplete ? const RootPage() : const OnboardingScreen(),
     );
   }
 }
@@ -85,9 +97,7 @@ class MyApp extends StatelessWidget {
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
 
-  // Public method to navigate to a specific page
   void navigateToPage(BuildContext context, int index) {
-    // Find the state object and call its private method
     context.findAncestorStateOfType<_RootPageState>()?._onItemTapped(index);
   }
 
@@ -96,11 +106,10 @@ class RootPage extends StatefulWidget {
 }
 
 class _RootPageState extends State<RootPage> {
-  // Listen to PageNotifier for index changes
   int _selectedIndex = 0;
   final List<Widget> _pages = [
     HomePageUi(),
-    GospelPageUi(),
+    const GospelPageUi(),
     PrayPageUi(),
     ReadPageUi(),
     StudyPageUi(),
@@ -109,12 +118,10 @@ class _RootPageState extends State<RootPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Update selected index when PageNotifier changes
     _selectedIndex = Provider.of<PageNotifier>(context).selectedIndex;
   }
 
   void _onItemTapped(int index) {
-    // Update PageNotifier, which will trigger didChangeDependencies
     Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(index);
   }
 
@@ -154,26 +161,26 @@ class _RootPageState extends State<RootPage> {
   }
 }
 
-// Placeholder Onboarding Screen
 class OnboardingScreen extends StatelessWidget {
+  const OnboardingScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Welcome')),
+      appBar: AppBar(title: const Text('Welcome')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('This is the Onboarding Screen'),
+            const Text('This is the Onboarding Screen'),
             ElevatedButton(
               onPressed: () {
-                // Mark onboarding as complete and navigate to RootPage
                 Hive.box('userPreferences').put('onboardingComplete', true);
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const RootPage()),
                 );
               },
-              child: Text('Skip Onboarding'),
+              child: const Text('Skip Onboarding'),
             ),
           ],
         ),

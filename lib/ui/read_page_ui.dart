@@ -192,14 +192,45 @@ class _ReadPageUiState extends State<ReadPageUi> {
               fontWeight: FontWeight.bold,
             ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _openSettingsPage,
-            tooltip: 'Settings',
-            padding: const EdgeInsets.all(8),
+        actions: [ // Menu icon on the right
+          Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer(); // Open end drawer
+                },
+              );
+            },
           ),
         ],
+      ),
+      endDrawer: Drawer( // Drawer on the right
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              child: Text(
+                'Menu',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+            ListTile( // Settings option in drawer
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                _openSettingsPage();
+              },
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: Column(

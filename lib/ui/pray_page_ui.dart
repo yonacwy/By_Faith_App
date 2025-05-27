@@ -395,18 +395,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
 
     return Scaffold(
       appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'Search prayers...',
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              )
-            : const Text('Prayers'),
+        title: const Text('Prayers'), // Title is always 'Prayers'
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -414,26 +403,16 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
               fontWeight: FontWeight.bold,
             ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  _searchQuery = '';
-                }
-              });
+        actions: [ // Menu icon on the right
+          Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer(); // Open end drawer
+                },
+              );
             },
-            tooltip: _isSearching ? 'Close search' : 'Search prayers',
-            padding: const EdgeInsets.all(8),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _openSettingsPage,
-            tooltip: 'Settings',
-            padding: const EdgeInsets.all(8),
           ),
         ],
         bottom: PreferredSize(
@@ -460,6 +439,50 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
             labelPadding: EdgeInsets.symmetric(horizontal: isWideScreen ? 24 : 12),
             padding: EdgeInsets.symmetric(horizontal: isWideScreen ? 24 : 8),
           ),
+        ),
+      ),
+      endDrawer: Drawer( // Drawer on the right
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              child: Text(
+                'Menu',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+            ListTile( // Search option in drawer
+              leading: const Icon(Icons.search),
+              title: TextField( // Search field inside drawer
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search prayers...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+              ),
+            ),
+            ListTile( // Settings option in drawer
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                _openSettingsPage();
+              },
+            ),
+          ],
         ),
       ),
       body: SafeArea(

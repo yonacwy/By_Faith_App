@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gospel_map_manager_ui.dart';
+part of 'gospel_map_info_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
@@ -8,7 +8,7 @@ part of 'gospel_map_manager_ui.dart';
 
 class MapInfoAdapter extends TypeAdapter<MapInfo> {
   @override
-  final int typeId = 1;
+  final int typeId = 5;
 
   @override
   MapInfo read(BinaryReader reader) {
