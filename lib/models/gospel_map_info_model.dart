@@ -17,13 +17,13 @@ class MapInfo extends HiveObject {
   final bool isTemporary;
 
   @HiveField(4)
-  final double latitude;
+  double latitude;
 
   @HiveField(5)
-  final double longitude;
+  double longitude;
 
   @HiveField(6)
-  final int zoomLevel;
+  int zoomLevel;
 
   MapInfo({
     required this.name,
