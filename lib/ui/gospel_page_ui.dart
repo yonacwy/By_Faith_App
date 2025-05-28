@@ -104,21 +104,35 @@ class _GospelPageState extends State<GospelPageUi> {
       await Hive.initFlutter();
       _mapBox = await Hive.openBox<MapInfo>('maps');
       _contactBox = await Hive.openBox<Contact>('contacts');
-      if (_mapBox.isEmpty) {
-        await _mapBox.add(MapInfo(
+      MapInfo? worldMapInfo = _mapBox.values.firstWhere(
+        (map) => map.name == 'World',
+        orElse: () => MapInfo(
           name: 'World',
           filePath: '',
           downloadUrl: '',
           isTemporary: false,
-          latitude: 0.0,
-          longitude: 0.0,
-          zoomLevel: 2,
-        ));
+          latitude: 20.0,
+          longitude: -70.0,
+          zoomLevel: 1,
+        ),
+      );
+
+      if (!_mapBox.values.any((map) => map.name == 'World')) {
+        await _mapBox.add(worldMapInfo);
+      } else {
+        // Update existing World map entry if it's not already set to the desired coordinates
+        if (worldMapInfo.latitude != 20.0 || worldMapInfo.longitude != -70.0 || worldMapInfo.zoomLevel != 3) {
+          final key = _mapBox.keyAt(_mapBox.values.toList().indexOf(worldMapInfo));
+          worldMapInfo.latitude = 20.0;
+          worldMapInfo.longitude = -70.0;
+          worldMapInfo.zoomLevel = 3;
+          await _mapBox.put(key, worldMapInfo);
+        }
       }
-      final initialMap = _mapBox.values.first;
-      _currentMapName = initialMap.name;
-      _currentCenter = latlong2.LatLng(initialMap.latitude, initialMap.longitude);
-      _currentZoom = initialMap.zoomLevel.toDouble();
+
+      _currentMapName = worldMapInfo.name;
+      _currentCenter = latlong2.LatLng(worldMapInfo.latitude, worldMapInfo.longitude);
+      _currentZoom = worldMapInfo.zoomLevel.toDouble();
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -425,6 +439,13 @@ class _GospelPageState extends State<GospelPageUi> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_currentMapName ?? 'Gospel Map'),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
@@ -439,8 +460,16 @@ class _GospelPageState extends State<GospelPageUi> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer),
-              child: Text('Menu', style: Theme.of(context).textTheme.titleLarge),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+              child: Text(
+                'Menu',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.map_outlined),
