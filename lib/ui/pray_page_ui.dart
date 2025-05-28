@@ -6,6 +6,8 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import '../models/pray_model.dart';
 import '../providers/theme_notifier.dart';
 import 'dart:convert';
+import 'pray_settings_ui.dart';
+import 'pray_search_ui.dart';
 
 class PrayPageUi extends StatefulWidget {
   PrayPageUi({Key? key}) : super(key: key);
@@ -15,10 +17,7 @@ class PrayPageUi extends StatefulWidget {
 }
 
 class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
-  final TextEditingController _searchController = TextEditingController();
   late Box<Prayer> _prayerBox;
-  String _searchQuery = '';
-  bool _isSearching = false;
   final GlobalKey<AnimatedListState> _newListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _answeredListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _unansweredListKey = GlobalKey<AnimatedListState>();
@@ -29,16 +28,10 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     super.initState();
     _prayerBox = Hive.box<Prayer>('prayers');
     _tabController = TabController(length: 3, vsync: this);
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.toLowerCase();
-      });
-    });
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -167,7 +160,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const _SettingsPage(),
+        builder: (context) => const PraySettingsUi(),
       ),
     );
   }
@@ -296,8 +289,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
         var prayers = box.values
             .where((prayer) {
               final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
-              return prayer.status == status &&
-                  document.toPlainText().toLowerCase().contains(_searchQuery);
+              return prayer.status == status;
             })
             .toList();
         prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -328,7 +320,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
                     ? Padding(
                         padding: const EdgeInsets.all(16),
                         child: Text(
-                          _searchQuery.isEmpty ? 'No new prayers' : 'No matching prayers',
+                          'No new prayers',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
@@ -358,9 +350,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
               ? Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    _searchQuery.isEmpty
-                        ? 'No ${status == 'answered' ? 'answered' : 'unanswered'} prayers'
-                        : 'No matching prayers',
+                    'No ${status == 'answered' ? 'answered' : 'unanswered'} prayers',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -459,20 +449,25 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
             ),
             ListTile( // Search option in drawer
               leading: const Icon(Icons.search),
-              title: TextField( // Search field inside drawer
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search prayers...',
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value.toLowerCase();
-                  });
-                },
-              ),
+              title: const Text('Search Prayers'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PraySearchUi(
+                      searchController: TextEditingController(), // Pass a new controller
+                      initialSearchQuery: '',
+                      newListKey: _newListKey,
+                      answeredListKey: _answeredListKey,
+                      unansweredListKey: _unansweredListKey,
+                      updatePrayerStatus: _updatePrayerStatus,
+                      deletePrayer: _deletePrayer,
+                      editPrayer: _editPrayer,
+                    ),
+                  ),
+                );
+              },
             ),
             ListTile( // Settings option in drawer
               leading: const Icon(Icons.settings),
@@ -503,65 +498,6 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
   }
 }
 
-class _SettingsPage extends StatelessWidget {
-  const _SettingsPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-          tooltip: 'Back',
-        ),
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Appearance',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                ),
-                child: ListTile(
-                  title: const Text('Theme'),
-                  trailing: Switch(
-                    value: Theme.of(context).brightness == Brightness.dark,
-                    onChanged: (value) {
-                      Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
-                    },
-                  ),
-                  subtitle: Text(
-                    Theme.of(context).brightness == Brightness.light ? 'Light Mode' : 'Dark Mode',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _EditPrayerPage extends StatefulWidget {
   final Prayer prayer;

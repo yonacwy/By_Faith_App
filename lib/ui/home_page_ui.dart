@@ -1,5 +1,4 @@
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
-import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import '../providers/page_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -10,7 +9,10 @@ import '../models/gospel_map_sub_directory_model.dart';
 import 'package:by_faith_app/ui/gospel_page_ui.dart';
 import 'package:by_faith_app/ui/gospel_map_manager_ui.dart';
 import 'package:provider/provider.dart';
-import '../providers/theme_notifier.dart'; // Add this for theme switching
+import '../providers/theme_notifier.dart';
+import 'home_settings_ui.dart';
+import 'home_app_support_ui.dart';
+import 'home_app_info_ui.dart';
 
 class HomePageUi extends StatefulWidget {
   HomePageUi({Key? key}) : super(key: key);
@@ -97,7 +99,7 @@ class _HomePageUiState extends State<HomePageUi> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => _SettingsPage(
+        builder: (context) => HomeSettingsUi(
           onFontChanged: _saveSettings,
           initialFont: _selectedFont,
           initialFontSize: _selectedFontSize,
@@ -170,8 +172,9 @@ class _HomePageUiState extends State<HomePageUi> {
               title: const Text('App Support'),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('App Support not implemented yet')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeAppSupportUi()),
                 );
               },
             ),
@@ -180,11 +183,9 @@ class _HomePageUiState extends State<HomePageUi> {
               title: const Text('App Info'),
               onTap: () {
                 Navigator.pop(context);
-                showAboutDialog(
-                  context: context,
-                  applicationName: 'By Faith App',
-                  applicationVersion: '1.0.0',
-                  applicationLegalese: '© 2025 By Faith App',
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeAppInfoUi()),
                 );
               },
             ),
@@ -357,231 +358,6 @@ class _HomePageUiState extends State<HomePageUi> {
                 ),
               )
             : const Center(child: CircularProgressIndicator()),
-      ),
-    );
-  }
-}
-
-class _SettingsPage extends StatefulWidget {
-  final Function(String, double) onFontChanged;
-  final String initialFont;
-  final double initialFontSize;
-
-  const _SettingsPage({
-    required this.onFontChanged,
-    required this.initialFont,
-    required this.initialFontSize,
-  });
-
-  @override
-  _SettingsPageState createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<_SettingsPage> {
-  late String currentFont;
-  late double currentFontSize;
-
-  @override
-  void initState() {
-    super.initState();
-    currentFont = widget.initialFont;
-    currentFontSize = widget.initialFontSize;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final List<String> fontOptions = [
-      'Roboto',
-      'Times New Roman',
-      'Open Sans',
-      'Lora',
-    ];
-    const String sampleText = "This is a sample dashboard text.";
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-          tooltip: 'Back',
-        ),
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Appearance',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                  ),
-                  child: ListTile(
-                    title: const Text('Theme'),
-                    trailing: Switch(
-                      value: Theme.of(context).brightness == Brightness.dark,
-                      onChanged: (value) {
-                        Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
-                      },
-                    ),
-                    subtitle: Text(
-                      Theme.of(context).brightness == Brightness.light ? 'Light Mode' : 'Dark Mode',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Text Settings',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Font Type',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        DropdownButton<String>(
-                          value: currentFont,
-                          isExpanded: true,
-                          icon: Icon(
-                            Icons.arrow_drop_down,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          underline: const SizedBox(),
-                          items: fontOptions.map((font) {
-                            return DropdownMenuItem<String>(
-                              value: font,
-                              child: Text(
-                                font,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                currentFont = value;
-                                widget.onFontChanged(currentFont, currentFontSize);
-                              });
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Font Size',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Slider(
-                          value: currentFontSize,
-                          min: 12.0,
-                          max: 24.0,
-                          divisions: 24,
-                          label: currentFontSize.toStringAsFixed(1),
-                          activeColor: Theme.of(context).colorScheme.primary,
-                          inactiveColor: Theme.of(context).colorScheme.outlineVariant,
-                          onChanged: (value) {
-                            setState(() {
-                              currentFontSize = value;
-                              widget.onFontChanged(currentFont, currentFontSize);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Text Preview',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      sampleText,
-                      style: TextStyle(
-                        fontSize: currentFontSize,
-                        fontFamily: currentFont,
-                        height: 1.5,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      textAlign: TextAlign.justify,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
