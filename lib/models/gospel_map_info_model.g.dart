@@ -8,7 +8,7 @@ part of 'gospel_map_info_model.dart';
 
 class MapInfoAdapter extends TypeAdapter<MapInfo> {
   @override
-  final int typeId = 5;
+  final int typeId = 2;
 
   @override
   MapInfo read(BinaryReader reader) {

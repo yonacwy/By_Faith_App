@@ -1,6 +1,4 @@
-import 'package:by_faith_app/adapters/gospel_map_directory_adapter.dart';
 import 'package:by_faith_app/adapters/gospel_map_entry_adapter.dart';
-import 'package:by_faith_app/adapters/gospel_map_sub_directory_adapter.dart';
 import 'package:by_faith_app/models/gospel_contacts_model.dart';
 import 'package:by_faith_app/models/gospel_map_directory_model.dart';
 import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
@@ -19,12 +17,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await FMTCObjectBoxBackend().initialise();
   await Hive.initFlutter();
 
   // Delete Hive boxes for a clean start
@@ -39,9 +40,7 @@ void main() async {
   Hive.registerAdapter(ContactAdapter());
   Hive.registerAdapter(PrayerAdapter());
   Hive.registerAdapter(MapInfoAdapter());
-  Hive.registerAdapter(GospelMapEntryAdapter());
-  Hive.registerAdapter(GospelMapSubDirectoryAdapter());
-  Hive.registerAdapter(GospelMapDirectoryAdapter());
+  Hive.registerAdapter(GospelMapEntryDataAdapter());
 
   // Open Hive boxes
   final themeBox = await Hive.openBox('themeBox'); // For theme persistence

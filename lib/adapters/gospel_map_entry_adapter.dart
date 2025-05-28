@@ -1,52 +1,38 @@
 import 'package:hive/hive.dart';
-import '../ui/gospel_page_ui.dart';
-import '../models/gospel_map_entry_data_model.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
 
-class GospelMapEntryAdapter extends TypeAdapter<GospelMapEntryData> {
+class GospelMapEntryDataAdapter extends TypeAdapter<GospelMapEntryData> {
   @override
-  final int typeId = 2;
+  final int typeId = 3; // Adjust typeId as needed
 
   @override
   GospelMapEntryData read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
     return GospelMapEntryData(
-      name: fields[0] as String,
-      primaryUrl: fields[1] as String,
-      fallbackUrl: fields[2] as String,
-      latitude: fields[3] as double,
-      longitude: fields[4] as double,
-      zoomLevel: fields[5] as int,
+      name: reader.readString(),
+      primaryUrl: reader.readString(),
+      fallbackUrl: reader.readString(),
+      latitude: reader.readDouble(),
+      longitude: reader.readDouble(),
+      zoomLevel: reader.readInt(),
+      bounds: Bounds(
+        southwest: latlong2.LatLng(reader.readDouble(), reader.readDouble()),
+        northeast: latlong2.LatLng(reader.readDouble(), reader.readDouble()),
+      ),
     );
   }
 
   @override
   void write(BinaryWriter writer, GospelMapEntryData obj) {
-    writer
-      ..writeByte(6)
-      ..writeByte(0)
-      ..write(obj.name)
-      ..writeByte(1)
-      ..write(obj.primaryUrl)
-      ..writeByte(2)
-      ..write(obj.fallbackUrl)
-      ..writeByte(3)
-      ..write(obj.latitude)
-      ..writeByte(4)
-      ..write(obj.longitude)
-      ..writeByte(5)
-      ..write(obj.zoomLevel);
+    writer.writeString(obj.name);
+    writer.writeString(obj.primaryUrl);
+    writer.writeString(obj.fallbackUrl);
+    writer.writeDouble(obj.latitude);
+    writer.writeDouble(obj.longitude);
+    writer.writeInt(obj.zoomLevel);
+    writer.writeDouble(obj.bounds.southwest.latitude);
+    writer.writeDouble(obj.bounds.southwest.longitude);
+    writer.writeDouble(obj.bounds.northeast.latitude);
+    writer.writeDouble(obj.bounds.northeast.longitude);
   }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is GospelMapEntryAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
 }

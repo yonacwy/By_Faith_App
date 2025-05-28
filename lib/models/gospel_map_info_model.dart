@@ -1,8 +1,8 @@
 import 'package:hive/hive.dart';
 
-part 'gospel_map_info_model.g.dart'; // Required for Hive code generation
+part 'gospel_map_info_model.g.dart';
 
-@HiveType(typeId: 5) // Assign a unique typeId
+@HiveType(typeId: 2)
 class MapInfo extends HiveObject {
   @HiveField(0)
   final String name;
@@ -29,7 +29,7 @@ class MapInfo extends HiveObject {
     required this.name,
     required this.filePath,
     required this.downloadUrl,
-    this.isTemporary = false,
+    required this.isTemporary,
     required this.latitude,
     required this.longitude,
     required this.zoomLevel,

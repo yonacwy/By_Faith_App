@@ -1,26 +1,27 @@
-import 'package:hive/hive.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 
-part 'gospel_map_entry_data_model.g.dart';
+class Bounds {
+  final latlong2.LatLng southwest;
+  final latlong2.LatLng northeast;
 
-@HiveType(typeId: 2)
-class GospelMapEntryData extends HiveObject {
-  @HiveField(0)
+  Bounds({required this.southwest, required this.northeast});
+
+  factory Bounds.fromJson(Map<String, dynamic> json) {
+    return Bounds(
+      southwest: latlong2.LatLng(json['southwest']['latitude'], json['southwest']['longitude']),
+      northeast: latlong2.LatLng(json['northeast']['latitude'], json['northeast']['longitude']),
+    );
+  }
+}
+
+class GospelMapEntryData {
   final String name;
-
-  @HiveField(1)
   final String primaryUrl;
-
-  @HiveField(2)
   final String fallbackUrl;
-
-  @HiveField(3)
   final double latitude;
-
-  @HiveField(4)
   final double longitude;
-
-  @HiveField(5)
   final int zoomLevel;
+  final Bounds bounds; // Added bounds field
 
   GospelMapEntryData({
     required this.name,
@@ -29,27 +30,22 @@ class GospelMapEntryData extends HiveObject {
     required this.latitude,
     required this.longitude,
     required this.zoomLevel,
+    required this.bounds,
   });
 
-  factory GospelMapEntryData.fromJson(Map<String, dynamic> json, Map<String, Map<String, dynamic>> coordinateMap) {
-    final name = json['name'] as String;
-    final coords = coordinateMap[name] ?? {'latitude': 0.0, 'longitude': 0.0, 'zoomLevel': 2};
+  factory GospelMapEntryData.fromJson(Map<String, dynamic> json, Map<String, dynamic> coordinateMap) {
+    final coords = coordinateMap[json['name']] ?? {};
     return GospelMapEntryData(
-      name: name,
-      primaryUrl: json['primaryUrl'] as String,
-      fallbackUrl: json['fallbackUrl'] as String,
-      latitude: coords['latitude'] as double,
-      longitude: coords['longitude'] as double,
-      zoomLevel: coords['zoomLevel'] as int,
+      name: json['name'],
+      primaryUrl: json['primaryUrl'],
+      fallbackUrl: json['fallbackUrl'] ?? '',
+      latitude: (coords['latitude'] ?? 0.0).toDouble(),
+      longitude: (coords['longitude'] ?? 0.0).toDouble(),
+      zoomLevel: (coords['zoomLevel'] ?? 2).toInt(),
+      bounds: Bounds.fromJson(coords['bounds'] ?? {
+        'southwest': {'latitude': -85.0, 'longitude': -180.0},
+        'northeast': {'latitude': 85.0, 'longitude': 180.0},
+      }),
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'primaryUrl': primaryUrl,
-        'fallbackUrl': fallbackUrl,
-        'latitude': latitude,
-        'longitude': longitude,
-        'zoomLevel': zoomLevel,
-      };
 }
