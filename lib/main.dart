@@ -28,13 +28,6 @@ void main() async {
   await FMTCObjectBoxBackend().initialise();
   await Hive.initFlutter();
 
-  // Delete Hive boxes for a clean start
-  await Hive.deleteBoxFromDisk('prayers');
-  await Hive.deleteBoxFromDisk('themeBox');
-  await Hive.deleteBoxFromDisk('userPreferences');
-  await Hive.deleteBoxFromDisk('maps');
-  await Hive.deleteBoxFromDisk('contacts');
-  await Hive.deleteBoxFromDisk('studyNotes');
 
   // Register Hive adapters
   Hive.registerAdapter(ContactAdapter());
