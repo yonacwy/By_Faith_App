@@ -324,14 +324,14 @@ class _StudyPageUiState extends State<StudyPageUi> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.search),
-              title: const Text('Search'),
-              onTap: _openSearchPage,
-            ),
-            ListTile(
               leading: const Icon(Icons.note),
               title: const Text('Notes'),
               onTap: _openNotesPage,
+            ),
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Search'),
+              onTap: _openSearchPage,
             ),
             ListTile(
               leading: const Icon(Icons.settings),

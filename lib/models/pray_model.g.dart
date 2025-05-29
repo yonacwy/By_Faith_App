@@ -8,7 +8,7 @@ part of 'pray_model.dart';
 
 class PrayerAdapter extends TypeAdapter<Prayer> {
   @override
-  final int typeId = 2;
+  final int typeId = 3;
 
   @override
   Prayer read(BinaryReader reader) {

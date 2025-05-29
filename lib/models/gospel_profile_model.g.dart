@@ -8,7 +8,7 @@ part of 'gospel_profile_model.dart';
 
 class GospelProfileAdapter extends TypeAdapter<GospelProfile> {
   @override
-  final int typeId = 3;
+  final int typeId = 5;
 
   @override
   GospelProfile read(BinaryReader reader) {

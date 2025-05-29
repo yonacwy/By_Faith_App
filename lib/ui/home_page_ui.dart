@@ -168,17 +168,6 @@ class _HomePageUiState extends State<HomePageUi> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.support),
-              title: const Text('App Support'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeAppSupportUi()),
-                );
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.info),
               title: const Text('App Info'),
               onTap: () {
@@ -186,6 +175,17 @@ class _HomePageUiState extends State<HomePageUi> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const HomeAppInfoUi()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.support),
+              title: const Text('App Support'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeAppSupportUi()),
                 );
               },
             ),

@@ -3,7 +3,7 @@ import 'package:flutter_quill/flutter_quill.dart' show QuillController;
 
 part 'gospel_contacts_model.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 0)
 class Contact extends HiveObject {
   @HiveField(0)
   final String id;

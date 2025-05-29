@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'gospel_profile_model.g.dart';
 
-@HiveType(typeId: 3)
+@HiveType(typeId: 5)
 class GospelProfile extends HiveObject {
   @HiveField(0)
   String? firstName;

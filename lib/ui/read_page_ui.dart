@@ -1,12 +1,25 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart'; // Added import for TapGestureRecognizer
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 import 'read_settings_ui.dart';
+import 'read_bookmarks_ui.dart';
+import 'read_favorites_ui.dart';
+import '../models/read_data_model.dart'; // Added import
 
 class ReadPageUi extends StatefulWidget {
-  ReadPageUi({Key? key}) : super(key: key);
+  final String? initialBook;
+  final int? initialChapter;
+  final int? initialVerse;
+
+  ReadPageUi({
+    Key? key,
+    this.initialBook,
+    this.initialChapter,
+    this.initialVerse,
+  }) : super(key: key);
 
   @override
   _ReadPageUiState createState() => _ReadPageUiState();
@@ -32,8 +45,10 @@ class _ReadPageUiState extends State<ReadPageUi> {
   Future<void> _loadSavedSelection() async {
     userPrefsBox = await Hive.openBox('userPreferences');
     setState(() {
-      selectedBook = userPrefsBox.get('lastSelectedBook') ?? "Genesis";
-      selectedChapter = userPrefsBox.get('lastSelectedChapter') ?? 1;
+      selectedBook = widget.initialBook ?? userPrefsBox.get('lastSelectedBook') ?? "Genesis";
+      selectedChapter = widget.initialChapter ?? userPrefsBox.get('lastSelectedChapter') ?? 1;
+      // If an initial verse is provided, we might want to scroll to it after loading the chapter.
+      // This will be handled in loadChapter.
       selectedFont = userPrefsBox.get('selectedFont') ?? 'Roboto';
       selectedFontSize = userPrefsBox.get('selectedFontSize') ?? 16.0;
     });
@@ -77,7 +92,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
           }
         }
         setState(() {});
-        await loadChapter();
+        await loadChapter(initialVerse: widget.initialVerse);
       }
     } catch (e) {
       setState(() {
@@ -89,7 +104,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
     }
   }
 
-  Future<void> loadChapter() async {
+  Future<void> loadChapter({int? initialVerse}) async {
     if (selectedBook == null || selectedChapter == null) {
       setState(() {
         chapterText = "Please select a book and chapter.";
@@ -117,10 +132,58 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
       var chapter = book['chapters'][chapterNumber - 1];
       List<dynamic> verses = chapter['verses'];
+      
+      // Build the chapter text with GestureDetector for each verse
+      chapterText = ""; // Clear previous text
+      List<TextSpan> verseSpans = [];
+      for (var verse in verses) {
+        String verseNumber = "${verse['verse']}";
+        String verseContent = "${verse['text'].toString().trim()}";
+        
+        verseSpans.add(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: "$verseNumber ",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: selectedFontSize,
+                  fontFamily: selectedFont,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              TextSpan(
+                text: "$verseContent ",
+                style: TextStyle(
+                  fontSize: selectedFontSize,
+                  fontFamily: selectedFont,
+                  height: 1.5,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ],
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                _showVerseOptions(
+                  VerseData(
+                    book: selectedBook!,
+                    chapter: chapterNumber,
+                    verse: verse['verse'],
+                    text: verseContent,
+                  ),
+                );
+              },
+          ),
+        );
+      }
+      
+      // Assign the RichText to chapterText for display
+      // This is a simplification; in a real app, you'd use RichText directly in the widget tree
+      // For now, we'll just join the texts for display purposes, but the tap logic is in verseSpans
       chapterText = verses
-          .map((verse) =>
-              "${verse['verse']} ${verse['text'].toString().trim()}")
+          .map((verse) => "${verse['verse']} ${verse['text'].toString().trim()}")
           .join(' ');
+
     } catch (e) {
       setState(() {
         chapterText = "Error loading chapter: $e";
@@ -128,6 +191,85 @@ class _ReadPageUiState extends State<ReadPageUi> {
       });
     } finally {
       setState(() => isLoading = false);
+      if (initialVerse != null) {
+        // Logic to scroll to the initial verse can be added here if needed.
+        // For now, just setting the chapter is enough.
+      }
+    }
+  }
+
+  void _showVerseOptions(VerseData verseData) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.bookmark_add),
+                title: const Text('Add to Bookmarks'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _addVerseToBookmarks(verseData);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.favorite_border),
+                title: const Text('Add to Favorites'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _addVerseToFavorites(verseData);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _addVerseToBookmarks(VerseData verseData) async {
+    final bookmarksBox = await Hive.openBox<Bookmark>('bookmarks');
+    final newBookmark = Bookmark(verseData: verseData, timestamp: DateTime.now());
+
+    // Check if the bookmark already exists
+    bool exists = bookmarksBox.values.any((bookmark) =>
+        bookmark.verseData.book == verseData.book &&
+        bookmark.verseData.chapter == verseData.chapter &&
+        bookmark.verseData.verse == verseData.verse);
+
+    if (!exists) {
+      await bookmarksBox.add(newBookmark);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verse added to Bookmarks!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verse is already in Bookmarks.')),
+      );
+    }
+  }
+
+  Future<void> _addVerseToFavorites(VerseData verseData) async {
+    final favoritesBox = await Hive.openBox<Favorite>('favorites');
+    final newFavorite = Favorite(verseData: verseData, timestamp: DateTime.now());
+
+    // Check if the favorite already exists
+    bool exists = favoritesBox.values.any((favorite) =>
+        favorite.verseData.book == verseData.book &&
+        favorite.verseData.chapter == verseData.chapter &&
+        favorite.verseData.verse == verseData.verse);
+
+    if (!exists) {
+      await favoritesBox.add(newFavorite);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verse added to Favorites!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verse is already in Favorites.')),
+      );
     }
   }
 
@@ -148,6 +290,87 @@ class _ReadPageUiState extends State<ReadPageUi> {
         ),
       ),
     );
+  }
+
+  List<TextSpan> _buildVerseTextSpans() {
+    List<TextSpan> spans = [];
+    if (selectedBook == null || selectedChapter == null || bibleData.isEmpty) {
+      return [
+        TextSpan(
+          text: chapterText,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: selectedFontSize,
+                fontFamily: selectedFont,
+                height: 1.5,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+        ),
+      ];
+    }
+
+    var book = bibleData.firstWhere(
+      (b) => b['book'] == selectedBook,
+      orElse: () => null,
+    );
+
+    if (book == null) {
+      return [
+        TextSpan(
+          text: chapterText,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: selectedFontSize,
+                fontFamily: selectedFont,
+                height: 1.5,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+        ),
+      ];
+    }
+
+    var chapter = book['chapters'][selectedChapter! - 1];
+    List<dynamic> verses = chapter['verses'];
+
+    for (var verse in verses) {
+      String verseNumber = "${verse['verse']}";
+      String verseContent = "${verse['text'].toString().trim()}";
+
+      spans.add(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: "$verseNumber ",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: selectedFontSize,
+                fontFamily: selectedFont,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  _showVerseOptions(
+                    VerseData(
+                      book: selectedBook!,
+                      chapter: selectedChapter!,
+                      verse: int.parse(verse['verse'].toString()),
+                      text: verseContent,
+                    ),
+                  );
+                },
+            ),
+            TextSpan(
+              text: "$verseContent ",
+              style: TextStyle(
+                fontSize: selectedFontSize,
+                fontFamily: selectedFont,
+                height: 1.5,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return spans;
   }
 
   @override
@@ -222,6 +445,29 @@ class _ReadPageUiState extends State<ReadPageUi> {
                     ),
               ),
             ),
+
+            ListTile( // Bookmarks option in drawer
+              leading: const Icon(Icons.bookmark),
+              title: const Text('Bookmarks'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ReadBookmarksUi()),
+                );
+              },
+            ),
+            ListTile( // Favorites option in drawer
+              leading: const Icon(Icons.favorite),
+              title: const Text('Favorites'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ReadFavoritesUi()),
+                );
+              },
+            ),
             ListTile( // Settings option in drawer
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
@@ -287,23 +533,23 @@ class _ReadPageUiState extends State<ReadPageUi> {
                       ),
                       items: (selectedBook != null && books.isNotEmpty)
                           ? List<int>.generate(
-                              books.firstWhere(
-                                  (book) => book['book'] == selectedBook,
-                                  orElse: () => {'chapters': 0})['chapters'],
-                              (index) => index + 1,
-                            ).map((chapter) {
-                              return DropdownMenuItem<int>(
-                                value: chapter,
-                                child: Text(
-                                  '$chapter',
-                                  style: TextStyle(
-                                    fontSize: dropdownFontSize,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    overflow: TextOverflow.ellipsis,
+                                books.firstWhere(
+                                    (book) => book['book'] == selectedBook,
+                                    orElse: () => {'chapters': 0})['chapters'],
+                                (index) => index + 1,
+                              ).map((chapter) {
+                                return DropdownMenuItem<int>(
+                                  value: chapter,
+                                  child: Text(
+                                    '$chapter',
+                                    style: TextStyle(
+                                      fontSize: dropdownFontSize,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                              );
-                            }).toList()
+                                );
+                              }).toList()
                           : [],
                       onChanged: (value) {
                         setState(() {
@@ -334,15 +580,11 @@ class _ReadPageUiState extends State<ReadPageUi> {
                   : SingleChildScrollView(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                        child: Text(
-                          chapterText,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontSize: selectedFontSize,
-                                fontFamily: selectedFont,
-                                height: 1.5,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
+                        child: RichText(
                           textAlign: TextAlign.justify,
+                          text: TextSpan(
+                            children: _buildVerseTextSpans(),
+                          ),
                         ),
                       ),
                     ),

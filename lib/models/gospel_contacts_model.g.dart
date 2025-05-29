@@ -8,7 +8,7 @@ part of 'gospel_contacts_model.dart';
 
 class ContactAdapter extends TypeAdapter<Contact> {
   @override
-  final int typeId = 1;
+  final int typeId = 0;
 
   @override
   Contact read(BinaryReader reader) {

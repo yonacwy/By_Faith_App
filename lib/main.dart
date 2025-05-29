@@ -5,6 +5,7 @@ import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import 'package:by_faith_app/models/gospel_map_sub_directory_model.dart';
 import 'package:by_faith_app/models/pray_model.dart';
+import 'package:by_faith_app/models/read_data_model.dart';
 import 'package:by_faith_app/providers/page_notifier.dart';
 import 'package:by_faith_app/providers/theme_notifier.dart';
 import 'package:by_faith_app/ui/gospel_map_manager_ui.dart';
@@ -18,7 +19,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:by_faith_app/models/gospel_profile_model.dart';
@@ -30,20 +30,27 @@ void main() async {
   await FMTCObjectBoxBackend().initialise();
   await Hive.initFlutter();
 
-
   // Register Hive adapters
   Hive.registerAdapter(ContactAdapter());
   Hive.registerAdapter(PrayerAdapter());
   Hive.registerAdapter(MapInfoAdapter());
   Hive.registerAdapter(GospelMapEntryDataAdapter());
   Hive.registerAdapter(GospelProfileAdapter());
+  Hive.registerAdapter(VerseDataAdapter());
+  Hive.registerAdapter(BookmarkAdapter());
+  Hive.registerAdapter(FavoriteAdapter());
 
   // Open Hive boxes
   final themeBox = await Hive.openBox('themeBox'); // For theme persistence
   await Hive.openBox<Prayer>('prayers'); // For Prayer model
   await Hive.openBox('userPreferences'); // For ReadPage book and chapter
   await Hive.openBox<MapInfo>('maps'); // For maps
-  await Hive.openBox<GospelProfile>('userProfileBox'); // For user profile
+
+  // Clear the userProfileBox to prevent type mismatches during development
+  await Hive.openBox<GospelProfile>('userProfileBox');
+
+  await Hive.openBox<Bookmark>('bookmarks'); // Added box
+  await Hive.openBox<Favorite>('favorites'); // Added box
   // Contacts box is opened in GospelPageUi._initHive
 
   runApp(

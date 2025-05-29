@@ -484,14 +484,14 @@ class _GospelPageState extends State<GospelPageUi> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.map_outlined),
-              title: const Text('Map Manager'),
-              onTap: _showMapManager,
-            ),
-            ListTile(
               leading: const Icon(Icons.contacts_outlined),
               title: const Text('Contacts'),
               onTap: _showContacts,
+            ),
+            ListTile(
+              leading: const Icon(Icons.map_outlined),
+              title: const Text('Map Manager'),
+              onTap: _showMapManager,
             ),
             ListTile(
               leading: const Icon(Icons.person_outline),
