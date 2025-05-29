@@ -1,50 +1,50 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gospel_map_info_model.dart';
+part of 'gospel_profile_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class MapInfoAdapter extends TypeAdapter<MapInfo> {
+class GospelProfileAdapter extends TypeAdapter<GospelProfile> {
   @override
-  final int typeId = 4;
+  final int typeId = 3;
 
   @override
-  MapInfo read(BinaryReader reader) {
+  GospelProfile read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return MapInfo(
-      name: fields[0] as String,
-      filePath: fields[1] as String,
-      downloadUrl: fields[2] as String,
-      isTemporary: fields[3] as bool,
-      latitude: fields[4] as double,
-      longitude: fields[5] as double,
-      zoomLevel: fields[6] as int,
+    return GospelProfile(
+      firstName: fields[0] as String?,
+      lastName: fields[1] as String?,
+      address: fields[2] as String?,
+      naturalBirthday: fields[3] as DateTime?,
+      phone: fields[4] as String?,
+      email: fields[5] as String?,
+      spiritualBirthday: fields[6] as DateTime?,
     );
   }
 
   @override
-  void write(BinaryWriter writer, MapInfo obj) {
+  void write(BinaryWriter writer, GospelProfile obj) {
     writer
       ..writeByte(7)
       ..writeByte(0)
-      ..write(obj.name)
+      ..write(obj.firstName)
       ..writeByte(1)
-      ..write(obj.filePath)
+      ..write(obj.lastName)
       ..writeByte(2)
-      ..write(obj.downloadUrl)
+      ..write(obj.address)
       ..writeByte(3)
-      ..write(obj.isTemporary)
+      ..write(obj.naturalBirthday)
       ..writeByte(4)
-      ..write(obj.latitude)
+      ..write(obj.phone)
       ..writeByte(5)
-      ..write(obj.longitude)
+      ..write(obj.email)
       ..writeByte(6)
-      ..write(obj.zoomLevel);
+      ..write(obj.spiritualBirthday);
   }
 
   @override
@@ -53,7 +53,7 @@ class MapInfoAdapter extends TypeAdapter<MapInfo> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MapInfoAdapter &&
+      other is GospelProfileAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

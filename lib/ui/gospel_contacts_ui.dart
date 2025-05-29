@@ -28,18 +28,20 @@ class ContactsPage extends StatelessWidget {
     );
   }
 
-  void _navigateToEditContact(BuildContext context, Contact contact) {
+  void _navigateToEditContact(BuildContext context, Contact contact, int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AddEditContactPage(
           contactBox: contactBox,
           contact: contact,
+          contactIndex: index,
           onContactUpdated: (updatedContact) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Contact ${updatedContact.name} updated')),
             );
           },
+          onDeleteContact: _deleteContact,
         ),
       ),
     );
@@ -104,48 +106,33 @@ class ContactsPage extends StatelessWidget {
               final contact = box.getAt(index)!;
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
-                child: ListTile(
-                  leading: contact.picturePath != null
-                      ? CircleAvatar(
-                          backgroundImage: FileImage(File(contact.picturePath!)),
-                          radius: 25,
-                        )
-                      : const CircleAvatar(
-                          child: Icon(Icons.person),
-                          radius: 25,
+                child: InkWell(
+                  onTap: () => _navigateToEditContact(context, contact, index),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        contact.picturePath != null
+                            ? CircleAvatar(
+                                backgroundImage: FileImage(File(contact.picturePath!)),
+                                radius: 25,
+                              )
+                            : const CircleAvatar(
+                                child: Icon(Icons.person),
+                                radius: 25,
+                              ),
+                        const SizedBox(width: 16.0),
+                        Expanded(
+                          child: Text(
+                            contact.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                  title: Text(contact.name),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Map: Lat ${contact.latitude.toStringAsFixed(4)}, Lon ${contact.longitude.toStringAsFixed(4)}'),
-                      if (contact.phone != null) Text('Phone: ${contact.phone}'),
-                      if (contact.email != null) Text('Email: ${contact.email}'),
-                      if (contact.address.isNotEmpty) Text('Address: ${contact.address}'),
-                      if (contact.birthday != null)
-                        Text('Birthday: ${DateFormat.yMMMd().format(contact.birthday!)}'),
-                    ],
+                      ],
+                    ),
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _navigateToEditContact(context, contact),
-                        tooltip: 'Edit Contact',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteContact(context, contact, index),
-                        tooltip: 'Delete Contact',
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Selected ${contact.name}')),
-                    );
-                  },
                 ),
               );
             },
@@ -161,6 +148,8 @@ class AddEditContactPage extends StatefulWidget {
   final Contact? contact;
   final Function(Contact)? onContactAdded;
   final Function(Contact)? onContactUpdated;
+  final Function(BuildContext, Contact, int)? onDeleteContact;
+  final int? contactIndex;
   final double? latitude;
   final double? longitude;
 
@@ -170,6 +159,8 @@ class AddEditContactPage extends StatefulWidget {
     this.contact,
     this.onContactAdded,
     this.onContactUpdated,
+    this.onDeleteContact,
+    this.contactIndex,
     this.latitude,
     this.longitude,
   }) : super(key: key);
@@ -191,6 +182,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
   final quill.QuillController _notesController = quill.QuillController.basic();
   String? _picturePath;
   bool _isEditing = false;
+  bool _isReadOnly = false; // New state variable
 
   @override
   void initState() {
@@ -211,12 +203,14 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
       if (widget.contact!.notes != null) {
         _notesController.document = quill.Document.fromJson(widget.contact!.notes!);
       }
+      _isReadOnly = true; // Initially read-only for existing contacts
     } else {
       _latitudeController.text = widget.latitude?.toString() ?? '';
       _longitudeController.text = widget.longitude?.toString() ?? '';
       _addressController.text = '';
+      _isReadOnly = false; // Not read-only for new contacts
     }
-    _notesController.readOnly = false;
+    _notesController.readOnly = _isReadOnly; // Set initial read-only state for notes
   }
 
   @override
@@ -302,7 +296,11 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Contact' : 'Add Contact'),
+        title: Text(
+          _isEditing
+              ? (_isReadOnly ? 'Contact Details' : 'Edit Contact')
+              : 'Add Contact',
+        ),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -310,6 +308,37 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
               fontWeight: FontWeight.bold,
             ),
         centerTitle: true,
+        actions: _isEditing
+            ? (_isReadOnly
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () {
+                        setState(() {
+                          _isReadOnly = false;
+                          _notesController.readOnly = false;
+                        });
+                      },
+                      tooltip: 'Edit Contact',
+                    ),
+                  ]
+                : [
+                    IconButton(
+                      icon: const Icon(Icons.save, color: Colors.green),
+                      onPressed: _saveContact,
+                      tooltip: 'Save Changes',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        if (widget.contact != null && widget.contactIndex != null) {
+                          widget.onDeleteContact?.call(context, widget.contact!, widget.contactIndex!);
+                        }
+                      },
+                      tooltip: 'Delete Contact',
+                    ),
+                  ])
+            : null,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -333,7 +362,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                           ),
                     const SizedBox(width: 16),
                     ElevatedButton(
-                      onPressed: _pickImage,
+                      onPressed: _isReadOnly ? null : _pickImage,
                       child: const Text('Pick Picture'),
                     ),
                   ],
@@ -344,6 +373,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _firstNameController,
+                  readOnly: _isReadOnly,
                   decoration: const InputDecoration(
                     labelText: 'First Name',
                     border: OutlineInputBorder(),
@@ -358,6 +388,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _lastNameController,
+                  readOnly: _isReadOnly,
                   decoration: const InputDecoration(
                     labelText: 'Last Name',
                     border: OutlineInputBorder(),
@@ -372,6 +403,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _addressController,
+                  readOnly: _isReadOnly,
                   decoration: const InputDecoration(
                     labelText: 'Address',
                     border: OutlineInputBorder(),
@@ -386,16 +418,17 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _birthdayController,
+                  readOnly: true, // Always read-only, uses date picker
+                  onTap: _isReadOnly ? null : _pickBirthday,
                   decoration: const InputDecoration(
                     labelText: 'Birthday (Optional)',
                     border: OutlineInputBorder(),
                   ),
-                  readOnly: true,
-                  onTap: _pickBirthday,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _phoneController,
+                  readOnly: _isReadOnly,
                   decoration: const InputDecoration(
                     labelText: 'Phone (Optional)',
                     border: OutlineInputBorder(),
@@ -405,6 +438,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
+                  readOnly: _isReadOnly,
                   decoration: const InputDecoration(
                     labelText: 'Email (Optional)',
                     border: OutlineInputBorder(),
@@ -426,6 +460,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _latitudeController,
+                  readOnly: _isReadOnly,
                   decoration: const InputDecoration(
                     labelText: 'Latitude',
                     border: OutlineInputBorder(),
@@ -446,6 +481,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _longitudeController,
+                  readOnly: _isReadOnly,
                   decoration: const InputDecoration(
                     labelText: 'Longitude',
                     border: OutlineInputBorder(),
@@ -504,15 +540,19 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _saveContact,
-                  child: Text(_isEditing ? 'Update Contact' : 'Save Contact'),
-                ),
+                // Removed the bottom save button as it's now in the AppBar
               ],
             ),
           ),
         ),
       ),
+      floatingActionButton: !_isEditing
+          ? FloatingActionButton.extended(
+              onPressed: _saveContact,
+              label: const Text('Save Contact'),
+              icon: const Icon(Icons.save),
+            )
+          : null,
     );
   }
 }

@@ -21,6 +21,8 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:onboarding/onboarding.dart';
+import 'package:by_faith_app/models/gospel_profile_model.dart';
+import 'package:by_faith_app/ui/gospel_onboarding_ui.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -34,12 +36,14 @@ void main() async {
   Hive.registerAdapter(PrayerAdapter());
   Hive.registerAdapter(MapInfoAdapter());
   Hive.registerAdapter(GospelMapEntryDataAdapter());
+  Hive.registerAdapter(GospelProfileAdapter());
 
   // Open Hive boxes
   final themeBox = await Hive.openBox('themeBox'); // For theme persistence
   await Hive.openBox<Prayer>('prayers'); // For Prayer model
   await Hive.openBox('userPreferences'); // For ReadPage book and chapter
   await Hive.openBox<MapInfo>('maps'); // For maps
+  await Hive.openBox<GospelProfile>('userProfileBox'); // For user profile
   // Contacts box is opened in GospelPageUi._initHive
 
   runApp(
@@ -59,8 +63,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
-    final userPreferencesBox = Hive.box('userPreferences');
-    final bool onboardingComplete = userPreferencesBox.get('onboardingComplete') ?? false;
+    final userProfileBox = Hive.box<GospelProfile>('userProfileBox');
+    final bool profileExists = userProfileBox.get('currentProfile') != null;
 
     return MaterialApp(
       title: 'By Faith App',
@@ -81,7 +85,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
       ),
       themeMode: themeNotifier.themeMode,
-      home: onboardingComplete ? const RootPage() : const OnboardingScreen(),
+      home: profileExists ? const RootPage() : const GospelOnboardingUI(),
+      routes: {
+        '/home': (context) => const RootPage(),
+      },
     );
   }
 }
@@ -148,34 +155,6 @@ class _RootPageState extends State<RootPage> {
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
         onTap: _onItemTapped,
-      ),
-    );
-  }
-}
-
-class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Welcome')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('This is the Onboarding Screen'),
-            ElevatedButton(
-              onPressed: () {
-                Hive.box('userPreferences').put('onboardingComplete', true);
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const RootPage()),
-                );
-              },
-              child: const Text('Skip Onboarding'),
-            ),
-          ],
-        ),
       ),
     );
   }

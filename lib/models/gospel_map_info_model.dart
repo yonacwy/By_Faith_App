@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'gospel_map_info_model.g.dart';
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 4)
 class MapInfo extends HiveObject {
   @HiveField(0)
   final String name;

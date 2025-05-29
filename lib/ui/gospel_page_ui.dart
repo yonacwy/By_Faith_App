@@ -8,6 +8,7 @@ import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import 'package:by_faith_app/models/gospel_map_sub_directory_model.dart';
 import 'package:by_faith_app/ui/gospel_contacts_ui.dart' as gospel_contacts_ui;
 import 'package:by_faith_app/ui/gospel_map_manager_ui.dart' as gospel_map_manager_ui;
+import 'package:by_faith_app/ui/gospel_profile_ui.dart' as gospel_profile_ui;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show DefaultAssetBundle, rootBundle;
@@ -394,6 +395,17 @@ class _GospelPageState extends State<GospelPageUi> {
     );
   }
 
+  void _showProfile() {
+    if (!_isHiveInitialized || _isDisposed || !mounted) return;
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => gospel_profile_ui.GospelProfileUi(),
+      ),
+    );
+  }
+
   void _startAddingMarker() {
     if (_isDisposed || !mounted) return;
     setState(() {
@@ -480,6 +492,11 @@ class _GospelPageState extends State<GospelPageUi> {
               leading: const Icon(Icons.contacts_outlined),
               title: const Text('Contacts'),
               onTap: _showContacts,
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text('Profile'),
+              onTap: _showProfile,
             ),
           ],
         ),

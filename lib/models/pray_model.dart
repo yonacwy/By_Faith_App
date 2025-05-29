@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'pray_model.g.dart';
 
-@HiveType(typeId: 0)
+@HiveType(typeId: 2)
 class Prayer extends HiveObject {
   @HiveField(0)
   String id;

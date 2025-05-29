@@ -4,7 +4,7 @@ import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
 
 class GospelMapEntryDataAdapter extends TypeAdapter<GospelMapEntryData> {
   @override
-  final int typeId = 3; // Adjust typeId as needed
+  final int typeId = 5; // Adjust typeId as needed
 
   @override
   GospelMapEntryData read(BinaryReader reader) {

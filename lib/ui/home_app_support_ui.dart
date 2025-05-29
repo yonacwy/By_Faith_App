@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeAppSupportUi extends StatelessWidget {
   const HomeAppSupportUi({Key? key}) : super(key: key);
+
+  Future<void> _launchUrl(String url) async {
+    if (!await launchUrl(Uri.parse(url))) {
+      throw Exception('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,28 +24,38 @@ class HomeAppSupportUi extends StatelessWidget {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       ),
-      body: const Center(
+      body: Center(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.construction,
-                size: 80,
-                color: Colors.grey,
+              // Discord Link
+              ListTile(
+                leading: const Icon(FontAwesomeIcons.discord, color: Colors.blue),
+                title: const Text('Join our Discord'),
+                subtitle: const Text('https://discord.gg/KXg35XGFtK'),
+                onTap: () => _launchUrl('https://discord.gg/KXg35XGFtK'),
               ),
-              SizedBox(height: 16),
-              Text(
-                'App Support page is under construction.',
+              // Github Link
+              ListTile(
+                leading: const Icon(FontAwesomeIcons.github, color: Colors.black),
+                title: const Text('View on GitHub'),
+                subtitle: const Text('https://github.com/yonacwy/by_faith_app'),
+                onTap: () => _launchUrl('https://github.com/yonacwy/by_faith_app'),
+              ),
+              // Email Link
+              ListTile(
+                leading: const Icon(Icons.email, color: Colors.red),
+                title: const Text('Email Support'),
+                subtitle: const Text('barry.b.smith@gmail.com'),
+                onTap: () => _launchUrl('mailto:barry.b.smith@gmail.com'),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Thank you for your support!',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Please check back later for updates.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ],
           ),

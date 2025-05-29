@@ -34,13 +34,61 @@ class _MapManagerPageState extends State<MapManagerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Map Manager'),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+        centerTitle: true,
       ),
-      body: ListView.builder(
-        itemCount: widget.directories.length,
-        itemBuilder: (context, index) {
-          final directory = widget.directories[index];
-          return _buildDirectoryTile(directory);
-        },
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: widget.directories.length,
+              itemBuilder: (context, index) {
+                final directory = widget.directories[index];
+                return _buildDirectoryTile(directory);
+              },
+            ),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Available Maps',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ),
+          Expanded(
+            child: ValueListenableBuilder(
+              valueListenable: widget.mapBox.listenable(),
+              builder: (context, Box<MapInfo> box, _) {
+                if (box.isEmpty) {
+                  return const Center(child: Text('No maps downloaded yet.'));
+                }
+                return ListView.builder(
+                  itemCount: box.length,
+                  itemBuilder: (context, index) {
+                    final mapInfo = box.getAt(index)!;
+                    return ListTile(
+                      title: Text(mapInfo.name),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteMap(mapInfo.name),
+                      ),
+                      onTap: () {
+                        widget.onLoadMap(mapInfo.name);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

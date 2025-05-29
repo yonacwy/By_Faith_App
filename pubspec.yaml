@@ -25,8 +25,10 @@ dependencies:
   archive: ^3.6.1
   file_picker: ^8.1.2
   url_launcher: ^6.3.1
+
   connectivity_plus: ^6.0.5
   onboarding: ^4.0.2
+  font_awesome_flutter: ^10.7.0
   characters: ^1.4.0
   collection: ^1.18.0
   vector_math: ^2.1.4
