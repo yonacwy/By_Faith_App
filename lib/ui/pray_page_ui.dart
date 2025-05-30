@@ -8,6 +8,7 @@ import '../providers/theme_notifier.dart';
 import 'dart:convert';
 import 'pray_settings_ui.dart';
 import 'pray_search_ui.dart';
+import 'pray_share_ui.dart';
 
 class PrayPageUi extends StatefulWidget {
   PrayPageUi({Key? key}) : super(key: key);
@@ -161,6 +162,15 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
       context,
       MaterialPageRoute(
         builder: (context) => const PraySettingsUi(),
+      ),
+    );
+  }
+
+  void _openSharePage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PrayShareUi(),
       ),
     );
   }
@@ -467,6 +477,14 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
                     ),
                   ),
                 );
+              },
+            ),
+            ListTile( // Share option in drawer
+              leading: const Icon(Icons.share),
+              title: const Text('Share Prayers'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                _openSharePage();
               },
             ),
             ListTile( // Settings option in drawer

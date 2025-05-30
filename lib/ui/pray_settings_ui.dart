@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 
-class PraySettingsUi extends StatelessWidget {
+class PraySettingsUi extends StatefulWidget {
   const PraySettingsUi({Key? key}) : super(key: key);
 
+  @override
+  State<PraySettingsUi> createState() => _PraySettingsUiState();
+}
+
+class _PraySettingsUiState extends State<PraySettingsUi> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,6 +61,7 @@ class PraySettingsUi extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 
@@ -6,27 +7,56 @@ class ReadSettingsUi extends StatefulWidget {
   final Function(String, double) onFontChanged;
   final String initialFont;
   final double initialFontSize;
+  final Function(bool) onAutoScrollChanged;
+  final bool initialAutoScrollState;
 
   const ReadSettingsUi({
-    Key? key,
+    super.key,
     required this.onFontChanged,
     required this.initialFont,
     required this.initialFontSize,
-  }) : super(key: key);
+    required this.onAutoScrollChanged,
+    required this.initialAutoScrollState,
+  });
 
   @override
   _ReadSettingsUiState createState() => _ReadSettingsUiState();
 }
 
 class _ReadSettingsUiState extends State<ReadSettingsUi> {
-  late String currentFont;
-  late double currentFontSize;
+  String? currentFont;
+  double? currentFontSize;
+  bool? _isAutoScrollingEnabled;
+  late Box userPrefsBox;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    // Initialize with widget values to avoid late initialization errors
     currentFont = widget.initialFont;
     currentFontSize = widget.initialFontSize;
+    _isAutoScrollingEnabled = widget.initialAutoScrollState;
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      userPrefsBox = await Hive.openBox('userPreferences');
+      setState(() {
+        currentFont = userPrefsBox.get('selectedFont', defaultValue: widget.initialFont) as String;
+        currentFontSize = userPrefsBox.get('selectedFontSize', defaultValue: widget.initialFontSize) as double;
+        _isAutoScrollingEnabled = userPrefsBox.get('isAutoScrollingEnabled', defaultValue: widget.initialAutoScrollState) as bool;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading settings: $e')),
+      );
+    }
   }
 
   @override
@@ -38,6 +68,22 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
       'Lora',
     ];
     const String sampleText = "The Lord is my shepherd; I shall not want.";
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Settings'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+            tooltip: 'Back',
+          ),
+          elevation: 0,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -138,7 +184,8 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                             if (value != null) {
                               setState(() {
                                 currentFont = value;
-                                widget.onFontChanged(currentFont, currentFontSize);
+                                widget.onFontChanged(currentFont!, currentFontSize!);
+                                userPrefsBox.put('selectedFont', value);
                               });
                             }
                           },
@@ -167,17 +214,18 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                           ),
                         ),
                         Slider(
-                          value: currentFontSize,
+                          value: currentFontSize!,
                           min: 12.0,
                           max: 24.0,
-                          divisions: 24, // (24 - 12) / 0.5 = 24 divisions
-                          label: currentFontSize.toStringAsFixed(1),
+                          divisions: 24,
+                          label: currentFontSize!.toStringAsFixed(1),
                           activeColor: Theme.of(context).colorScheme.primary,
                           inactiveColor: Theme.of(context).colorScheme.outlineVariant,
                           onChanged: (value) {
                             setState(() {
                               currentFontSize = value;
-                              widget.onFontChanged(currentFont, currentFontSize);
+                              widget.onFontChanged(currentFont!, currentFontSize!);
+                              userPrefsBox.put('selectedFontSize', value);
                             });
                           },
                         ),
@@ -211,6 +259,41 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       textAlign: TextAlign.justify,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Auto Scroll',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: ListTile(
+                    title: const Text('Enable Auto Scroll'),
+                    trailing: Switch(
+                      value: _isAutoScrollingEnabled!,
+                      onChanged: (value) {
+                        setState(() {
+                          _isAutoScrollingEnabled = value;
+                          widget.onAutoScrollChanged(value);
+                          userPrefsBox.put('isAutoScrollingEnabled', value);
+                        });
+                      },
+                    ),
+                    subtitle: Text(
+                      _isAutoScrollingEnabled! ? 'On' : 'Off',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                     ),
                   ),
                 ),

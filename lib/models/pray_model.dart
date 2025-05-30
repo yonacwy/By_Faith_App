@@ -22,4 +22,26 @@ class Prayer extends HiveObject {
     required this.timestamp,
     String? id,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+  factory Prayer.fromJson(Map<String, dynamic> json) {
+    return Prayer(
+      id: json['id'],
+      richTextJson: json['richTextJson'],
+      status: json['status'],
+      timestamp: DateTime.parse(json['timestamp']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'richTextJson': richTextJson,
+      'status': status,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+
+  static Future<Box<Prayer>> openBox() async {
+    return await Hive.openBox<Prayer>('prayers');
+  }
 }

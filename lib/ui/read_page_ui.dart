@@ -1,13 +1,14 @@
+import 'dart:async'; // Added for Timer
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart'; // Added import for TapGestureRecognizer
+import 'package:flutter/gestures.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 import 'read_settings_ui.dart';
 import 'read_bookmarks_ui.dart';
 import 'read_favorites_ui.dart';
-import '../models/read_data_model.dart'; // Added import
+import '../models/read_data_model.dart';
 
 class ReadPageUi extends StatefulWidget {
   final String? initialBook;
@@ -35,11 +36,25 @@ class _ReadPageUiState extends State<ReadPageUi> {
   late Box userPrefsBox;
   String selectedFont = 'Roboto';
   double selectedFontSize = 16.0;
+  bool _isAutoScrollingEnabled = false;
+
+  late ScrollController _scrollController;
+  bool _isAutoScrolling = false;
+  double _autoScrollSpeed = 0.5;
+  Timer? _autoScrollTimer;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _loadSavedSelection();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _autoScrollTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadSavedSelection() async {
@@ -47,10 +62,9 @@ class _ReadPageUiState extends State<ReadPageUi> {
     setState(() {
       selectedBook = widget.initialBook ?? userPrefsBox.get('lastSelectedBook') ?? "Genesis";
       selectedChapter = widget.initialChapter ?? userPrefsBox.get('lastSelectedChapter') ?? 1;
-      // If an initial verse is provided, we might want to scroll to it after loading the chapter.
-      // This will be handled in loadChapter.
       selectedFont = userPrefsBox.get('selectedFont') ?? 'Roboto';
       selectedFontSize = userPrefsBox.get('selectedFontSize') ?? 16.0;
+      _isAutoScrollingEnabled = userPrefsBox.get('isAutoScrollingEnabled') ?? false;
     });
     loadData();
   }
@@ -64,6 +78,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
     }
     await userPrefsBox.put('selectedFont', selectedFont);
     await userPrefsBox.put('selectedFontSize', selectedFontSize);
+    await userPrefsBox.put('isAutoScrollingEnabled', _isAutoScrollingEnabled);
   }
 
   Future<void> loadData() async {
@@ -132,14 +147,13 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
       var chapter = book['chapters'][chapterNumber - 1];
       List<dynamic> verses = chapter['verses'];
-      
-      // Build the chapter text with GestureDetector for each verse
-      chapterText = ""; // Clear previous text
+
+      chapterText = "";
       List<TextSpan> verseSpans = [];
       for (var verse in verses) {
         String verseNumber = "${verse['verse']}";
         String verseContent = "${verse['text'].toString().trim()}";
-        
+
         verseSpans.add(
           TextSpan(
             children: [
@@ -176,10 +190,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
           ),
         );
       }
-      
-      // Assign the RichText to chapterText for display
-      // This is a simplification; in a real app, you'd use RichText directly in the widget tree
-      // For now, we'll just join the texts for display purposes, but the tap logic is in verseSpans
+
       chapterText = verses
           .map((verse) => "${verse['verse']} ${verse['text'].toString().trim()}")
           .join(' ');
@@ -192,10 +203,57 @@ class _ReadPageUiState extends State<ReadPageUi> {
     } finally {
       setState(() => isLoading = false);
       if (initialVerse != null) {
-        // Logic to scroll to the initial verse can be added here if needed.
-        // For now, just setting the chapter is enough.
+        // Scroll to initial verse if needed
       }
     }
+  }
+
+  void _startAutoScroll() {
+    if (_isAutoScrolling || !_isAutoScrollingEnabled) return;
+
+    setState(() {
+      _isAutoScrolling = true;
+    });
+
+    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (_scrollController.hasClients) {
+        final maxScrollExtent = _scrollController.position.maxScrollExtent;
+        final currentScroll = _scrollController.position.pixels;
+
+        if (currentScroll < maxScrollExtent) {
+          _scrollController.animateTo(
+            currentScroll + _autoScrollSpeed,
+            duration: const Duration(milliseconds: 50),
+            curve: Curves.linear,
+          );
+        } else {
+          _stopAutoScroll();
+        }
+      } else {
+        _stopAutoScroll();
+      }
+    });
+  }
+
+  void _stopAutoScroll() {
+    if (!_isAutoScrolling) return;
+
+    _autoScrollTimer?.cancel();
+    setState(() {
+      _isAutoScrolling = false;
+    });
+  }
+
+  void _increaseAutoScrollSpeed() {
+    setState(() {
+      _autoScrollSpeed = (_autoScrollSpeed + 0.1).clamp(0.1, 5.0);
+    });
+  }
+
+  void _decreaseAutoScrollSpeed() {
+    setState(() {
+      _autoScrollSpeed = (_autoScrollSpeed - 0.1).clamp(0.1, 5.0);
+    });
   }
 
   void _showVerseOptions(VerseData verseData) {
@@ -233,7 +291,6 @@ class _ReadPageUiState extends State<ReadPageUi> {
     final bookmarksBox = await Hive.openBox<Bookmark>('bookmarks');
     final newBookmark = Bookmark(verseData: verseData, timestamp: DateTime.now());
 
-    // Check if the bookmark already exists
     bool exists = bookmarksBox.values.any((bookmark) =>
         bookmark.verseData.book == verseData.book &&
         bookmark.verseData.chapter == verseData.chapter &&
@@ -255,7 +312,6 @@ class _ReadPageUiState extends State<ReadPageUi> {
     final favoritesBox = await Hive.openBox<Favorite>('favorites');
     final newFavorite = Favorite(verseData: verseData, timestamp: DateTime.now());
 
-    // Check if the favorite already exists
     bool exists = favoritesBox.values.any((favorite) =>
         favorite.verseData.book == verseData.book &&
         favorite.verseData.chapter == verseData.chapter &&
@@ -287,6 +343,18 @@ class _ReadPageUiState extends State<ReadPageUi> {
           },
           initialFont: selectedFont,
           initialFontSize: selectedFontSize,
+          onAutoScrollChanged: (isEnabled) {
+            setState(() {
+              _isAutoScrollingEnabled = isEnabled;
+              if (!isEnabled) {
+                _stopAutoScroll();
+              } else {
+                _startAutoScroll();
+              }
+              _saveSelection();
+            });
+          },
+          initialAutoScrollState: _isAutoScrollingEnabled,
         ),
       ),
     );
@@ -416,20 +484,20 @@ class _ReadPageUiState extends State<ReadPageUi> {
               fontWeight: FontWeight.bold,
             ),
         centerTitle: true,
-        actions: [ // Menu icon on the right
+        actions: [
           Builder(
             builder: (BuildContext context) {
               return IconButton(
                 icon: const Icon(Icons.menu),
                 onPressed: () {
-                  Scaffold.of(context).openEndDrawer(); // Open end drawer
+                  Scaffold.of(context).openEndDrawer();
                 },
               );
             },
           ),
         ],
       ),
-      endDrawer: Drawer( // Drawer on the right
+      endDrawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -445,34 +513,33 @@ class _ReadPageUiState extends State<ReadPageUi> {
                     ),
               ),
             ),
-
-            ListTile( // Bookmarks option in drawer
+            ListTile(
               leading: const Icon(Icons.bookmark),
               title: const Text('Bookmarks'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ReadBookmarksUi()),
                 );
               },
             ),
-            ListTile( // Favorites option in drawer
+            ListTile(
               leading: const Icon(Icons.favorite),
               title: const Text('Favorites'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ReadFavoritesUi()),
                 );
               },
             ),
-            ListTile( // Settings option in drawer
+            ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 _openSettingsPage();
               },
             ),
@@ -533,23 +600,23 @@ class _ReadPageUiState extends State<ReadPageUi> {
                       ),
                       items: (selectedBook != null && books.isNotEmpty)
                           ? List<int>.generate(
-                                books.firstWhere(
-                                    (book) => book['book'] == selectedBook,
-                                    orElse: () => {'chapters': 0})['chapters'],
-                                (index) => index + 1,
-                              ).map((chapter) {
-                                return DropdownMenuItem<int>(
-                                  value: chapter,
-                                  child: Text(
-                                    '$chapter',
-                                    style: TextStyle(
-                                      fontSize: dropdownFontSize,
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                              books.firstWhere(
+                                  (book) => book['book'] == selectedBook,
+                                  orElse: () => {'chapters': 0})['chapters'],
+                              (index) => index + 1,
+                            ).map((chapter) {
+                              return DropdownMenuItem<int>(
+                                value: chapter,
+                                child: Text(
+                                  '$chapter',
+                                  style: TextStyle(
+                                    fontSize: dropdownFontSize,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                );
-                              }).toList()
+                                ),
+                              );
+                            }).toList()
                           : [],
                       onChanged: (value) {
                         setState(() {
@@ -578,6 +645,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
                       ),
                     )
                   : SingleChildScrollView(
+                      controller: _scrollController,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                         child: RichText(
@@ -590,6 +658,41 @@ class _ReadPageUiState extends State<ReadPageUi> {
                     ),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: Icon(Icons.remove_circle_outline, color: Theme.of(context).colorScheme.onSurface),
+                onPressed: _decreaseAutoScrollSpeed,
+                tooltip: 'Decrease Scroll Speed',
+              ),
+              IconButton(
+                icon: Icon(
+                  _isAutoScrolling ? Icons.pause : Icons.play_arrow,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                onPressed: () {
+                  if (_isAutoScrolling) {
+                    _stopAutoScroll();
+                  } else {
+                    _startAutoScroll();
+                  }
+                },
+                tooltip: _isAutoScrolling ? 'Pause Auto Scroll' : 'Start Auto Scroll',
+              ),
+              IconButton(
+                icon: Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.onSurface),
+                onPressed: _increaseAutoScrollSpeed,
+                tooltip: 'Increase Scroll Speed',
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -13,6 +13,7 @@ import '../providers/theme_notifier.dart';
 import 'home_settings_ui.dart';
 import 'home_app_support_ui.dart';
 import 'home_app_info_ui.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class HomePageUi extends StatefulWidget {
   HomePageUi({Key? key}) : super(key: key);
@@ -30,17 +31,30 @@ class _HomePageUiState extends State<HomePageUi> {
   int _answeredPrayersCount = 0;
   int _unansweredPrayersCount = 0;
   String _lastRead = 'N/A';
+  String _lastBookmark = 'N/A';
+  String _lastFavorite = 'N/A';
   String _lastStudied = 'N/A';
+  String _lastNote = 'N/A';
+  String _lastSearch = 'N/A';
+  String _lastContact = 'N/A';
+  String _currentMap = 'N/A';
   int _downloadedMapsCount = 0;
-  String _selectedFont = 'Roboto'; // Add font setting
-  double _selectedFontSize = 16.0; // Add font size setting
+  String _selectedFont = 'Roboto';
+  double _selectedFontSize = 16.0;
 
   bool _isInitialized = false;
+  double _opacity = 0.0; // For fade-in animation
 
   @override
   void initState() {
     super.initState();
     _openBoxes();
+    // Trigger fade-in animation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _opacity = 1.0;
+      });
+    });
   }
 
   Future<void> _openBoxes() async {
@@ -48,7 +62,6 @@ class _HomePageUiState extends State<HomePageUi> {
     _userPrefsBox = await Hive.openBox('userPreferences');
     _mapBox = await Hive.openBox<MapInfo>('maps');
 
-    // Load saved font settings
     setState(() {
       _selectedFont = _userPrefsBox.get('homeSelectedFont') ?? 'Roboto';
       _selectedFontSize = _userPrefsBox.get('homeSelectedFontSize') ?? 16.0;
@@ -81,6 +94,13 @@ class _HomePageUiState extends State<HomePageUi> {
       _lastStudied = (lastStudiedBook != null && lastStudiedChapter != null)
           ? '$lastStudiedBook $lastStudiedChapter'
           : 'N/A';
+
+      _lastBookmark = _userPrefsBox.get('lastBookmark') ?? 'N/A';
+      _lastFavorite = _userPrefsBox.get('lastFavorite') ?? 'N/A';
+      _lastNote = _userPrefsBox.get('lastNote') ?? 'N/A';
+      _lastSearch = _userPrefsBox.get('lastSearch') ?? 'N/A';
+      _lastContact = _userPrefsBox.get('lastContact') ?? 'N/A';
+      _currentMap = _userPrefsBox.get('currentMap') ?? 'N/A';
 
       _downloadedMapsCount = _mapBox.values.where((map) => map is MapInfo && !map.isTemporary).length;
     });
@@ -126,8 +146,220 @@ class _HomePageUiState extends State<HomePageUi> {
     }
   }
 
+  // Bar chart for prayer summary
+  Widget _buildPrayerChart() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxBarHeight = screenWidth * 0.3; // Responsive height for small screens
+    final totalPrayers = _newPrayersCount + _answeredPrayersCount + _unansweredPrayersCount;
+    final maxY = totalPrayers > 0 ? totalPrayers.toDouble() : 10.0; // Avoid zero division
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.pie_chart, color: Theme.of(context).colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Prayer Summary',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontFamily: _selectedFont,
+                        fontSize: _selectedFontSize * 0.9,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: maxBarHeight,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: maxY,
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (group) => Theme.of(context).colorScheme.surfaceContainerHighest,
+                      tooltipRoundedRadius: 8,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        String label;
+                        switch (group.x) {
+                          case 0:
+                            label = 'New: $_newPrayersCount';
+                            break;
+                          case 1:
+                            label = 'Answered: $_answeredPrayersCount';
+                            break;
+                          case 2:
+                            label = 'Unanswered: $_unansweredPrayersCount';
+                            break;
+                          default:
+                            label = '';
+                        }
+                        return BarTooltipItem(
+                          label,
+                          Theme.of(context).textTheme.bodySmall!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontFamily: _selectedFont,
+                                fontSize: _selectedFontSize * 0.8,
+                              ),
+                        );
+                      },
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    show: true,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          const style = TextStyle(fontSize: 12);
+                          switch (value.toInt()) {
+                            case 0:
+                              return const Text('New', style: style);
+                            case 1:
+                              return const Text('Answered', style: style);
+                            case 2:
+                              return const Text('Unanswered', style: style);
+                          }
+                          return const Text('');
+                        },
+                      ),
+                    ),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  barGroups: [
+                    BarChartGroupData(
+                      x: 0,
+                      barRods: [
+                        BarChartRodData(
+                          toY: _newPrayersCount.toDouble(),
+                          color: Theme.of(context).colorScheme.primary,
+                          width: screenWidth * 0.2,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                    BarChartGroupData(
+                      x: 1,
+                      barRods: [
+                        BarChartRodData(
+                          toY: _answeredPrayersCount.toDouble(),
+                          color: Theme.of(context).colorScheme.secondary,
+                          width: screenWidth * 0.2,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                    BarChartGroupData(
+                      x: 2,
+                      barRods: [
+                        BarChartRodData(
+                          toY: _unansweredPrayersCount.toDouble(),
+                          color: Theme.of(context).colorScheme.tertiary,
+                          width: screenWidth * 0.2,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Circular progress indicator for reading/study progress
+  Widget _buildProgressIndicator(String title, String value, double progress, int pageIndex) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: InkWell(
+        onTap: () {
+          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(pageIndex);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: screenWidth * 0.15,
+                height: screenWidth * 0.15,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 4,
+                      color: Theme.of(context).colorScheme.primary,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ),
+                    Text(
+                      '${(progress * 100).toInt()}%',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontFamily: _selectedFont,
+                            fontSize: _selectedFontSize * 0.7,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: _selectedFont,
+                            fontSize: _selectedFontSize * 0.9,
+                          ),
+                    ),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontFamily: _selectedFont,
+                            fontSize: _selectedFontSize * 0.8,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final adjustedFontSize = _selectedFontSize * (screenWidth < 360 ? 0.9 : 1.0); // Adjust for small screens
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
@@ -136,22 +368,23 @@ class _HomePageUiState extends State<HomePageUi> {
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
+              fontSize: adjustedFontSize,
             ),
         centerTitle: true,
-        actions: [ // Move menu icon to actions for right side
+        actions: [
           Builder(
             builder: (BuildContext context) {
               return IconButton(
-                icon: const Icon(Icons.menu),
+                icon: const Icon(Icons.menu, size: 28),
                 onPressed: () {
-                  Scaffold.of(context).openEndDrawer(); // Open end drawer
+                  Scaffold.of(context).openEndDrawer();
                 },
               );
             },
           ),
         ],
       ),
-      endDrawer: Drawer( // Changed to endDrawer for right side
+      endDrawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -164,12 +397,13 @@ class _HomePageUiState extends State<HomePageUi> {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
+                      fontSize: adjustedFontSize,
                     ),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('App Info'),
+              leading: const Icon(Icons.info, size: 24),
+              title: Text('App Info', style: TextStyle(fontSize: adjustedFontSize * 0.9)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -179,8 +413,8 @@ class _HomePageUiState extends State<HomePageUi> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.support),
-              title: const Text('App Support'),
+              leading: const Icon(Icons.support, size: 24),
+              title: Text('App Support', style: TextStyle(fontSize: adjustedFontSize * 0.9)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -189,11 +423,11 @@ class _HomePageUiState extends State<HomePageUi> {
                 );
               },
             ),
-            ListTile( // Add settings to the drawer
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
+            ListTile(
+              leading: const Icon(Icons.settings, size: 24),
+              title: Text('Settings', style: TextStyle(fontSize: adjustedFontSize * 0.9)),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 _openSettingsPage();
               },
             ),
@@ -202,159 +436,198 @@ class _HomePageUiState extends State<HomePageUi> {
       ),
       body: SafeArea(
         child: _isInitialized
-            ? SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Prayer Summary',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontFamily: _selectedFont,
-                            fontSize: _selectedFontSize,
+            ? AnimatedOpacity(
+                opacity: _opacity,
+                duration: const Duration(milliseconds: 500),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(screenWidth * 0.04),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPrayerChart(),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Icon(Icons.book, color: Theme.of(context).colorScheme.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Reading Progress',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontFamily: _selectedFont,
+                                  fontSize: adjustedFontSize * 0.9,
+                                ),
                           ),
-                    ),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () {
-                        Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(2);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Card(
-                        elevation: 0,
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Read',
+                        _lastRead,
+                        0.6,
+                        3,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Bookmark',
+                        _lastBookmark,
+                        0.4,
+                        3,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Favorite',
+                        _lastFavorite,
+                        0.5,
+                        3,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Icon(Icons.school, color: Theme.of(context).colorScheme.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Study Progress',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontFamily: _selectedFont,
+                                  fontSize: adjustedFontSize * 0.9,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Studied',
+                        _lastStudied,
+                        0.7,
+                        4,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Note',
+                        _lastNote,
+                        0.3,
+                        4,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Search',
+                        _lastSearch,
+                        0.5,
+                        4,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Icon(Icons.people, color: Theme.of(context).colorScheme.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Gospel Progress',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontFamily: _selectedFont,
+                                  fontSize: adjustedFontSize * 0.9,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Card(
+                        elevation: 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'New Prayers: $_newPrayersCount',
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      fontFamily: _selectedFont,
-                                      fontSize: _selectedFontSize,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Answered Prayers: $_answeredPrayersCount',
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      fontFamily: _selectedFont,
-                                      fontSize: _selectedFontSize,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Unanswered Prayers: $_unansweredPrayersCount',
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      fontFamily: _selectedFont,
-                                      fontSize: _selectedFontSize,
-                                    ),
-                              ),
-                            ],
+                        child: ListTile(
+                          leading: const Icon(Icons.person, size: 24),
+                          title: Text(
+                            'Last Contact:',
+                            style: TextStyle(fontSize: adjustedFontSize * 0.9),
                           ),
+                          trailing: Text(
+                            _lastContact,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontFamily: _selectedFont,
+                                  fontSize: adjustedFontSize * 0.8,
+                                ),
+                          ),
+                          onTap: () {
+                            Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1);
+                          },
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Reading Progress',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontFamily: _selectedFont,
-                            fontSize: _selectedFontSize,
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Icon(Icons.map, color: Theme.of(context).colorScheme.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Available Maps',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontFamily: _selectedFont,
+                                  fontSize: adjustedFontSize * 0.9,
+                                ),
                           ),
-                    ),
-                    const SizedBox(height: 8),
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                        ],
                       ),
-                      child: ListTile(
-                        title: const Text('Last Read:'),
-                        trailing: Text(
-                          _lastRead,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontFamily: _selectedFont,
-                                fontSize: _selectedFontSize,
-                              ),
+                      const SizedBox(height: 8),
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                         ),
-                        onTap: () {
-                          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(3);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Study Progress',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontFamily: _selectedFont,
-                            fontSize: _selectedFontSize,
+                        child: ListTile(
+                          leading: const Icon(Icons.map_outlined, size: 24),
+                          title: Text(
+                            'Current Map:',
+                            style: TextStyle(fontSize: adjustedFontSize * 0.9),
                           ),
-                    ),
-                    const SizedBox(height: 8),
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                      ),
-                      child: ListTile(
-                        title: const Text('Last Studied:'),
-                        trailing: Text(
-                          _lastStudied,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontFamily: _selectedFont,
-                                fontSize: _selectedFontSize,
-                              ),
-                        ),
-                        onTap: () {
-                          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(4);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Gospel Maps',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontFamily: _selectedFont,
-                            fontSize: _selectedFontSize,
+                          trailing: Text(
+                            _currentMap,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontFamily: _selectedFont,
+                                  fontSize: adjustedFontSize * 0.8,
+                                ),
                           ),
-                    ),
-                    const SizedBox(height: 8),
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                      ),
-                      child: ListTile(
-                        title: const Text('Downloaded Maps:'),
-                        trailing: Text(
-                          '$_downloadedMapsCount',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontFamily: _selectedFont,
-                                fontSize: _selectedFontSize,
-                              ),
+                          onTap: () {
+                            Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1);
+                          },
                         ),
-                        onTap: () {
-                          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1);
-                        },
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                        ),
+                        child: ListTile(
+                          leading: const Icon(Icons.download, size: 24),
+                          title: Text(
+                            'Downloaded Maps:',
+                            style: TextStyle(fontSize: adjustedFontSize * 0.9),
+                          ),
+                          trailing: Text(
+                            '$_downloadedMapsCount',
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontFamily: _selectedFont,
+                                  fontSize: adjustedFontSize * 0.8,
+                                ),
+                          ),
+                          onTap: () {
+                            Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               )
             : const Center(child: CircularProgressIndicator()),
