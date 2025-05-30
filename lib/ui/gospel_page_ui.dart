@@ -114,7 +114,7 @@ class _GospelPageState extends State<GospelPageUi> {
           isTemporary: false,
           latitude: 20.0,
           longitude: -70.0,
-          zoomLevel: 1,
+          zoomLevel: 2,
         ),
       );
 
@@ -122,11 +122,11 @@ class _GospelPageState extends State<GospelPageUi> {
         await _mapBox.add(worldMapInfo);
       } else {
         // Update existing World map entry if it's not already set to the desired coordinates
-        if (worldMapInfo.latitude != 20.0 || worldMapInfo.longitude != -70.0 || worldMapInfo.zoomLevel != 3) {
+        if (worldMapInfo.latitude != 20.0 || worldMapInfo.longitude != -70.0 || worldMapInfo.zoomLevel != 2) {
           final key = _mapBox.keyAt(_mapBox.values.toList().indexOf(worldMapInfo));
           worldMapInfo.latitude = 20.0;
           worldMapInfo.longitude = -70.0;
-          worldMapInfo.zoomLevel = 3;
+          worldMapInfo.zoomLevel = 2;
           await _mapBox.put(key, worldMapInfo);
         }
       }
