@@ -361,6 +361,7 @@ class _HomePageUiState extends State<HomePageUi> {
     final adjustedFontSize = _selectedFontSize * (screenWidth < 360 ? 0.9 : 1.0); // Adjust for small screens
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Dashboard'),
         elevation: 0,
@@ -368,14 +369,13 @@ class _HomePageUiState extends State<HomePageUi> {
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
-              fontSize: adjustedFontSize,
             ),
         centerTitle: true,
         actions: [
           Builder(
             builder: (BuildContext context) {
               return IconButton(
-                icon: const Icon(Icons.menu, size: 28),
+                icon: const Icon(Icons.menu),
                 onPressed: () {
                   Scaffold.of(context).openEndDrawer();
                 },

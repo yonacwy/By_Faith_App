@@ -663,7 +663,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
       bottomNavigationBar: SafeArea(
         child: Container(
           color: Theme.of(context).colorScheme.surfaceContainer,
-          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          padding: const EdgeInsets.symmetric(vertical: 0.5),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [

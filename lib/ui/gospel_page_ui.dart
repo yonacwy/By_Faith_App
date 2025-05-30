@@ -450,7 +450,7 @@ class _GospelPageState extends State<GospelPageUi> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(_currentMapName ?? 'Gospel Map'),
+        title: const Text('Missions'),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(

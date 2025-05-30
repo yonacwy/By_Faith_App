@@ -228,7 +228,7 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.all(12.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
