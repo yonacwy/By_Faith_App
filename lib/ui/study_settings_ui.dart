@@ -26,12 +26,13 @@ class _StudySettingsPageUiState extends State<StudySettingsPageUi> {
   void initState() {
     super.initState();
     currentFont = widget.initialFont;
-    currentFontSize = widget.initialFontSize;
+    currentFontSize = 20.0;
   }
 
   @override
   Widget build(BuildContext context) {
     final List<String> fontOptions = [
+      'Arial', // Added Arial to font options
       'Roboto',
       'Times New Roman',
       'Open Sans',

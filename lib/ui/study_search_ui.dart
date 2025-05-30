@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'study_page_ui.dart';
 
 class BibleSearchDelegate extends SearchDelegate {
@@ -93,6 +94,9 @@ class BibleSearchDelegate extends SearchDelegate {
     searchResults.clear();
     dictionaryResults.clear();
     _lastQuery = query;
+
+    // Save the last search query to user preferences for the dashboard
+    Hive.box('userPreferences').put('lastSearch', query);
 
     final lowerQuery = query.toLowerCase();
 
@@ -333,6 +337,7 @@ class BibleSearchDelegate extends SearchDelegate {
                                       text, queryLower, context);
 
                                   return ListTile(
+                                    isThreeLine: true,
                                     title: Text(
                                       '${verse['chapter']}:${verse['verse']}',
                                       style: Theme.of(context)
@@ -343,8 +348,8 @@ class BibleSearchDelegate extends SearchDelegate {
                                       text: TextSpan(
                                         children: spans,
                                       ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: null, // Allow unlimited lines
+                                      overflow: TextOverflow.visible, // Prevent ellipsis
                                     ),
                                     onTap: () {
                                       final String? bookName = verse['book'];
@@ -501,8 +506,6 @@ class BibleSearchDelegate extends SearchDelegate {
                                 text: TextSpan(
                                   children: spans,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
                               onTap: () {
                                 final String? bookName = verse['book'];

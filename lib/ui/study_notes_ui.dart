@@ -30,16 +30,38 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
     bibleNotesBox = await Hive.openBox('bibleNotes');
     personalNotesBox = await Hive.openBox('personalNotes');
     studyNotesBox = await Hive.openBox('studyNotes');
+    // Also open user preferences box to update lastNote on deletion
+    await Hive.openBox('userPreferences');
     _loadNotes();
   }
 
   void _loadNotes() {
     setState(() {
+      // Filter and decode bible notes, ensuring they are maps
       bibleNotes = bibleNotesBox.values
           .where((value) => value is String)
           .cast<String>()
-          .map((value) => jsonDecode(value) as Map<String, dynamic>)
+          .map((value) {
+            try {
+              final decoded = jsonDecode(value);
+              if (decoded is Map<String, dynamic>) {
+                // Check if it has the expected keys for a Bible note
+                if (decoded.containsKey('verse') && decoded.containsKey('verseText') && decoded.containsKey('note')) {
+                  return decoded;
+                }
+              }
+            } catch (e) {
+              // Handle potential decoding errors
+              print('Error decoding Bible note: $e');
+            }
+            // Return a default or null for invalid entries, which will be filtered out
+            return null;
+          })
+          .where((note) => note != null) // Filter out null entries
+          .cast<Map<String, dynamic>>() // Cast the remaining valid entries
           .toList();
+
+      // Load personal and study notes (expected to be JSON-encoded lists from Quill delta)
       personalNotes = personalNotesBox.values.where((value) => value is String).cast<String>().toList();
       studyNotes = studyNotesBox.values.where((value) => value is String).cast<String>().toList();
     });
@@ -57,6 +79,8 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
         studyNotesBox.deleteAt(index);
         break;
     }
+    // Clear the lastNote preference on deletion
+    Hive.box('userPreferences').delete('lastNote');
     _loadNotes();
   }
 
@@ -96,6 +120,22 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                           studyNotesBox.add(noteJson);
                           break;
                       }
+                      // Save the plain text of the note to user preferences for the dashboard
+                      String lastNoteText = '';
+                      if (category == 'Bible Notes') {
+                        try {
+                          final decodedBibleNote = jsonDecode(noteJson);
+                          if (decodedBibleNote is Map<String, dynamic> && decodedBibleNote.containsKey('note')) {
+                            final bibleNoteDeltaJson = decodedBibleNote['note'] as String;
+                             lastNoteText = quill.Document.fromJson(jsonDecode(bibleNoteDeltaJson)).toPlainText().trim();
+                          }
+                        } catch (e) {
+                           print('Error decoding Bible note for dashboard: $e');
+                        }
+                      } else {
+                         lastNoteText = quill.Document.fromJson(jsonDecode(noteJson)).toPlainText().trim();
+                      }
+                      Hive.box('userPreferences').put('lastNote', lastNoteText);
                       _loadNotes();
                     },
                     category: 'Study Notes',
