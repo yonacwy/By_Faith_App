@@ -274,6 +274,15 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                              ),
                            ),
                          ),
+                         const SizedBox(height: 8),
+                         Text(
+                           'Click to add note',
+                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                 fontStyle: FontStyle.italic,
+                               ),
+                         ),
+                         const SizedBox(height: 8),
                          // Note Section
                          Row(
                            crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,19 +535,11 @@ class _AddNotePageState extends State<AddNotePage> {
                fontWeight: FontWeight.bold,
              ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.save,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            onPressed: _saveNote,
-            tooltip: 'Save Note',
-          ),
-        ],
+        actions: [],
       ),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Category Selector
             Padding(
@@ -569,26 +570,10 @@ class _AddNotePageState extends State<AddNotePage> {
                 controller: _quillController,
                 config: const quill.QuillSimpleToolbarConfig(
                   multiRowsDisplay: false,
-                  showBoldButton: true,
-                  showItalicButton: true,
-                  showUnderLineButton: true,
-                  showListBullets: true,
-                  showListNumbers: true,
-                  showClearFormat: true,
-                  showFontFamily: false,
-                  showFontSize: false,
-                  showColorButton: false,
-                  showBackgroundColorButton: false,
                   showAlignmentButtons: false,
-                  showHeaderStyle: false,
-                  showLink: false,
-                  showInlineCode: false,
-                  showCodeBlock: false,
-                  showQuote: false,
-                  showIndent: false,
+                  showBackgroundColorButton: false,
+                  showColorButton: false,
                   showListCheck: false,
-                  showSubscript: false,
-                  showSuperscript: false,
                   showDividers: true,
                 ),
               ),
@@ -614,6 +599,20 @@ class _AddNotePageState extends State<AddNotePage> {
                     placeholder: 'Enter your note...',
                   ),
                 ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Semantics(
+              label: 'Submit note',
+              child: ElevatedButton(
+                onPressed: _saveNote,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                ),
+                child: const Text('Submit'),
               ),
             ),
           ],
