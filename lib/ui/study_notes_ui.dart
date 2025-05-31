@@ -62,8 +62,47 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
           .toList();
 
       // Load personal and study notes (expected to be JSON-encoded lists from Quill delta)
-      personalNotes = personalNotesBox.values.where((value) => value is String).cast<String>().toList();
-      studyNotes = studyNotesBox.values.where((value) => value is String).cast<String>().toList();
+      personalNotes = personalNotesBox.values
+          .where((value) => value is String)
+          .cast<String>()
+          .map((value) {
+            try {
+              final decoded = jsonDecode(value);
+              // Check if it's a list, which is typical for Quill delta JSON
+              if (decoded is List) {
+                return value; // Return the original string if it decodes to a List
+              }
+            } catch (e) {
+              // Handle potential decoding errors
+              print('Error decoding Personal note: $e');
+            }
+            // Return null for invalid entries, which will be filtered out
+            return null;
+          })
+          .where((note) => note != null) // Filter out null entries
+          .cast<String>() // Cast the remaining valid entries
+          .toList();
+
+      studyNotes = studyNotesBox.values
+          .where((value) => value is String)
+          .cast<String>()
+          .map((value) {
+            try {
+              final decoded = jsonDecode(value);
+              // Check if it's a list, which is typical for Quill delta JSON
+              if (decoded is List) {
+                return value; // Return the original string if it decodes to a List
+              }
+            } catch (e) {
+              // Handle potential decoding errors
+              print('Error decoding Study note: $e');
+            }
+            // Return null for invalid entries, which will be filtered out
+            return null;
+          })
+          .where((note) => note != null) // Filter out null entries
+          .cast<String>() // Cast the remaining valid entries
+          .toList();
     });
   }
 
@@ -228,7 +267,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                                  ),
                                  const SizedBox(height: 4),
                                  Text(
-                                   verseText.replaceAll(RegExp(r'\{[HG]\d+\}'), ''), // Remove Strong's numbers
+                                   verseText.replaceAll(RegExp(r'\{\(?[HG]\d+\)\}?'), ''), // Remove Strong's numbers
                                    style: Theme.of(context).textTheme.bodySmall,
                                  ),
                                ],
@@ -379,15 +418,21 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                                builder: (context) => AddNotePage(
                                  initialDocument: document,
                                  onSave: (noteJson, category) {
-                                   switch (category) {
-                                     case 'Personal Notes':
-                                       personalNotesBox.putAt(index, noteJson);
-                                       break;
-                                     case 'Study Notes':
-                                       studyNotesBox.putAt(index, noteJson);
-                                       break;
+                                   // Only save if the noteJson is not empty
+                                   if (noteJson.isNotEmpty) {
+                                     switch (category) {
+                                       case 'Personal Notes':
+                                         personalNotesBox.putAt(index, noteJson);
+                                         break;
+                                       case 'Study Notes':
+                                         studyNotesBox.putAt(index, noteJson);
+                                         break;
+                                     }
+                                     _loadNotes();
+                                   } else {
+                                     // Optionally, handle the case where an empty note is saved (e.g., show a message)
+                                     print('Attempted to save an empty note in $category');
                                    }
-                                   _loadNotes();
                                  },
                                  category: category,
                                  availableCategories: const ['Bible Notes', 'Personal Notes', 'Study Notes'],
