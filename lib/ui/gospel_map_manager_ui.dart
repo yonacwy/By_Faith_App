@@ -29,6 +29,19 @@ class MapManagerPage extends StatefulWidget {
 }
 
 class _MapManagerPageState extends State<MapManagerPage> {
+  late Box _userPrefsBox; // Declare userPrefsBox
+
+  @override
+  void initState() {
+    super.initState();
+    _openUserPrefsBox(); // Open user preferences box
+  }
+
+  Future<void> _openUserPrefsBox() async {
+    _userPrefsBox = await Hive.openBox('userPreferences');
+    setState(() {}); // Trigger rebuild after box is opened
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,47 +58,62 @@ class _MapManagerPageState extends State<MapManagerPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: widget.directories.length,
-              itemBuilder: (context, index) {
-                final directory = widget.directories[index];
-                return _buildDirectoryTile(directory);
-              },
-            ),
-          ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Available Maps',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ),
-          Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: widget.mapBox.listenable(),
-              builder: (context, Box<MapInfo> box, _) {
-                if (box.isEmpty) {
-                  return const Center(child: Text('No maps downloaded yet.'));
-                }
-                return ListView.builder(
-                  itemCount: box.length,
-                  itemBuilder: (context, index) {
-                    final mapInfo = box.getAt(index)!;
-                    return ListTile(
-                      title: Text(mapInfo.name),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteMap(mapInfo.name),
-                      ),
-                      onTap: () {
-                        widget.onLoadMap(mapInfo.name);
-                        Navigator.pop(context);
+            child: ExpansionTile(
+              title: Text(
+                'Available Maps',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              initiallyExpanded: true,
+              children: [
+                ValueListenableBuilder(
+                  valueListenable: widget.mapBox.listenable(),
+                  builder: (context, Box<MapInfo> box, _) {
+                    if (box.isEmpty) {
+                      return const Center(child: Text('No maps downloaded yet.'));
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: box.length,
+                      itemBuilder: (context, index) {
+                        final mapInfo = box.getAt(index)!;
+                        return ListTile(
+                          title: Text(mapInfo.name),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _deleteMap(mapInfo.name),
+                          ),
+                          onTap: () {
+                            widget.onLoadMap(mapInfo.name);
+                            Navigator.pop(context);
+                          },
+                        );
                       },
                     );
                   },
-                );
-              },
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: ExpansionTile(
+              title: Text(
+                'Downloadable Maps',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              initiallyExpanded: true,
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: widget.directories.length,
+                  itemBuilder: (context, index) {
+                    final directory = widget.directories[index];
+                    return _buildDirectoryTile(directory);
+                  },
+                ),
+              ],
             ),
           ),
         ],
@@ -132,12 +160,15 @@ class _MapManagerPageState extends State<MapManagerPage> {
       onTap: () {
         if (isDownloaded) {
           widget.onLoadMap(mapEntry.name);
+          // Save the current map name to user preferences
+          _userPrefsBox.put('currentMap', mapEntry.name); // Use the instance
+          print('[_buildMapListTile] currentMap saved: ${mapEntry.name}'); // Debug print
           Navigator.pop(context);
         }
       },
     );
   }
-
+ 
   Future<void> _deleteMap(String mapName) async {
     try {
       final mapInfo = widget.mapBox.values.firstWhere((map) => map.name == mapName);

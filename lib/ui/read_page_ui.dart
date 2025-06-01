@@ -298,6 +298,11 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     if (!exists) {
       await bookmarksBox.add(newBookmark);
+      // Save the last bookmarked verse to user preferences
+      final lastBookmarkValue = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
+      print('[_addVerseToBookmarks] Saving lastBookmark: $lastBookmarkValue'); // Debug print
+      await userPrefsBox.put('lastBookmark', lastBookmarkValue);
+      print('[_addVerseToBookmarks] lastBookmark saved: $lastBookmarkValue'); // Debug print
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Bookmarks!')),
       );
@@ -319,6 +324,8 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     if (!exists) {
       await favoritesBox.add(newFavorite);
+// Save the last favorited verse to user preferences
+      await userPrefsBox.put('lastFavorite', '${verseData.book} ${verseData.chapter}:${verseData.verse}');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Favorites!')),
       );

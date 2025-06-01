@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:by_faith_app/ui/gospel_profile_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:by_faith_app/models/gospel_profile_model.dart';
+// import 'package:by_faith_app/models/gospel_profile_model.dart'; // Not used in this snippet
 
 class GospelOnboardingUI extends StatefulWidget {
   const GospelOnboardingUI({super.key});
@@ -252,28 +252,70 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
                           LayoutBuilder(
                             builder: (context, constraints) {
                               final isSmallScreen = constraints.maxWidth < 400;
-                              if (isSmallScreen) {
+                              List<Widget> footerButtons = [];
+                              
+                              bool isFirstPage = currentIndex == 0;
+                              bool isLastPage = currentIndex == pagesLength - 1;
+                              bool isOnlyPage = pagesLength == 1; // True if first and last page are the same
+
+                              Widget? leftButton;
+                              Widget? rightButton;
+                              MainAxisAlignment rowMainAxisAlignment = MainAxisAlignment.center;
+
+                              if (isOnlyPage) {
+                                  leftButton = _buildSkipButton(context);
+                                  rightButton = _buildProfileButton(context);
+                                  rowMainAxisAlignment = MainAxisAlignment.spaceBetween;
+                              } else if (isFirstPage) {
+                                  leftButton = _buildSkipButton(context);
+                                  rightButton = _buildNextButton(setIndex);
+                                  rowMainAxisAlignment = MainAxisAlignment.spaceBetween;
+                              } else if (isLastPage) {
+                                  leftButton = _buildPreviousButton(setIndex);
+                                  rightButton = _buildProfileButton(context);
+                                  // rowMainAxisAlignment remains MainAxisAlignment.center
+                              } else { // Intermediate pages
+                                  leftButton = _buildPreviousButton(setIndex);
+                                  rightButton = _buildNextButton(setIndex);
+                                  // rowMainAxisAlignment remains MainAxisAlignment.center
+                              }
+
+                              if (isSmallScreen) { // COLUMN LAYOUT
+                                footerButtons.clear(); // Ensure list is empty before populating
+                                if (isOnlyPage) {
+                                    footerButtons.add(rightButton!); // Profile button
+                                    footerButtons.add(const SizedBox(height: 16.0));
+                                    footerButtons.add(leftButton!);  // Skip button
+                                } else if (isFirstPage) {
+                                    footerButtons.add(rightButton!); // Next button
+                                    footerButtons.add(const SizedBox(height: 16.0));
+                                    footerButtons.add(leftButton!);  // Skip button
+                                } else if (isLastPage) {
+                                    footerButtons.add(leftButton!);  // Previous button
+                                    footerButtons.add(const SizedBox(height: 16.0));
+                                    footerButtons.add(rightButton!); // Profile button
+                                } else { // Intermediate
+                                    footerButtons.add(leftButton!);  // Previous button
+                                    footerButtons.add(const SizedBox(height: 16.0));
+                                    footerButtons.add(rightButton!); // Next button
+                                }
                                 return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (currentIndex > 0) _buildPreviousButton(setIndex),
-                                    const SizedBox(height: 16.0), // Add spacing between buttons
-                                    if (currentIndex < pagesLength - 1) _buildNextButton(setIndex),
-                                    if (currentIndex == pagesLength - 1)
-                                      _buildSignupButton(context),
-                                  ],
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: footerButtons,
                                 );
-                              } else {
+                              } else { // ROW LAYOUT
+                                if (leftButton != null) footerButtons.add(leftButton);
+                                if (leftButton != null && rightButton != null) {
+                                    if (isFirstPage || isOnlyPage) { // For Skip --- Next/Profile
+                                        footerButtons.add(const Spacer());
+                                    } else { // For Prev - Next/Profile
+                                        footerButtons.add(const SizedBox(width: 16.0));
+                                    }
+                                }
+                                if (rightButton != null) footerButtons.add(rightButton);
                                 return Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (currentIndex > 0) _buildPreviousButton(setIndex),
-                                    if (currentIndex > 0 && currentIndex < pagesLength - 1)
-                                      const SizedBox(width: 16.0),
-                                    if (currentIndex < pagesLength - 1) _buildNextButton(setIndex),
-                                    if (currentIndex == pagesLength - 1)
-                                      _buildSignupButton(context),
-                                  ],
+                                    mainAxisAlignment: rowMainAxisAlignment,
+                                    children: footerButtons,
                                 );
                               }
                             },
@@ -288,9 +330,25 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
     );
   }
 
+  Widget _buildSkipButton(BuildContext context) {
+    return TextButton(
+      onPressed: () {
+        _markOnboardingComplete();
+        _navigateToHome(context);
+      },
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.grey.shade700,
+        textStyle: const TextStyle(fontSize: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0), // Consistent padding
+      ),
+      child: const Text('SKIP'),
+    );
+  }
+
   Widget _buildProfileButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
+        _markOnboardingComplete(); // Mark onboarding complete when proceeding to profile
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const GospelProfileUi(isNewProfile: true),
@@ -313,82 +371,11 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
     );
   }
 
-  Widget _buildSignupButton(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Use a threshold of 400 pixels for small screens
-        final isSmallScreen = constraints.maxWidth < 400;
-        
-        return isSmallScreen
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      _markOnboardingComplete();
-                      _navigateToHome(context);
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey.shade700,
-                      textStyle: const TextStyle(fontSize: 16.0),
-                    ),
-                    child: const Text('SKIP'),
-                  ),
-                  const SizedBox(height: 16.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const GospelProfileUi(isNewProfile: true),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: const Text(
-                      'Fill out Profile',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      _markOnboardingComplete();
-                      _navigateToHome(context);
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey.shade700,
-                      textStyle: const TextStyle(fontSize: 16.0),
-                    ),
-                    child: const Text('SKIP'),
-                  ),
-                  const SizedBox(width: 16.0),
-                  _buildProfileButton(context), // Use the existing _buildProfileButton
-                ],
-              );
-      },
-    );
-  }
-
   Widget _buildNextButton(void Function(int index) setIndexCallback) {
     return ElevatedButton(
       onPressed: () {
         if (index < onboardingPagesList.length - 1) {
           setIndexCallback(index + 1);
-          setState(() {
-            index = index + 1;
-          });
         }
       },
       style: ElevatedButton.styleFrom(
@@ -412,9 +399,6 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
       onPressed: () {
         if (index > 0) {
           setIndexCallback(index - 1);
-          setState(() {
-            index = index - 1;
-          });
         }
       },
       style: ElevatedButton.styleFrom(
@@ -439,6 +423,10 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
   }
 
   void _navigateToHome(BuildContext context) {
+     // Clear the navigation stack up to the first route and push home
+    if (Navigator.of(context).canPop()) {
+       Navigator.of(context).popUntil((route) => route.isFirst);
+    }
     Navigator.of(context).pushReplacementNamed('/home');
   }
 }

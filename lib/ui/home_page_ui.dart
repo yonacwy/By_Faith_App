@@ -26,6 +26,7 @@ class _HomePageUiState extends State<HomePageUi> {
   late Box<Prayer> _prayerBox;
   late Box _userPrefsBox;
   late Box<MapInfo> _mapBox;
+  PageNotifier? _pageNotifier; // Declare PageNotifier instance
 
   int _newPrayersCount = 0;
   int _answeredPrayersCount = 0;
@@ -49,12 +50,35 @@ class _HomePageUiState extends State<HomePageUi> {
   void initState() {
     super.initState();
     _openBoxes();
+    // Store PageNotifier instance and add listener to update dashboard when returning to Home page
+    _pageNotifier = Provider.of<PageNotifier>(context, listen: false);
+    _pageNotifier?.addListener(_onPageNotifierChanged);
     // Trigger fade-in animation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _opacity = 1.0;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    // Remove listeners before super.dispose()
+    if (_isInitialized) {
+      _prayerBox.listenable().removeListener(_updateDashboardData);
+      _userPrefsBox.listenable().removeListener(_updateDashboardData);
+      _mapBox.listenable().removeListener(_updateDashboardData);
+    }
+    // Remove listener for PageNotifier using the stored instance
+    _pageNotifier?.removeListener(_onPageNotifierChanged);
+    super.dispose();
+  }
+
+  void _onPageNotifierChanged() {
+    // Check if the currently selected page is the Home page (assuming index 0)
+    if (_pageNotifier?.selectedIndex == 0) {
+      _updateDashboardData();
+    }
   }
 
   Future<void> _openBoxes() async {
@@ -104,9 +128,10 @@ class _HomePageUiState extends State<HomePageUi> {
       _lastContact = _userPrefsBox.get('lastContact') ?? 'N/A';
       _currentMap = _userPrefsBox.get('currentMap') ?? 'N/A';
 
-      print('[_updateDashboardData] _lastStudied: $_lastStudied'); // Debug print
-      print('[_updateDashboardData] _lastNote: $_lastNote'); // Debug print
-      print('[_updateDashboardData] _lastSearch: $_lastSearch'); // Debug print
+      print('[_updateDashboardData] Retrieved _lastBookmark: $_lastBookmark'); // Debug print
+      print('[_updateDashboardData] Retrieved _lastStudied: $_lastStudied'); // Debug print
+      print('[_updateDashboardData] Retrieved _lastNote: $_lastNote'); // Debug print
+      print('[_updateDashboardData] Retrieved _currentMap: $_currentMap'); // Debug print
 
       _downloadedMapsCount = _mapBox.values.where((map) => map is MapInfo && !map.isTemporary).length;
     });
@@ -132,16 +157,6 @@ class _HomePageUiState extends State<HomePageUi> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    if (_isInitialized) {
-      _prayerBox.listenable().removeListener(_updateDashboardData);
-      _userPrefsBox.listenable().removeListener(_updateDashboardData);
-      _mapBox.listenable().removeListener(_updateDashboardData);
-    }
-    super.dispose();
   }
 
   @override
@@ -522,49 +537,8 @@ class _HomePageUiState extends State<HomePageUi> {
                       _buildProgressIndicator(
                         'Last Search',
                         _lastSearch,
-                        0.5,
+                        0.2,
                         4,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Icon(Icons.people, color: Theme.of(context).colorScheme.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Gospel Progress',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  fontFamily: _selectedFont,
-                                  fontSize: adjustedFontSize * 0.9,
-                                ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.person, size: 24),
-                          title: Text(
-                            'Last Contact:',
-                            style: TextStyle(fontSize: adjustedFontSize * 0.9),
-                          ),
-                          trailing: Text(
-                            _lastContact,
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontFamily: _selectedFont,
-                                  fontSize: adjustedFontSize * 0.8,
-                                ),
-                          ),
-                          onTap: () {
-                            Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1);
-                          },
-                        ),
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -572,7 +546,7 @@ class _HomePageUiState extends State<HomePageUi> {
                           Icon(Icons.map, color: Theme.of(context).colorScheme.primary, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Available Maps',
+                            'Map Information',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).colorScheme.onSurface,
@@ -589,23 +563,61 @@ class _HomePageUiState extends State<HomePageUi> {
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                         ),
-                        child: ListTile(
-                          leading: const Icon(Icons.map_outlined, size: 24),
-                          title: Text(
-                            'Current Map:',
-                            style: TextStyle(fontSize: adjustedFontSize * 0.9),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Current Map',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: _selectedFont,
+                                      fontSize: adjustedFontSize * 0.9,
+                                    ),
+                              ),
+                              Text(
+                                _currentMap,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontFamily: _selectedFont,
+                                      fontSize: adjustedFontSize * 0.8,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Downloaded Maps',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: _selectedFont,
+                                      fontSize: adjustedFontSize * 0.9,
+                                    ),
+                              ),
+                              Text(
+                                '$_downloadedMapsCount',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontFamily: _selectedFont,
+                                      fontSize: adjustedFontSize * 0.8,
+                                    ),
+                              ),
+                            ],
                           ),
-                          trailing: Text(
-                            _currentMap,
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Icon(Icons.contacts, color: Theme.of(context).colorScheme.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Last Contact',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontFamily: _selectedFont,
-                                  fontSize: adjustedFontSize * 0.8,
+                                  fontSize: adjustedFontSize * 0.9,
                                 ),
                           ),
-                          onTap: () {
-                            Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1);
-                          },
-                        ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Card(
@@ -614,22 +626,21 @@ class _HomePageUiState extends State<HomePageUi> {
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                         ),
-                        child: ListTile(
-                          leading: const Icon(Icons.download, size: 24),
-                          title: Text(
-                            'Downloaded Maps:',
-                            style: TextStyle(fontSize: adjustedFontSize * 0.9),
-                          ),
-                          trailing: Text(
-                            '$_downloadedMapsCount',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontFamily: _selectedFont,
-                                  fontSize: adjustedFontSize * 0.8,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _lastContact,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontFamily: _selectedFont,
+                                        fontSize: adjustedFontSize * 0.8,
+                                      ),
                                 ),
+                              ),
+                            ],
                           ),
-                          onTap: () {
-                            Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1);
-                          },
                         ),
                       ),
                     ],

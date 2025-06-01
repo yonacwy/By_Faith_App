@@ -40,7 +40,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
   }
 
   Future<void> _loadSavedSelection() async {
-    userPrefsBox = await Hive.openBox('userPrefs');
+    userPrefsBox = await Hive.openBox('userPreferences'); // Changed from 'userPrefs'
     setState(() {
       selectedBook = widget.initialBook ??
           userPrefsBox.get('lastSelectedStudyBook') ??
@@ -57,9 +57,11 @@ class _StudyPageUiState extends State<StudyPageUi> {
   Future<void> _saveSelection() async {
     if (selectedBook != null) {
       await userPrefsBox.put('lastSelectedStudyBook', selectedBook!);
+      print('[_saveSelection] lastSelectedStudyBook saved: $selectedBook'); // Debug print
     }
     if (selectedChapter != null) {
       await userPrefsBox.put('lastSelectedStudyChapter', selectedChapter);
+      print('[_saveSelection] lastSelectedStudyChapter saved: $selectedChapter'); // Debug print
     }
     await userPrefsBox.put('selectedStudyFont', selectedFont);
     await userPrefsBox.put('selectedStudyFontSize', selectedFontSize);

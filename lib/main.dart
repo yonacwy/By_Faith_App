@@ -142,7 +142,7 @@ class _RootPageState extends State<RootPage> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.card_giftcard),
+            icon: Icon(Icons.map_outlined),
             label: 'Gospel',
           ),
           BottomNavigationBarItem(

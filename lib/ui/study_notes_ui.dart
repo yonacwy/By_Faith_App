@@ -161,19 +161,21 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                       }
                       // Save the plain text of the note to user preferences for the dashboard
                       String lastNoteText = '';
-                      if (category == 'Bible Notes') {
-                        try {
-                          final decodedBibleNote = jsonDecode(noteJson);
-                          if (decodedBibleNote is Map<String, dynamic> && decodedBibleNote.containsKey('note')) {
-                            final bibleNoteDeltaJson = decodedBibleNote['note'] as String;
-                             lastNoteText = quill.Document.fromJson(jsonDecode(bibleNoteDeltaJson)).toPlainText().trim();
-                          }
-                        } catch (e) {
-                           print('Error decoding Bible note for dashboard: $e');
+                      try {
+                        if (category == 'Bible Notes') {
+                           final decodedBibleNote = jsonDecode(noteJson);
+                           if (decodedBibleNote is Map<String, dynamic> && decodedBibleNote.containsKey('note')) {
+                             final bibleNoteDeltaJson = decodedBibleNote['note'] as String;
+                              lastNoteText = quill.Document.fromJson(jsonDecode(bibleNoteDeltaJson)).toPlainText().trim();
+                           }
+                        } else {
+                           lastNoteText = quill.Document.fromJson(jsonDecode(noteJson)).toPlainText().trim();
                         }
-                      } else {
-                         lastNoteText = quill.Document.fromJson(jsonDecode(noteJson)).toPlainText().trim();
+                      } catch (e) {
+                         print('Error decoding note for dashboard: $e');
+
                       }
+                      print('[_AddNotePageState] Saving lastNote for category $category: $lastNoteText'); // Debug print
                       Hive.box('userPreferences').put('lastNote', lastNoteText);
                       _loadNotes();
                     },

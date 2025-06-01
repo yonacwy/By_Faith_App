@@ -279,7 +279,10 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
           await widget.contactBox.add(contact);
           widget.onContactAdded?.call(contact);
         }
-
+ 
+        // Save the last contact name to user preferences
+        await Hive.box('userPreferences').put('lastContact', '${contact.firstName} ${contact.lastName}');
+ 
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_isEditing ? 'Contact updated' : 'Contact added')),
