@@ -1,15 +1,12 @@
-import 'package:by_faith_app/adapters/gospel_map_entry_adapter.dart';
 import 'package:by_faith_app/models/gospel_contacts_model.dart';
-import 'package:by_faith_app/models/gospel_map_directory_model.dart';
-import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
-import 'package:by_faith_app/models/gospel_map_sub_directory_model.dart';
 import 'package:by_faith_app/models/pray_model.dart';
 import 'package:by_faith_app/models/read_data_model.dart';
 import 'package:by_faith_app/providers/page_notifier.dart';
 import 'package:by_faith_app/providers/theme_notifier.dart';
-import 'package:by_faith_app/ui/gospel_map_manager_ui.dart';
+import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart';
 import 'package:by_faith_app/ui/gospel_page_ui.dart';
+import 'package:by_faith_app/ui/gospel_map_selection_ui.dart';
 import 'package:by_faith_app/ui/home_page_ui.dart';
 import 'package:by_faith_app/ui/pray_page_ui.dart';
 import 'package:by_faith_app/ui/read_page_ui.dart';
@@ -34,7 +31,6 @@ void main() async {
   Hive.registerAdapter(ContactAdapter());
   Hive.registerAdapter(PrayerAdapter());
   Hive.registerAdapter(MapInfoAdapter());
-  Hive.registerAdapter(GospelMapEntryDataAdapter());
   Hive.registerAdapter(GospelProfileAdapter());
   Hive.registerAdapter(VerseDataAdapter());
   Hive.registerAdapter(BookmarkAdapter());
@@ -45,12 +41,9 @@ void main() async {
   await Hive.openBox<Prayer>('prayers'); // For Prayer model
   await Hive.openBox('userPreferences'); // For ReadPage book and chapter
   await Hive.openBox<MapInfo>('maps'); // For maps
-
-  // Clear the userProfileBox to prevent type mismatches during development
   await Hive.openBox<GospelProfile>('userProfileBox');
-
-  await Hive.openBox<Bookmark>('bookmarks'); // Added box
-  await Hive.openBox<Favorite>('favorites'); // Added box
+  await Hive.openBox<Bookmark>('bookmarks');
+  await Hive.openBox<Favorite>('favorites');
   // Contacts box is opened in GospelPageUi._initHive
 
   runApp(
@@ -92,7 +85,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
       ),
       themeMode: themeNotifier.themeMode,
-      home: profileExists ? const RootPage() : const GospelOnboardingUI(),
+      home: profileExists ? const RootPage() : const GospelOnboardingUI(), // Corrected class name
       routes: {
         '/home': (context) => const RootPage(),
       },
@@ -129,6 +122,9 @@ class _RootPageState extends State<RootPage> {
 
   void _onItemTapped(int index) {
     Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(index);
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override

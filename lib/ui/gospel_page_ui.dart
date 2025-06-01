@@ -1,27 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:archive/archive.dart';
 import 'package:by_faith_app/models/gospel_contacts_model.dart';
-import 'package:by_faith_app/models/gospel_map_directory_model.dart';
-import 'package:by_faith_app/models/gospel_map_entry_data_model.dart';
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
-import 'package:by_faith_app/models/gospel_map_sub_directory_model.dart';
 import 'package:by_faith_app/ui/gospel_contacts_ui.dart' as gospel_contacts_ui;
-import 'package:by_faith_app/ui/gospel_map_manager_ui.dart' as gospel_map_manager_ui;
+import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart' as gospel_offline_maps_ui;
 import 'package:by_faith_app/ui/gospel_profile_ui.dart' as gospel_profile_ui;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show DefaultAssetBundle, rootBundle;
 import 'package:flutter_map/flutter_map.dart' as fm;
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart' as fmtc;
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:latlong2/latlong.dart' as latlong2;
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-import 'package:uuid/uuid.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
-import 'package:flutter_map_tile_caching/src/backend/backend_access.dart';
 
 class GospelPageUi extends StatefulWidget {
   const GospelPageUi({super.key});
@@ -34,19 +23,18 @@ class _GospelPageState extends State<GospelPageUi> {
   late fm.MapController _mapController;
   late Box<MapInfo> _mapBox;
   late Box<Contact> _contactBox;
-  List<Directory> _availableMaps = [];
+  late Box _userPrefsBox;
   bool _isLoadingMaps = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isHiveInitialized = false;
   List<fm.Marker> _markers = [];
   bool _isAddingMarker = false;
   bool _isDisposed = false;
-  final Uuid _uuid = const Uuid();
   String? _currentMapName;
   int _markerUpdateKey = 0;
   String _tileProviderUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   double _currentZoom = 2.0;
-  latlong2.LatLng _currentCenter = const latlong2.LatLng(0.0, 0.0);
+  LatLng _currentCenter = const LatLng(39.0, -98.0); // Center on the Americas
   fm.TileProvider? _tileProvider;
 
   @override
@@ -56,10 +44,10 @@ class _GospelPageState extends State<GospelPageUi> {
     _initHive().then((_) async {
       if (_isDisposed) return;
       _isHiveInitialized = true;
-      _currentMapName = 'World';
-      await _loadMapData();
-      await _setupMarkers();
+      await _openUserPrefsBox();
       await _initTileProvider();
+      await _restoreLastMap();
+      await _setupMarkers();
       if (mounted) {
         setState(() {
           _isLoadingMaps = false;
@@ -69,20 +57,59 @@ class _GospelPageState extends State<GospelPageUi> {
     });
   }
 
-  Future<void> _initTileProvider({String storeName = 'osm_store'}) async {
+  Future<void> _openUserPrefsBox() async {
+    _userPrefsBox = await Hive.openBox('userPreferences');
+  }
+
+  Future<void> _restoreLastMap() async {
+    if (_isDisposed || !mounted) return;
+    final String? savedMapName = _userPrefsBox.get('currentMap');
+    if (savedMapName != null) {
+      final mapInfo = _mapBox.values.firstWhere(
+        (map) => map.name == savedMapName,
+        orElse: () => MapInfo(
+          name: 'World',
+          filePath: '',
+          downloadUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          isTemporary: false,
+          latitude: 39.0, // Center on the Americas
+          longitude: -98.0,
+          zoomLevel: 2,
+        ),
+      );
+      await _loadMap(mapInfo);
+    } else {
+      _currentMapName = 'World';
+      _currentCenter = const LatLng(39.0, -98.0); // Center on the Americas
+      _currentZoom = 2.0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mapController.move(_currentCenter, _currentZoom);
+      });
+    }
+  }
+
+  Future<void> _initTileProvider({String? storeName}) async {
     try {
-      final store = fmtc.FMTCStore(storeName);
-      await store.manage.create(); // Ensure the store exists
-      final tileProvider = store.getTileProvider(httpClient: IOClient());
-      if (mounted) {
-        setState(() {
-          _tileProvider = tileProvider;
-        });
+      if (storeName != null) {
+        final store = fmtc.FMTCStore(storeName);
+        await store.manage.create();
+        final tileProvider = store.getTileProvider();
+        if (mounted) {
+          setState(() {
+            _tileProvider = tileProvider;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _tileProvider = fm.NetworkTileProvider();
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _tileProvider = fm.NetworkTileProvider(httpClient: IOClient());
+          _tileProvider = fm.NetworkTileProvider();
         });
       }
     }
@@ -110,10 +137,10 @@ class _GospelPageState extends State<GospelPageUi> {
         orElse: () => MapInfo(
           name: 'World',
           filePath: '',
-          downloadUrl: '',
+          downloadUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           isTemporary: false,
-          latitude: 20.0,
-          longitude: -70.0,
+          latitude: 39.0, // Center on the Americas
+          longitude: -98.0,
           zoomLevel: 2,
         ),
       );
@@ -121,19 +148,12 @@ class _GospelPageState extends State<GospelPageUi> {
       if (!_mapBox.values.any((map) => map.name == 'World')) {
         await _mapBox.add(worldMapInfo);
       } else {
-        // Update existing World map entry if it's not already set to the desired coordinates
-        if (worldMapInfo.latitude != 20.0 || worldMapInfo.longitude != -70.0 || worldMapInfo.zoomLevel != 2) {
-          final key = _mapBox.keyAt(_mapBox.values.toList().indexOf(worldMapInfo));
-          worldMapInfo.latitude = 20.0;
-          worldMapInfo.longitude = -70.0;
-          worldMapInfo.zoomLevel = 2;
-          await _mapBox.put(key, worldMapInfo);
-        }
+        final key = _mapBox.keyAt(_mapBox.values.toList().indexOf(worldMapInfo));
+        worldMapInfo.latitude = 39.0; // Center on the Americas
+        worldMapInfo.longitude = -98.0;
+        worldMapInfo.zoomLevel = 2;
+        await _mapBox.put(key, worldMapInfo);
       }
-
-      _currentMapName = worldMapInfo.name;
-      _currentCenter = latlong2.LatLng(worldMapInfo.latitude, worldMapInfo.longitude);
-      _currentZoom = worldMapInfo.zoomLevel.toDouble();
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -159,7 +179,7 @@ class _GospelPageState extends State<GospelPageUi> {
 
   fm.Marker _createMarker(Contact contact) {
     return fm.Marker(
-      point: latlong2.LatLng(contact.latitude, contact.longitude),
+      point: LatLng(contact.latitude, contact.longitude),
       child: GestureDetector(
         onTap: () {
           if (_isDisposed || !mounted) return;
@@ -181,94 +201,49 @@ class _GospelPageState extends State<GospelPageUi> {
     );
   }
 
-  Future<void> _loadMapData() async {
-    if (!mounted) return;
+  Future<void> _loadMap(MapInfo mapInfo) async {
+    if (_isDisposed || !mounted) return;
     try {
-      final coordinateJsonString = await DefaultAssetBundle.of(context).loadString('lib/assets/map_coordinates.json');
-      final coordinateData = jsonDecode(coordinateJsonString) as Map<String, dynamic>;
-      final Map<String, Map<String, dynamic>> coordinateMap = {
-        for (final entry in coordinateData.entries) entry.key: entry.value as Map<String, dynamic>,
-      };
+      final newCenter = LatLng(mapInfo.latitude, mapInfo.longitude);
+      final newZoom = mapInfo.zoomLevel.toDouble().clamp(2.0, 20.0);
 
-      final jsonString = await DefaultAssetBundle.of(context).loadString('lib/assets/maps.json');
-      final decodedJson = jsonDecode(jsonString) as List<dynamic>;
-
-      if (decodedJson.isEmpty) throw Exception('Top-level directory not found');
-      final topLevelJson = decodedJson.first as Map<String, dynamic>;
-      if (!topLevelJson.containsKey('subDirectories')) throw Exception('subDirectories not found');
-
-      final List<dynamic> topLevelSubDirsJson = topLevelJson['subDirectories'];
-      final v5Json = topLevelSubDirsJson.firstWhere(
-        (subDirJson) => (subDirJson as Map<String, dynamic>)['name'] == 'V5',
-        orElse: () => null,
-      );
-      if (v5Json == null || !v5Json.containsKey('subDirectories')) throw Exception('V5 directory not found');
-
-      final List<dynamic> continentDirsJson = v5Json['subDirectories'];
-      final List<Directory> directories = continentDirsJson
-          .map((continentDirJson) => Directory.fromJson(continentDirJson as Map<String, dynamic>, coordinateMap))
-          .toList();
+      if (mapInfo.filePath.isNotEmpty) {
+        final store = fmtc.FMTCStore(mapInfo.name);
+        final bool storeReady = await store.manage.ready;
+        if (storeReady) {
+          await _initTileProvider(storeName: mapInfo.name);
+          _tileProviderUrl = mapInfo.downloadUrl;
+        } else {
+          await _initTileProvider();
+          _tileProviderUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+          _currentMapName = 'World';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Offline map "${mapInfo.name}" not found. Loading online map.')),
+          );
+        }
+      } else {
+        await _initTileProvider();
+        _tileProviderUrl = mapInfo.downloadUrl.isNotEmpty
+            ? mapInfo.downloadUrl
+            : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+      }
 
       if (mounted) {
         setState(() {
-          _availableMaps = directories;
-        });
-      }
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load map data: $error')),
-        );
-      }
-    }
-  }
-
-  void zoomIn() {
-    if (_isDisposed || !mounted) return;
-    final newZoom = (_mapController.camera.zoom + 1).clamp(2.0, 18.0);
-    _mapController.move(_mapController.camera.center, newZoom);
-  }
-
-  void zoomOut() {
-    if (_isDisposed || !mounted) return;
-    final newZoom = (_mapController.camera.zoom - 1).clamp(2.0, 18.0);
-    _mapController.move(_mapController.camera.center, newZoom);
-  }
-
-  void _loadMap(String mapName) {
-    if (_isDisposed || !mounted) return;
-    try {
-      final mapInfo = _mapBox.values.firstWhere(
-        (map) => map.name == mapName,
-        orElse: () => MapInfo(
-          name: mapName,
-          filePath: '',
-          downloadUrl: '',
-          isTemporary: false,
-          latitude: 0.0,
-          longitude: 0.0,
-          zoomLevel: 2,
-        ),
-      );
-
-      final newCenter = latlong2.LatLng(mapInfo.latitude, mapInfo.longitude);
-      final newZoom = mapInfo.zoomLevel.toDouble();
-
-      _initTileProvider(storeName: mapInfo.filePath.isNotEmpty ? mapInfo.name : 'osm_store');
-
-      if (mounted) {
-        setState(() {
-          _currentMapName = mapName;
+          _currentMapName = mapInfo.name;
           _currentCenter = newCenter;
           _currentZoom = newZoom;
-          _mapController.move(newCenter, newZoom);
           _markerUpdateKey++;
+        });
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _mapController.move(newCenter, newZoom);
         });
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load map ($mapName): $error')),
+          SnackBar(content: Text('Failed to load map (${mapInfo.name}): $error')),
         );
       }
     }
@@ -285,7 +260,7 @@ class _GospelPageState extends State<GospelPageUi> {
     }
   }
 
-  Future<void> _downloadMap(GospelMapEntryData mapData, String mapName) async {
+  Future<void> _downloadMap(String mapName, double southWestLat, double southWestLng, double northEastLat, double northEastLng, int zoomLevel) async {
     if (_isDisposed || !mounted) return;
 
     if (!await _checkNetwork()) {
@@ -301,54 +276,60 @@ class _GospelPageState extends State<GospelPageUi> {
     await store.manage.create();
 
     final completer = Completer<BuildContext>();
+
+    final downloadOperation = store.download.startForeground(
+      region: fmtc.RectangleRegion(
+        fm.LatLngBounds(
+          LatLng(southWestLat, southWestLng),
+          LatLng(northEastLat, northEastLng),
+        ),
+      ).toDownloadable(
+        minZoom: zoomLevel,
+        maxZoom: zoomLevel,
+        options: fm.TileLayer(
+          urlTemplate: _tileProviderUrl,
+          tileProvider: fm.NetworkTileProvider(),
+        ),
+      ),
+    );
+
+    final broadcastDownloadProgress = downloadOperation.downloadProgress.asBroadcastStream();
+
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) {
           if (!completer.isCompleted) completer.complete(dialogContext);
-          return _DownloadProgressDialog(mapName: mapName, url: mapData.primaryUrl, storeName: mapName);
+          return _DownloadProgressDialog(
+            mapName: mapName,
+            url: _tileProviderUrl,
+            storeName: mapName,
+            downloadStream: broadcastDownloadProgress,
+          );
         },
       );
     }
 
     try {
       final dialogContext = await completer.future;
-      final downloadStream = store.download.startForeground(
-        region: fmtc.RectangleRegion(
-          fm.LatLngBounds(
-            latlong2.LatLng(mapData.bounds.southwest.latitude, mapData.bounds.southwest.longitude),
-            latlong2.LatLng(mapData.bounds.northeast.latitude, mapData.bounds.northeast.longitude),
-          ),
-        ).toDownloadable(
-          minZoom: mapData.zoomLevel,
-          maxZoom: mapData.zoomLevel,
-          options: fm.TileLayer(
-            urlTemplate: mapData.primaryUrl,
-            tileProvider: fmtc.FMTCStore(mapName).getTileProvider(),
-            minZoom: mapData.zoomLevel.toDouble(),
-            maxZoom: mapData.zoomLevel.toDouble(),
-          ),
-        ),
-      );
-
-      await for (final progress in downloadStream.downloadProgress) {}
+      await for (final progress in broadcastDownloadProgress) {}
 
       final mapInfo = MapInfo(
         name: mapName,
         filePath: mapName,
-        downloadUrl: mapData.primaryUrl,
+        downloadUrl: _tileProviderUrl,
         isTemporary: false,
-        latitude: mapData.latitude,
-        longitude: mapData.longitude,
-        zoomLevel: mapData.zoomLevel,
+        latitude: (southWestLat + northEastLat) / 2,
+        longitude: (southWestLng + northEastLng) / 2,
+        zoomLevel: zoomLevel,
       );
       await _mapBox.add(mapInfo);
 
       if (mounted && Navigator.of(dialogContext).canPop()) {
         Navigator.of(dialogContext).pop();
       }
-      _loadMap(mapName);
+      await _loadMap(mapInfo);
     } catch (error) {
       if (completer.isCompleted) {
         final dialogContext = await completer.future;
@@ -364,17 +345,16 @@ class _GospelPageState extends State<GospelPageUi> {
     }
   }
 
-  void _showMapManager() {
+  void _showOfflineMaps() {
     if (!_isHiveInitialized || _isDisposed || !mounted) return;
     Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => gospel_map_manager_ui.MapManagerPage(
+        builder: (context) => gospel_offline_maps_ui.OfflineMapsPage(
           currentMapName: _currentMapName,
-          directories: _availableMaps,
-          onLoadMap: (mapName) {
-            _loadMap(mapName);
+          onLoadMap: (mapInfo) {
+            _loadMap(mapInfo);
           },
           mapBox: _mapBox,
           onDownloadMap: _downloadMap,
@@ -416,7 +396,7 @@ class _GospelPageState extends State<GospelPageUi> {
     );
   }
 
-  void _addMarker(latlong2.LatLng latLng) {
+  void addMarker(LatLng latLng) {
     if (!_isAddingMarker || _isDisposed || !mounted) return;
     Navigator.push(
       context,
@@ -437,6 +417,24 @@ class _GospelPageState extends State<GospelPageUi> {
     );
   }
 
+  void zoomIn() {
+    if (_isDisposed || !mounted) return;
+    final newZoom = (_mapController.camera.zoom + 1).clamp(2.0, 20.0);
+    _mapController.move(_currentCenter, newZoom);
+    setState(() {
+      _currentZoom = newZoom;
+    });
+  }
+
+  void zoomOut() {
+    if (_isDisposed || !mounted) return;
+    final newZoom = (_mapController.camera.zoom - 1).clamp(2.0, 20.0);
+    _mapController.move(_currentCenter, newZoom);
+    setState(() {
+      _currentZoom = newZoom;
+    });
+  }
+
   @override
   void dispose() {
     _isDisposed = true;
@@ -450,7 +448,7 @@ class _GospelPageState extends State<GospelPageUi> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Missions'),
+        title: Text(_currentMapName ?? 'Missions'),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -490,8 +488,8 @@ class _GospelPageState extends State<GospelPageUi> {
             ),
             ListTile(
               leading: const Icon(Icons.map_outlined),
-              title: const Text('Map Manager'),
-              onTap: _showMapManager,
+              title: const Text('Offline Maps'),
+              onTap: _showOfflineMaps,
             ),
             ListTile(
               leading: const Icon(Icons.person_outline),
@@ -514,7 +512,7 @@ class _GospelPageState extends State<GospelPageUi> {
                     minZoom: 2.0,
                     maxZoom: 18.0,
                     onTap: (tapPosition, point) {
-                      if (_isAddingMarker) _addMarker(point);
+                      if (_isAddingMarker) addMarker(point);
                     },
                     onPositionChanged: (position, hasGesture) {
                       if (mounted && position.center != null && position.zoom != null) {
@@ -529,8 +527,17 @@ class _GospelPageState extends State<GospelPageUi> {
                     fm.TileLayer(
                       urlTemplate: _tileProviderUrl,
                       tileProvider: _tileProvider ?? fm.NetworkTileProvider(),
+                      userAgentPackageName: 'com.example.app',
                     ),
                     fm.MarkerLayer(markers: _markers),
+                    fm.RichAttributionWidget(
+                      attributions: [
+                        fm.TextSourceAttribution(
+                          'OpenStreetMap contributors',
+                          onTap: () => {},
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 Positioned(
@@ -571,28 +578,21 @@ class _DownloadProgressDialog extends StatefulWidget {
   final String mapName;
   final String url;
   final String storeName;
+  final Stream<fmtc.DownloadProgress> downloadStream;
 
-  const _DownloadProgressDialog({required this.mapName, required this.url, required this.storeName});
+  const _DownloadProgressDialog({required this.mapName, required this.url, required this.storeName, required this.downloadStream});
 
   @override
   _DownloadProgressDialogState createState() => _DownloadProgressDialogState();
 }
 
 class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
-  Stream<fmtc.DownloadProgress>? _progressStream;
-
-  @override
-  void initState() {
-    super.initState();
-    _progressStream = StreamController<fmtc.DownloadProgress>.broadcast().stream;
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Downloading ${widget.mapName}'),
       content: StreamBuilder<fmtc.DownloadProgress>(
-        stream: _progressStream,
+        stream: widget.downloadStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
