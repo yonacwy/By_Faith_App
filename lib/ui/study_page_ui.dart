@@ -319,6 +319,9 @@ class _StudyPageUiState extends State<StudyPageUi> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Verse added to Bible Notes')),
     );
+    // Update lastBibleNote in userPreferences
+    final userPrefsBox = await Hive.openBox('userPreferences');
+    userPrefsBox.put('lastBibleNote', '$selectedBook $selectedChapter:$verseNumber');
     // Navigate to the StudyNotesPageUi after adding the note
     Navigator.push(
       context,

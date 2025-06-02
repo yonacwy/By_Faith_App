@@ -32,7 +32,9 @@ class _HomePageUiState extends State<HomePageUi> {
   String _lastBookmark = 'N/A';
   String _lastFavorite = 'N/A';
   String _lastStudied = 'N/A';
-  String _lastNote = 'N/A';
+  String _lastBibleNote = 'N/A';
+  String _lastPersonalNote = 'N/A';
+  String _lastStudyNote = 'N/A';
   String _lastSearch = 'N/A';
   String _lastContact = 'N/A';
   String _currentMap = 'N/A';
@@ -120,7 +122,9 @@ class _HomePageUiState extends State<HomePageUi> {
 
       _lastBookmark = _userPrefsBox.get('lastBookmark') ?? 'N/A';
       _lastFavorite = _userPrefsBox.get('lastFavorite') ?? 'N/A';
-      _lastNote = _userPrefsBox.get('lastNote') ?? 'N/A';
+      _lastBibleNote = _userPrefsBox.get('lastBibleNote') ?? 'N/A';
+      _lastPersonalNote = _userPrefsBox.get('lastPersonalNote') ?? 'N/A';
+      _lastStudyNote = _userPrefsBox.get('lastStudyNote') ?? 'N/A';
       _lastSearch = _userPrefsBox.get('lastSearch') ?? 'N/A';
       _lastContact = _userPrefsBox.get('lastContact') ?? 'N/A';
       _currentMap = _userPrefsBox.get('currentMap') ?? 'N/A';
@@ -525,8 +529,22 @@ class _HomePageUiState extends State<HomePageUi> {
                       ),
                       const SizedBox(height: 8),
                       _buildProgressIndicator(
-                        'Last Note',
-                        _lastNote,
+                        'Last Bible Note',
+                        _lastBibleNote,
+                        0.3,
+                        4,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Personal Note',
+                        _lastPersonalNote,
+                        0.3,
+                        4,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildProgressIndicator(
+                        'Last Study Note',
+                        _lastStudyNote,
                         0.3,
                         4,
                       ),

@@ -107,7 +107,22 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
         studyNotesBox.deleteAt(index);
         break;
     }
-    Hive.box('userPreferences').delete('lastNote');
+    // Delete specific last note based on category
+    String preferenceKey;
+    switch (category) {
+      case 'Bible Notes':
+        preferenceKey = 'lastBibleNote';
+        break;
+      case 'Personal Notes':
+        preferenceKey = 'lastPersonalNote';
+        break;
+      case 'Study Notes':
+        preferenceKey = 'lastStudyNote';
+        break;
+      default:
+        preferenceKey = 'lastNote'; // Fallback
+    }
+    Hive.box('userPreferences').delete(preferenceKey);
     _loadNotes();
   }
 
@@ -203,8 +218,22 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                       } catch (e) {
                         print('Error decoding note for dashboard: $e');
                       }
-                      print('[_AddNotePageState] Saving lastNote for category $category: $lastNoteText');
-                      Hive.box('userPreferences').put('lastNote', lastNoteText);
+                      String preferenceKey;
+                      switch (category) {
+                        case 'Bible Notes':
+                          preferenceKey = 'lastBibleNote';
+                          break;
+                        case 'Personal Notes':
+                          preferenceKey = 'lastPersonalNote';
+                          break;
+                        case 'Study Notes':
+                          preferenceKey = 'lastStudyNote';
+                          break;
+                        default:
+                          preferenceKey = 'lastNote'; // Fallback
+                      }
+                      print('[_AddNotePageState] Saving $preferenceKey for category $category: $lastNoteText');
+                      Hive.box('userPreferences').put(preferenceKey, lastNoteText);
                       _loadNotes();
                     },
                     category: 'Study Notes',
