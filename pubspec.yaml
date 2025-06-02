@@ -58,3 +58,4 @@ flutter:
     - lib/bible_data/strongs-hebrew-dictionary.json
     - lib/bible_data/websters1828dictionary.json
     - lib/assets/marker.png
+    - lib/assets/app_icon/app_icon.png

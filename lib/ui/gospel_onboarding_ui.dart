@@ -201,62 +201,69 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
     return Scaffold(
       body: onboardingPagesList.isEmpty
           ? const Center(child: Text('No onboarding pages available'))
-          : Onboarding(
-              swipeableBody: onboardingPagesList,
-              onPageChanges: (
-                double netDragDistance,
-                int pagesLength,
-                int currentIndex,
-                SlideDirection slideDirection,
-              ) {
-                setState(() {
-                  index = currentIndex;
-                });
-              },
-              startIndex: safeIndex,
-              buildFooter: (context, dragDistance, pagesLength, currentIndex, setIndex, slideDirection) {
-                return DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8.0,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(pagesLength, (i) {
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                                width: i == currentIndex ? 12.0 : 8.0,
-                                height: 8.0,
-                                decoration: BoxDecoration(
-                                  color: i == currentIndex ? Theme.of(context).primaryColor : Colors.grey.shade400,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                              );
-                            }),
+          : Column(
+              children: [
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(onboardingPagesList.length, (i) {
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                          width: i == index ? 12.0 : 8.0,
+                          height: 8.0,
+                          decoration: BoxDecoration(
+                            color: i == index ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                            borderRadius: BorderRadius.circular(4.0),
                           ),
-                          const SizedBox(height: 24.0),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final isSmallScreen = constraints.maxWidth < 400;
-                              List<Widget> footerButtons = [];
-                              
-                              bool isFirstPage = currentIndex == 0;
-                              bool isLastPage = currentIndex == pagesLength - 1;
-                              bool isOnlyPage = pagesLength == 1; // True if first and last page are the same
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Onboarding(
+                    swipeableBody: onboardingPagesList,
+                    onPageChanges: (
+                      double netDragDistance,
+                      int pagesLength,
+                      int currentIndex,
+                      SlideDirection slideDirection,
+                    ) {
+                      setState(() {
+                        index = currentIndex;
+                      });
+                    },
+                    startIndex: safeIndex,
+                    buildFooter: (context, dragDistance, pagesLength, currentIndex, setIndex, slideDirection) {
+                      return DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8.0,
+                              offset: const Offset(0, -2),
+                            ),
+                          ],
+                        ),
+                        child: SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final isSmallScreen = constraints.maxWidth < 400;
+                                    List<Widget> footerButtons = [];
+                                    
+                                    bool isFirstPage = currentIndex == 0;
+                                    bool isLastPage = currentIndex == pagesLength - 1;
+                                    bool isOnlyPage = pagesLength == 1; // True if first and last page are the same
 
                               Widget? leftButton;
                               Widget? rightButton;
@@ -280,44 +287,22 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
                                   // rowMainAxisAlignment remains MainAxisAlignment.center
                               }
 
-                              if (isSmallScreen) { // COLUMN LAYOUT
-                                footerButtons.clear(); // Ensure list is empty before populating
-                                if (isOnlyPage) {
-                                    footerButtons.add(rightButton!); // Profile button
-                                    footerButtons.add(const SizedBox(height: 16.0));
-                                    footerButtons.add(leftButton!);  // Skip button
-                                } else if (isFirstPage) {
-                                    footerButtons.add(rightButton!); // Next button
-                                    footerButtons.add(const SizedBox(height: 16.0));
-                                    footerButtons.add(leftButton!);  // Skip button
-                                } else if (isLastPage) {
-                                    footerButtons.add(leftButton!);  // Previous button
-                                    footerButtons.add(const SizedBox(height: 16.0));
-                                    footerButtons.add(rightButton!); // Profile button
-                                } else { // Intermediate
-                                    footerButtons.add(leftButton!);  // Previous button
-                                    footerButtons.add(const SizedBox(height: 16.0));
-                                    footerButtons.add(rightButton!); // Next button
-                                }
-                                return Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: footerButtons,
-                                );
-                              } else { // ROW LAYOUT
-                                if (leftButton != null) footerButtons.add(leftButton);
-                                if (leftButton != null && rightButton != null) {
-                                    if (isFirstPage || isOnlyPage) { // For Skip --- Next/Profile
-                                        footerButtons.add(const Spacer());
-                                    } else { // For Prev - Next/Profile
-                                        footerButtons.add(const SizedBox(width: 16.0));
-                                    }
-                                }
-                                if (rightButton != null) footerButtons.add(rightButton);
-                                return Row(
-                                    mainAxisAlignment: rowMainAxisAlignment,
-                                    children: footerButtons,
-                                );
-                              }
+                              // Always use a Row for buttons, adjusting spacing based on screen size and button presence
+                              return Row(
+                                mainAxisAlignment: rowMainAxisAlignment,
+                                children: [
+                                  if (leftButton != null)
+                                    Expanded(child: leftButton),
+                                  if (leftButton != null && rightButton != null) ...[
+                                    if (isFirstPage || isOnlyPage)
+                                      const Spacer()
+                                    else
+                                      const SizedBox(width: 16.0),
+                                  ],
+                                  if (rightButton != null)
+                                    Expanded(child: rightButton),
+                                ],
+                              );
                             },
                           ),
                         ],
@@ -326,8 +311,11 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
                   ),
                 );
               },
-            ),
-    );
+            ), // Closing Onboarding
+          ), // Closing Expanded
+        ], // Closing children list of outer Column
+      ), // Closing outer Column
+    ); // Closing Scaffold
   }
 
   Widget _buildSkipButton(BuildContext context) {
@@ -375,7 +363,10 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
     return ElevatedButton(
       onPressed: () {
         if (index < onboardingPagesList.length - 1) {
-          setIndexCallback(index + 1);
+          setState(() {
+            index++;
+          });
+          setIndexCallback(index); // Ensure Onboarding widget updates its page
         }
       },
       style: ElevatedButton.styleFrom(
@@ -398,7 +389,10 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
     return ElevatedButton(
       onPressed: () {
         if (index > 0) {
-          setIndexCallback(index - 1);
+          setState(() {
+            index--;
+          });
+          setIndexCallback(index); // Ensure Onboarding widget updates its page
         }
       },
       style: ElevatedButton.styleFrom(
@@ -411,7 +405,7 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
         elevation: 2,
       ),
       child: const Text(
-        'Previous',
+        'Back',
         style: TextStyle(fontSize: 16.0),
       ),
     );
