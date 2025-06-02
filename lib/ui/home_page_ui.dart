@@ -175,133 +175,139 @@ class _HomePageUiState extends State<HomePageUi> {
     final totalPrayers = _newPrayersCount + _answeredPrayersCount + _unansweredPrayersCount;
     final maxY = totalPrayers > 0 ? totalPrayers.toDouble() : 10.0; // Avoid zero division
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.pie_chart, color: Theme.of(context).colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Prayer Summary',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontFamily: _selectedFont,
-                        fontSize: _selectedFontSize * 0.9,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: maxBarHeight,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: maxY,
-                  barTouchData: BarTouchData(
-                    enabled: true,
-                    touchTooltipData: BarTouchTooltipData(
-                      getTooltipColor: (group) => Theme.of(context).colorScheme.surfaceContainerHighest,
-                      tooltipRoundedRadius: 8,
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        String label;
-                        switch (group.x) {
-                          case 0:
-                            label = 'New: $_newPrayersCount';
-                            break;
-                          case 1:
-                            label = 'Answered: $_answeredPrayersCount';
-                            break;
-                          case 2:
-                            label = 'Unanswered: $_unansweredPrayersCount';
-                            break;
-                          default:
-                            label = '';
-                        }
-                        return BarTooltipItem(
-                          label,
-                          Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontFamily: _selectedFont,
-                                fontSize: _selectedFontSize * 0.8,
-                              ),
-                        );
-                      },
-                    ),
+    return InkWell(
+      onTap: () {
+        Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(2); // Navigate to PrayPageUi (index 2)
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.pie_chart, color: Theme.of(context).colorScheme.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Prayer Summary',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontFamily: _selectedFont,
+                          fontSize: _selectedFontSize * 0.9,
+                        ),
                   ),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          const style = TextStyle(fontSize: 12);
-                          switch (value.toInt()) {
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: maxBarHeight,
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: maxY,
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (group) => Theme.of(context).colorScheme.surfaceContainerHighest,
+                        tooltipRoundedRadius: 8,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          String label;
+                          switch (group.x) {
                             case 0:
-                              return const Text('New', style: style);
+                              label = 'New: $_newPrayersCount';
+                              break;
                             case 1:
-                              return const Text('Answered', style: style);
+                              label = 'Answered: $_answeredPrayersCount';
+                              break;
                             case 2:
-                              return const Text('Unanswered', style: style);
+                              label = 'Unanswered: $_unansweredPrayersCount';
+                              break;
+                            default:
+                              label = '';
                           }
-                          return const Text('');
+                          return BarTooltipItem(
+                            label,
+                            Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontFamily: _selectedFont,
+                                  fontSize: _selectedFontSize * 0.8,
+                                ),
+                          );
                         },
                       ),
                     ),
-                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            const style = TextStyle(fontSize: 12);
+                            switch (value.toInt()) {
+                              case 0:
+                                return const Text('New', style: style);
+                              case 1:
+                                return const Text('Answered', style: style);
+                              case 2:
+                                return const Text('Unanswered', style: style);
+                            }
+                            return const Text('');
+                          },
+                        ),
+                      ),
+                      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    barGroups: [
+                      BarChartGroupData(
+                        x: 0,
+                        barRods: [
+                          BarChartRodData(
+                            toY: _newPrayersCount.toDouble(),
+                            color: Theme.of(context).colorScheme.primary,
+                            width: screenWidth * 0.2,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ],
+                      ),
+                      BarChartGroupData(
+                        x: 1,
+                        barRods: [
+                          BarChartRodData(
+                            toY: _answeredPrayersCount.toDouble(),
+                            color: Theme.of(context).colorScheme.secondary,
+                            width: screenWidth * 0.2,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ],
+                      ),
+                      BarChartGroupData(
+                        x: 2,
+                        barRods: [
+                          BarChartRodData(
+                            toY: _unansweredPrayersCount.toDouble(),
+                            color: Theme.of(context).colorScheme.tertiary,
+                            width: screenWidth * 0.2,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  borderData: FlBorderData(show: false),
-                  barGroups: [
-                    BarChartGroupData(
-                      x: 0,
-                      barRods: [
-                        BarChartRodData(
-                          toY: _newPrayersCount.toDouble(),
-                          color: Theme.of(context).colorScheme.primary,
-                          width: screenWidth * 0.2,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 1,
-                      barRods: [
-                        BarChartRodData(
-                          toY: _answeredPrayersCount.toDouble(),
-                          color: Theme.of(context).colorScheme.secondary,
-                          width: screenWidth * 0.2,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ],
-                    ),
-                    BarChartGroupData(
-                      x: 2,
-                      barRods: [
-                        BarChartRodData(
-                          toY: _unansweredPrayersCount.toDouble(),
-                          color: Theme.of(context).colorScheme.tertiary,
-                          width: screenWidth * 0.2,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -495,14 +501,14 @@ class _HomePageUiState extends State<HomePageUi> {
                         'Last Bookmark',
                         _lastBookmark,
                         0.4,
-                        3,
+                        3, // ReadPageUi
                       ),
                       const SizedBox(height: 8),
                       _buildProgressIndicator(
                         'Last Favorite',
                         _lastFavorite,
                         0.5,
-                        3,
+                        3, // ReadPageUi
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -532,28 +538,28 @@ class _HomePageUiState extends State<HomePageUi> {
                         'Last Bible Note',
                         _lastBibleNote,
                         0.3,
-                        4,
+                        4, // StudyPageUi
                       ),
                       const SizedBox(height: 8),
                       _buildProgressIndicator(
                         'Last Personal Note',
                         _lastPersonalNote,
                         0.3,
-                        4,
+                        4, // StudyPageUi
                       ),
                       const SizedBox(height: 8),
                       _buildProgressIndicator(
                         'Last Study Note',
                         _lastStudyNote,
                         0.3,
-                        4,
+                        4, // StudyPageUi
                       ),
                       const SizedBox(height: 8),
                       _buildProgressIndicator(
                         'Last Search',
                         _lastSearch,
                         0.2,
-                        4,
+                        4, // StudyPageUi
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -572,49 +578,55 @@ class _HomePageUiState extends State<HomePageUi> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Current Map',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: _selectedFont,
-                                      fontSize: adjustedFontSize * 0.9,
-                                    ),
-                              ),
-                              Text(
-                                _currentMap,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontFamily: _selectedFont,
-                                      fontSize: adjustedFontSize * 0.8,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Downloaded Maps',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: _selectedFont,
-                                      fontSize: adjustedFontSize * 0.9,
-                                    ),
-                              ),
-                              Text(
-                                '$_downloadedMapsCount',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontFamily: _selectedFont,
-                                      fontSize: adjustedFontSize * 0.8,
-                                    ),
-                              ),
-                            ],
+                      InkWell(
+                        onTap: () {
+                          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1); // Navigate to GospelPageUi (index 1)
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Current Map',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: _selectedFont,
+                                        fontSize: adjustedFontSize * 0.9,
+                                      ),
+                                ),
+                                Text(
+                                  _currentMap,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontFamily: _selectedFont,
+                                        fontSize: adjustedFontSize * 0.8,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Downloaded Maps',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: _selectedFont,
+                                        fontSize: adjustedFontSize * 0.9,
+                                      ),
+                                ),
+                                Text(
+                                  '$_downloadedMapsCount',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontFamily: _selectedFont,
+                                        fontSize: adjustedFontSize * 0.8,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -635,26 +647,32 @@ class _HomePageUiState extends State<HomePageUi> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _lastContact,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        fontFamily: _selectedFont,
-                                        fontSize: adjustedFontSize * 0.8,
-                                      ),
+                      InkWell(
+                        onTap: () {
+                          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1); // Navigate to GospelPageUi (index 1)
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _lastContact,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          fontFamily: _selectedFont,
+                                          fontSize: adjustedFontSize * 0.8,
+                                        ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
