@@ -300,9 +300,9 @@ class _ReadPageUiState extends State<ReadPageUi> {
       await bookmarksBox.add(newBookmark);
       // Save the last bookmarked verse to user preferences
       final lastBookmarkValue = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
-      print('[_addVerseToBookmarks] Saving lastBookmark: $lastBookmarkValue'); // Debug print
+      //print('[_addVerseToBookmarks] Saving lastBookmark: $lastBookmarkValue'); // Debug print
       await userPrefsBox.put('lastBookmark', lastBookmarkValue);
-      print('[_addVerseToBookmarks] lastBookmark saved: $lastBookmarkValue'); // Debug print
+      //print('[_addVerseToBookmarks] lastBookmark saved: $lastBookmarkValue'); // Debug print
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Bookmarks!')),
       );

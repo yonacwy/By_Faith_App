@@ -18,7 +18,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
   List<Map<String, dynamic>> bibleNotes = [];
   List<String> personalNotes = [];
   List<String> studyNotes = [];
-  String _expandedCategory = 'Study Notes'; // State variable to hold the expanded category
+  String _expandedCategory = 'Study Notes';
 
   @override
   void initState() {
@@ -30,57 +30,49 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
     bibleNotesBox = await Hive.openBox('bibleNotes');
     personalNotesBox = await Hive.openBox('personalNotes');
     studyNotesBox = await Hive.openBox('studyNotes');
-    // Also open user preferences box to update lastNote on deletion
     await Hive.openBox('userPreferences');
     _loadNotes();
   }
 
   void _loadNotes() {
     setState(() {
-      // Filter and decode bible notes, ensuring they are maps
       bibleNotes = bibleNotesBox.values
           .where((value) => value is String)
           .cast<String>()
           .map((value) {
             try {
               final decoded = jsonDecode(value);
-              if (decoded is Map<String, dynamic>) {
-                // Check if it has the expected keys for a Bible note
-                if (decoded.containsKey('verse') && decoded.containsKey('verseText') && decoded.containsKey('note')) {
-                  return decoded;
-                }
+              if (decoded is Map<String, dynamic> &&
+                  decoded.containsKey('verse') &&
+                  decoded.containsKey('verseText') &&
+                  decoded.containsKey('note')) {
+                return decoded;
               }
             } catch (e) {
-              // Handle potential decoding errors
               print('Error decoding Bible note: $e');
             }
-            // Return a default or null for invalid entries, which will be filtered out
             return null;
           })
-          .where((note) => note != null) // Filter out null entries
-          .cast<Map<String, dynamic>>() // Cast the remaining valid entries
+          .where((note) => note != null)
+          .cast<Map<String, dynamic>>()
           .toList();
 
-      // Load personal and study notes (expected to be JSON-encoded lists from Quill delta)
       personalNotes = personalNotesBox.values
           .where((value) => value is String)
           .cast<String>()
           .map((value) {
             try {
               final decoded = jsonDecode(value);
-              // Check if it's a list, which is typical for Quill delta JSON
               if (decoded is List) {
-                return value; // Return the original string if it decodes to a List
+                return value;
               }
             } catch (e) {
-              // Handle potential decoding errors
               print('Error decoding Personal note: $e');
             }
-            // Return null for invalid entries, which will be filtered out
             return null;
           })
-          .where((note) => note != null) // Filter out null entries
-          .cast<String>() // Cast the remaining valid entries
+          .where((note) => note != null)
+          .cast<String>()
           .toList();
 
       studyNotes = studyNotesBox.values
@@ -89,19 +81,16 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
           .map((value) {
             try {
               final decoded = jsonDecode(value);
-              // Check if it's a list, which is typical for Quill delta JSON
               if (decoded is List) {
-                return value; // Return the original string if it decodes to a List
+                return value;
               }
             } catch (e) {
-              // Handle potential decoding errors
               print('Error decoding Study note: $e');
             }
-            // Return null for invalid entries, which will be filtered out
             return null;
           })
-          .where((note) => note != null) // Filter out null entries
-          .cast<String>() // Cast the remaining valid entries
+          .where((note) => note != null)
+          .cast<String>()
           .toList();
     });
   }
@@ -118,9 +107,45 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
         studyNotesBox.deleteAt(index);
         break;
     }
-    // Clear the lastNote preference on deletion
     Hive.box('userPreferences').delete('lastNote');
     _loadNotes();
+  }
+
+  void _editNote(int index, quill.Document document, String category, {Map<String, dynamic>? bibleNoteData}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddNotePage(
+          initialDocument: document,
+          onSave: (noteJson, selectedCategory) {
+            if (noteJson.isNotEmpty) {
+              if (category == 'Bible Notes' && bibleNoteData != null) {
+                final updatedData = {
+                  'verse': bibleNoteData['verse'],
+                  'verseText': bibleNoteData['verseText'],
+                  'note': noteJson,
+                };
+                bibleNotesBox.putAt(index, jsonEncode(updatedData));
+              } else {
+                switch (category) {
+                  case 'Personal Notes':
+                    personalNotesBox.putAt(index, noteJson);
+                    break;
+                  case 'Study Notes':
+                    studyNotesBox.putAt(index, noteJson);
+                    break;
+                }
+              }
+              _loadNotes();
+            } else {
+              print('Attempted to save an empty note in $category');
+            }
+          },
+          category: category,
+          availableCategories: const ['Bible Notes', 'Personal Notes', 'Study Notes'],
+        ),
+      ),
+    );
   }
 
   @override
@@ -132,9 +157,9 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.background,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-               color: Theme.of(context).colorScheme.onBackground,
-               fontWeight: FontWeight.bold,
-             ),
+              color: Theme.of(context).colorScheme.onBackground,
+              fontWeight: FontWeight.bold,
+            ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -159,23 +184,26 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                           studyNotesBox.add(noteJson);
                           break;
                       }
-                      // Save the plain text of the note to user preferences for the dashboard
                       String lastNoteText = '';
                       try {
                         if (category == 'Bible Notes') {
-                           final decodedBibleNote = jsonDecode(noteJson);
-                           if (decodedBibleNote is Map<String, dynamic> && decodedBibleNote.containsKey('note')) {
-                             final bibleNoteDeltaJson = decodedBibleNote['note'] as String;
-                              lastNoteText = quill.Document.fromJson(jsonDecode(bibleNoteDeltaJson)).toPlainText().trim();
-                           }
+                          final decodedBibleNote = jsonDecode(noteJson);
+                          if (decodedBibleNote is Map<String, dynamic> &&
+                              decodedBibleNote.containsKey('note')) {
+                            final bibleNoteDeltaJson = decodedBibleNote['note'] as String;
+                            lastNoteText = quill.Document.fromJson(jsonDecode(bibleNoteDeltaJson))
+                                .toPlainText()
+                                .trim();
+                          }
                         } else {
-                           lastNoteText = quill.Document.fromJson(jsonDecode(noteJson)).toPlainText().trim();
+                          lastNoteText = quill.Document.fromJson(jsonDecode(noteJson))
+                              .toPlainText()
+                              .trim();
                         }
                       } catch (e) {
-                         print('Error decoding note for dashboard: $e');
-
+                        print('Error decoding note for dashboard: $e');
                       }
-                      print('[_AddNotePageState] Saving lastNote for category $category: $lastNoteText'); // Debug print
+                      print('[_AddNotePageState] Saving lastNote for category $category: $lastNoteText');
                       Hive.box('userPreferences').put('lastNote', lastNoteText);
                       _loadNotes();
                     },
@@ -211,267 +239,233 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
       title: Text(
         category,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-               color: Theme.of(context).colorScheme.onBackground,
-               fontWeight: FontWeight.bold,
-             ),
+              color: Theme.of(context).colorScheme.onBackground,
+              fontWeight: FontWeight.bold,
+            ),
       ),
       initiallyExpanded: category == _expandedCategory,
-      children: notes.isEmpty ? [
-               ListTile(
-                 title: Text(
-                   'No notes available.',
-                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                         color: Theme.of(context).colorScheme.onSurfaceVariant,
-                       ),
-                 ),
-               ),
-             ]
-           : notes.asMap().entries.map<Widget>((entry) {
-               final index = entry.key;
-               final noteData = entry.value;
-               if (isBibleNotes) {
-                 final verse = noteData['verse'] as String;
-                 final verseText = noteData['verseText'] as String;
-                 final noteJson = noteData['note'] as String;
+      children: notes.isEmpty
+          ? [
+              ListTile(
+                title: Text(
+                  'No notes available.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            ]
+          : notes.asMap().entries.map<Widget>((entry) {
+              final index = entry.key;
+              final noteData = entry.value;
+              if (isBibleNotes) {
+                final verse = noteData['verse'] as String;
+                final verseText = noteData['verseText'] as String;
+                final noteJson = noteData['note'] as String;
 
-                 try {
-                   final document = quill.Document.fromJson(jsonDecode(noteJson));
-                   final noteController = quill.QuillController(
-                     document: document,
-                     selection: const TextSelection.collapsed(offset: 0),
-                   );
-                   noteController.readOnly = true;
+                try {
+                  final document = quill.Document.fromJson(jsonDecode(noteJson));
+                  final noteController = quill.QuillController(
+                    document: document,
+                    selection: const TextSelection.collapsed(offset: 0),
+                  );
+                  noteController.readOnly = true;
 
-                   return Card(
-                     margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                     color: Theme.of(context).colorScheme.background,
-                     child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         // Verse Section
-                         InkWell(
-                           onTap: () {
-                             // Navigate back to StudyPageUi and pass the verse reference
-                             Navigator.pop(context, verse);
-                           },
-                           child: Padding(
-                             padding: const EdgeInsets.all(8.0),
-                             child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 Text(
-                                   verse,
-                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                         fontWeight: FontWeight.bold,
-                                         color: Theme.of(context).colorScheme.primary,
-                                         decoration: TextDecoration.underline,
-                                       ),
-                                 ),
-                                 const SizedBox(height: 4),
-                                 Text(
-                                   verseText.replaceAll(RegExp(r'\{\(?[HG]\d+\)\}?'), ''), // Remove Strong's numbers
-                                   style: Theme.of(context).textTheme.bodySmall,
-                                 ),
-                               ],
-                             ),
-                           ),
-                         ),
-                         const SizedBox(height: 8),
-                         Text(
-                           'Click to add note',
-                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                 fontStyle: FontStyle.italic,
-                               ),
-                         ),
-                         const SizedBox(height: 8),
-                         // Note Section
-                         Row(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                             Expanded(
-                               child: InkWell(
-                                 onTap: () {
-                                   Navigator.push(
-                                     context,
-                                     MaterialPageRoute(
-                                       builder: (context) => AddNotePage(
-                                         initialDocument: document,
-                                         onSave: (noteJson, category) {
-                                           final updatedData = {
-                                             'verse': verse,
-                                             'verseText': verseText,
-                                             'note': noteJson,
-                                           };
-                                           bibleNotesBox.putAt(index, jsonEncode(updatedData));
-                                           _loadNotes();
-                                         },
-                                         category: 'Bible Notes',
-                                         availableCategories: const ['Bible Notes', 'Personal Notes', 'Study Notes'],
-                                       ),
-                                     ),
-                                   );
-                                 },
-                                 child: Padding(
-                                   padding: const EdgeInsets.all(8.0),
-                                   child: quill.QuillEditor(
-                                     controller: noteController,
-                                     scrollController: ScrollController(),
-                                     focusNode: FocusNode(),
-                                     config: const quill.QuillEditorConfig(
-                                       padding: EdgeInsets.all(8.0),
-                                     ),
-                                   ),
-                                 ),
-                               ),
-                             ),
-                             // Delete Button
-                             IconButton(
-                               icon: Icon(
-                                 Icons.delete,
-                                 color: Theme.of(context).colorScheme.error,
-                               ),
-                               onPressed: () => _deleteNote(index, category),
-                               tooltip: 'Delete Note',
-                             ),
-                           ],
-                         ),
-                       ],
-                     ),
-                   );
-                 } catch (e) {
-                   return Card(
-                     margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                     color: Theme.of(context).colorScheme.error,
-                     child: Row(
-                       children: [
-                         Expanded(
-                           child: Padding(
-                             padding: const EdgeInsets.all(8.0),
-                             child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 Text(
-                                   verse,
-                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                         fontWeight: FontWeight.bold,
-                                         color: Theme.of(context).colorScheme.primary,
-                                         decoration: TextDecoration.underline,
-                                       ),
-                                 ),
-                                 const SizedBox(height: 4),
-                                 Text(
-                                   verseText,
-                                   style: Theme.of(context).textTheme.bodySmall,
-                                 ),
-                               ],
-                             ),
-                           ),
-                         ),
-                         Expanded(
-                           child: Padding(
-                             padding: const EdgeInsets.all(8.0),
-                             child: Text(
-                               'Corrupted note',
-                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                     color: Theme.of(context).colorScheme.error,
-                                   ),
-                             ),
-                           ),
-                         ),
-                         IconButton(
-                           icon: Icon(
-                             Icons.delete,
-                             color: Theme.of(context).colorScheme.error,
-                           ),
-                           onPressed: () => _deleteNote(index, category),
-                           tooltip: 'Delete Corrupted Note',
-                           ),
-                         ],
-                       ),
-                     );
-                   }
-                 } else {
-                   // Handle Personal Notes and Study Notes
-                   final noteJson = noteData as String;
-                   try {
-                     final document = quill.Document.fromJson(jsonDecode(noteJson));
-                     final noteController = quill.QuillController(
-                       document: document,
-                       selection: const TextSelection.collapsed(offset: 0),
-                     );
-                     noteController.readOnly = true;
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                    color: Theme.of(context).colorScheme.background,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context, verse);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  verse,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  verseText.replaceAll(RegExp(r'\{\(?[HG]\d+\)\}?'), ''),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: IgnorePointer(
+                                  child: quill.QuillEditor(
+                                    controller: noteController,
+                                    scrollController: ScrollController(),
+                                    focusNode: FocusNode(canRequestFocus: false),
+                                    config: const quill.QuillEditorConfig(
+                                      padding: EdgeInsets.all(8.0),
+                                      enableInteractiveSelection: false,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                onPressed: () => _editNote(index, document, category, bibleNoteData: noteData),
+                                tooltip: 'Edit Note',
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                onPressed: () => _deleteNote(index, category),
+                                tooltip: 'Delete Note',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } catch (e) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                    color: Theme.of(context).colorScheme.error,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  verse,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  verseText,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Corrupted note',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.delete,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          onPressed: () => _deleteNote(index, category),
+                          tooltip: 'Delete Corrupted Note',
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              } else {
+                final noteJson = noteData as String;
+                try {
+                  final document = quill.Document.fromJson(jsonDecode(noteJson));
+                  final noteController = quill.QuillController(
+                    document: document,
+                    selection: const TextSelection.collapsed(offset: 0),
+                  );
+                  noteController.readOnly = true;
 
-                     return Card(
-                       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                       color: Theme.of(context).colorScheme.background,
-                       child: ListTile(
-                         title: quill.QuillEditor(
-                           controller: noteController,
-                           scrollController: ScrollController(),
-                           focusNode: FocusNode(),
-                           config: const quill.QuillEditorConfig(
-                             padding: EdgeInsets.all(8.0),
-                           ),
-                         ),
-                         trailing: IconButton(
-                           icon: Icon(
-                             Icons.delete,
-                             color: Theme.of(context).colorScheme.error,
-                           ),
-                           onPressed: () => _deleteNote(index, category),
-                           tooltip: 'Delete Note',
-                         ),
-                         onTap: () {
-                           Navigator.push(
-                             context,
-                             MaterialPageRoute(
-                               builder: (context) => AddNotePage(
-                                 initialDocument: document,
-                                 onSave: (noteJson, category) {
-                                   // Only save if the noteJson is not empty
-                                   if (noteJson.isNotEmpty) {
-                                     switch (category) {
-                                       case 'Personal Notes':
-                                         personalNotesBox.putAt(index, noteJson);
-                                         break;
-                                       case 'Study Notes':
-                                         studyNotesBox.putAt(index, noteJson);
-                                         break;
-                                     }
-                                     _loadNotes();
-                                   } else {
-                                     // Optionally, handle the case where an empty note is saved (e.g., show a message)
-                                     print('Attempted to save an empty note in $category');
-                                   }
-                                 },
-                                 category: category,
-                                 availableCategories: const ['Bible Notes', 'Personal Notes', 'Study Notes'],
-                               ),
-                             ),
-                           );
-                         },
-                       ),
-                     );
-                   } catch (e) {
-                     return Card(
-                       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                       color: Theme.of(context).colorScheme.error,
-                       child: ListTile(
-                         title: const Text('Corrupted note'),
-                         trailing: IconButton(
-                           icon: Icon(
-                             Icons.delete,
-                             color: Theme.of(context).colorScheme.error,
-                           ),
-                           onPressed: () => _deleteNote(index, category),
-                           tooltip: 'Delete Corrupted Note',
-                         ),
-                       ),
-                     );
-                   }
-                 }
-               }).toList(),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                    color: Theme.of(context).colorScheme.background,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: IgnorePointer(
+                              child: quill.QuillEditor(
+                                controller: noteController,
+                                scrollController: ScrollController(),
+                                focusNode: FocusNode(canRequestFocus: false),
+                                config: const quill.QuillEditorConfig(
+                                  padding: EdgeInsets.all(8.0),
+                                  enableInteractiveSelection: false,
+                                ),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.edit,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            onPressed: () => _editNote(index, document, category),
+                            tooltip: 'Edit Note',
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            onPressed: () => _deleteNote(index, category),
+                            tooltip: 'Delete Note',
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                    color: Theme.of(context).colorScheme.error,
+                    child: ListTile(
+                      title: const Text('Corrupted note'),
+                      trailing: IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        onPressed: () => _deleteNote(index, category),
+                        tooltip: 'Delete Corrupted Note',
+                      ),
+                    ),
+                  );
+                }
+              }
+            }).toList(),
     );
   }
 }
@@ -497,6 +491,7 @@ class AddNotePage extends StatefulWidget {
 class _AddNotePageState extends State<AddNotePage> {
   late quill.QuillController _quillController;
   late String _selectedCategory;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -514,13 +509,14 @@ class _AddNotePageState extends State<AddNotePage> {
     if (delta.isNotEmpty && plainText.trim().isNotEmpty) {
       final noteJson = jsonEncode(delta.toJson());
       widget.onSave(noteJson, _selectedCategory);
-      Navigator.pop(context, _selectedCategory); // Pass the selected category back
+      Navigator.pop(context, _selectedCategory);
     }
   }
 
   @override
   void dispose() {
     _quillController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -533,58 +529,68 @@ class _AddNotePageState extends State<AddNotePage> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.background,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-               color: Theme.of(context).colorScheme.onBackground,
-               fontWeight: FontWeight.bold,
-             ),
+              color: Theme.of(context).colorScheme.onBackground,
+              fontWeight: FontWeight.bold,
+            ),
         centerTitle: true,
-        actions: [],
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.save,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            onPressed: _saveNote,
+            tooltip: 'Save Note',
+          ),
+        ],
       ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Category Selector
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: DropdownButton<String>(
-                value: _selectedCategory,
-                isExpanded: true,
-                items: widget.availableCategories.map((String category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      _selectedCategory = newValue;
-                    });
-                  }
-                },
-              ),
-            ),
-            // Rich Text Editor Toolbar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              color: Theme.of(context).colorScheme.background,
-              child: quill.QuillSimpleToolbar(
-                controller: _quillController,
-                config: const quill.QuillSimpleToolbarConfig(
-                  multiRowsDisplay: false,
-                  showAlignmentButtons: false,
-                  showBackgroundColorButton: false,
-                  showColorButton: false,
-                  showListCheck: false,
-                  showDividers: true,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: DropdownButton<String>(
+                  value: _selectedCategory,
+                  isExpanded: true,
+                  items: widget.availableCategories.map((String category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _selectedCategory = newValue;
+                      });
+                    }
+                  },
                 ),
               ),
-            ),
-            // Rich Text Editor Input
-            Expanded(
-              child: Container(
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                color: Theme.of(context).colorScheme.background,
+                child: quill.QuillSimpleToolbar(
+                  controller: _quillController,
+                  config: const quill.QuillSimpleToolbarConfig(
+                    multiRowsDisplay: false,
+                    showAlignmentButtons: false,
+                    showBackgroundColorButton: false,
+                    showColorButton: false,
+                    showListCheck: false,
+                    showDividers: true,
+                  ),
+                ),
+              ),
+              Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 padding: const EdgeInsets.all(8.0),
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Theme.of(context).colorScheme.outline,
@@ -599,25 +605,27 @@ class _AddNotePageState extends State<AddNotePage> {
                   config: const quill.QuillEditorConfig(
                     padding: EdgeInsets.all(8.0),
                     placeholder: 'Enter your note...',
+                    autoFocus: true,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Semantics(
-              label: 'Submit note',
-              child: ElevatedButton(
-                onPressed: _saveNote,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              const SizedBox(height: 16),
+              Semantics(
+                label: 'Submit note',
+                child: ElevatedButton(
+                  onPressed: _saveNote,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  child: const Text('Submit'),
                 ),
-                child: const Text('Submit'),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

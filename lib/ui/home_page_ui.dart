@@ -99,7 +99,7 @@ class _HomePageUiState extends State<HomePageUi> {
   void _updateDashboardData() {
     if (!mounted || !_isInitialized) return;
 
-    print('[_updateDashboardData] called'); // Debug print
+    //print('[_updateDashboardData] called'); // Debug print
 
     setState(() {
       _newPrayersCount = _prayerBox.values.where((p) => p.status == 'new').length;
@@ -125,10 +125,10 @@ class _HomePageUiState extends State<HomePageUi> {
       _lastContact = _userPrefsBox.get('lastContact') ?? 'N/A';
       _currentMap = _userPrefsBox.get('currentMap') ?? 'N/A';
 
-      print('[_updateDashboardData] Retrieved _lastBookmark: $_lastBookmark'); // Debug print
-      print('[_updateDashboardData] Retrieved _lastStudied: $_lastStudied'); // Debug print
-      print('[_updateDashboardData] Retrieved _lastNote: $_lastNote'); // Debug print
-      print('[_updateDashboardData] Retrieved _currentMap: $_currentMap'); // Debug print
+      //print('[_updateDashboardData] Retrieved _lastBookmark: $_lastBookmark'); // Debug print
+      //print('[_updateDashboardData] Retrieved _lastStudied: $_lastStudied'); // Debug print
+      //print('[_updateDashboardData] Retrieved _lastNote: $_lastNote'); // Debug print
+      //print('[_updateDashboardData] Retrieved _currentMap: $_currentMap'); // Debug print
 
       _downloadedMapsCount = _mapBox.values.where((map) => map is MapInfo && !map.isTemporary).length;
     });

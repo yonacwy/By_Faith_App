@@ -57,11 +57,11 @@ class _StudyPageUiState extends State<StudyPageUi> {
   Future<void> _saveSelection() async {
     if (selectedBook != null) {
       await userPrefsBox.put('lastSelectedStudyBook', selectedBook!);
-      print('[_saveSelection] lastSelectedStudyBook saved: $selectedBook'); // Debug print
+      //print('[_saveSelection] lastSelectedStudyBook saved: $selectedBook'); // Debug print
     }
     if (selectedChapter != null) {
       await userPrefsBox.put('lastSelectedStudyChapter', selectedChapter);
-      print('[_saveSelection] lastSelectedStudyChapter saved: $selectedChapter'); // Debug print
+      //print('[_saveSelection] lastSelectedStudyChapter saved: $selectedChapter'); // Debug print
     }
     await userPrefsBox.put('selectedStudyFont', selectedFont);
     await userPrefsBox.put('selectedStudyFontSize', selectedFontSize);

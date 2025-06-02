@@ -17,10 +17,10 @@ class MapSelectionPage extends StatefulWidget {
 
 class _MapSelectionPageState extends State<MapSelectionPage> with TickerProviderStateMixin {
   late AnimatedMapController _mapController;
-  final double _overlaySize = 2.0; // Increased overlay size
+  final double _overlaySize = 0.5; // Adjusted overlay size for smaller area
   final String _tileProviderUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   LatLng _currentCenter = const LatLng(39.0, -98.0); // Center on the Americas
-  double _currentZoom = 2.0; // Global view
+  double _currentZoom = 10.0; // Higher zoom for street-level detail
   bool _isLoadingSize = false;
   int _estimatedTileCount = 0;
 
@@ -58,9 +58,9 @@ class _MapSelectionPageState extends State<MapSelectionPage> with TickerProvider
       tileCount = (tilesX * tilesY).clamp(0, double.maxFinite.toInt());
 
       // Debugging: Print tile coordinates and counts
-      print('Zoom: $zoom, SouthWest: $southWest, NorthEast: $northEast');
-      print('TileSouthWest: $tileSouthWest, TileNorthEast: $tileNorthEast');
-      print('Tiles X: $tilesX, Tiles Y: $tilesY, Total: $tileCount');
+      //print('Zoom: $zoom, SouthWest: $southWest, NorthEast: $northEast');
+      //print('TileSouthWest: $tileSouthWest, TileNorthEast: $tileNorthEast');
+      //print('Tiles X: $tilesX, Tiles Y: $tilesY, Total: $tileCount');
 
       if (mounted) {
         setState(() {
