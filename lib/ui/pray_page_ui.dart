@@ -390,58 +390,68 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double fontSize = screenWidth < 360 ? 14 : 16;
+    final double fontSize = screenWidth < 320 ? 12 : screenWidth < 360 ? 14 : 16;
     final bool isWideScreen = screenWidth > 600;
+    final double tabPadding = screenWidth < 320 ? 4 : screenWidth < 360 ? 6 : 8;
+    final double tabBarPadding = screenWidth < 320 ? 2 : 4;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Prayers'), // Title is always 'Prayers'
+        title: const Text('Prayers'),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
-        centerTitle: true,
-        actions: [ // Menu icon on the right
+        centerTitle: false,
+        actions: [
           Builder(
             builder: (BuildContext context) {
               return IconButton(
                 icon: const Icon(Icons.menu),
                 onPressed: () {
-                  Scaffold.of(context).openEndDrawer(); // Open end drawer
+                  Scaffold.of(context).openEndDrawer();
                 },
+                tooltip: 'Menu',
               );
             },
           ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: !isWideScreen,
-            tabs: const [
-              Tab(text: 'New'),
-              Tab(text: 'Answered'),
-              Tab(text: 'Unanswered'),
-            ],
-            labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.w600,
-                ),
-            unselectedLabelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.w400,
-                ),
-            indicatorColor: Theme.of(context).colorScheme.primary,
-            labelColor: Theme.of(context).colorScheme.primary,
-            unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-            labelPadding: EdgeInsets.symmetric(horizontal: isWideScreen ? 24 : 12),
-            padding: EdgeInsets.symmetric(horizontal: isWideScreen ? 24 : 8),
+          child: Align(
+            alignment: Alignment.centerLeft, // Align tabs to the left
+            child: Container(
+              constraints: BoxConstraints(maxWidth: screenWidth),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: !isWideScreen,
+                tabAlignment: !isWideScreen ? TabAlignment.start : TabAlignment.fill, // Align tabs to start when scrollable, fill otherwise
+                tabs: const [
+                  Tab(text: 'New'),
+                  Tab(text: 'Answered'),
+                  Tab(text: 'Unanswered'),
+                ],
+                labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w600,
+                    ),
+                unselectedLabelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w400,
+                    ),
+                indicatorColor: Theme.of(context).colorScheme.primary,
+                labelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                labelPadding: EdgeInsets.symmetric(horizontal: tabPadding),
+                padding: EdgeInsets.symmetric(horizontal: tabBarPadding),
+              ),
+            ),
           ),
         ),
       ),
-      endDrawer: Drawer( // Drawer on the right
+      endDrawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -457,16 +467,16 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
                     ),
               ),
             ),
-            ListTile( // Search option in drawer
+            ListTile(
               leading: const Icon(Icons.search),
               title: const Text('Search Prayers'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => PraySearchUi(
-                      searchController: TextEditingController(), // Pass a new controller
+                      searchController: TextEditingController(),
                       initialSearchQuery: '',
                       newListKey: _newListKey,
                       answeredListKey: _answeredListKey,
@@ -479,19 +489,19 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
                 );
               },
             ),
-            ListTile( // Share option in drawer
+            ListTile(
               leading: const Icon(Icons.share),
               title: const Text('Share Prayers'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 _openSharePage();
               },
             ),
-            ListTile( // Settings option in drawer
+            ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 _openSettingsPage();
               },
             ),
@@ -515,7 +525,6 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     );
   }
 }
-
 
 class _EditPrayerPage extends StatefulWidget {
   final Prayer prayer;
@@ -710,6 +719,7 @@ class _NewPrayerPageState extends State<_NewPrayerPage> {
                 quill.QuillSimpleToolbar(
                   controller: _quillController,
                   config: const quill.QuillSimpleToolbarConfig(
+
                     multiRowsDisplay: false,
                     showAlignmentButtons: false,
                     showBackgroundColorButton: false,

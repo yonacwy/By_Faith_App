@@ -1,4 +1,4 @@
-display_name: By Faith app
+display_name: By Faith
 
 icon: web/icons/Icon-192.png
 
@@ -8,7 +8,7 @@ keywords:
   - Christian
   - Lifestyle
 
-generic_name: By Faith app
+generic_name: By Faith
 
 categories:
   - Education

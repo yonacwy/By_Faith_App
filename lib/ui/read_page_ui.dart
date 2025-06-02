@@ -1,4 +1,4 @@
-import 'dart:async'; // Added for Timer
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -37,6 +37,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
   String selectedFont = 'Roboto';
   double selectedFontSize = 16.0;
   bool _isAutoScrollingEnabled = false;
+  bool _isFullScreen = false;
 
   late ScrollController _scrollController;
   bool _isAutoScrolling = false;
@@ -58,7 +59,9 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _loadSavedSelection() async {
-    userPrefsBox = await Hive.openBox('userPreferences');
+    userPrefsBox = await
+
+ Hive.openBox('userPreferences');
     setState(() {
       selectedBook = widget.initialBook ?? userPrefsBox.get('lastSelectedBook') ?? "Genesis";
       selectedChapter = widget.initialChapter ?? userPrefsBox.get('lastSelectedChapter') ?? 1;
@@ -194,7 +197,6 @@ class _ReadPageUiState extends State<ReadPageUi> {
       chapterText = verses
           .map((verse) => "${verse['verse']} ${verse['text'].toString().trim()}")
           .join(' ');
-
     } catch (e) {
       setState(() {
         chapterText = "Error loading chapter: $e";
@@ -256,6 +258,17 @@ class _ReadPageUiState extends State<ReadPageUi> {
     });
   }
 
+  void _toggleFullScreen() {
+    setState(() {
+      _isFullScreen = !_isFullScreen;
+      if (_isFullScreen && _isAutoScrollingEnabled) {
+        _startAutoScroll();
+      } else {
+        _stopAutoScroll();
+      }
+    });
+  }
+
   void _showVerseOptions(VerseData verseData) {
     showModalBottomSheet(
       context: context,
@@ -298,11 +311,8 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     if (!exists) {
       await bookmarksBox.add(newBookmark);
-      // Save the last bookmarked verse to user preferences
       final lastBookmarkValue = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
-      //print('[_addVerseToBookmarks] Saving lastBookmark: $lastBookmarkValue'); // Debug print
       await userPrefsBox.put('lastBookmark', lastBookmarkValue);
-      //print('[_addVerseToBookmarks] lastBookmark saved: $lastBookmarkValue'); // Debug print
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Bookmarks!')),
       );
@@ -324,7 +334,6 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     if (!exists) {
       await favoritesBox.add(newFavorite);
-// Save the last favorited verse to user preferences
       await userPrefsBox.put('lastFavorite', '${verseData.book} ${verseData.chapter}:${verseData.verse}');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Favorites!')),
@@ -355,7 +364,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
               _isAutoScrollingEnabled = isEnabled;
               if (!isEnabled) {
                 _stopAutoScroll();
-              } else {
+              } else if (_isFullScreen) {
                 _startAutoScroll();
               }
               _saveSelection();
@@ -456,24 +465,6 @@ class _ReadPageUiState extends State<ReadPageUi> {
     if (isLoading && books.isEmpty) {
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        appBar: AppBar(
-          title: const Text('Bible Reader'),
-          elevation: 0,
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: _openSettingsPage,
-              tooltip: 'Settings',
-              padding: const EdgeInsets.all(8),
-            ),
-          ],
-        ),
         body: const Center(
           child: CircularProgressIndicator(),
         ),
@@ -482,28 +473,35 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Bible Reader'),
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
+      appBar: _isFullScreen
+          ? null
+          : AppBar(
+              title: const Text('Bible Reader'),
+              elevation: 0,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+              titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+              centerTitle: true,
+              leading: IconButton(
+                icon: Icon(_isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen),
+                onPressed: _toggleFullScreen,
+                tooltip: _isFullScreen ? 'Exit Full Screen' : 'Enter Full Screen',
+              ),
+              actions: [
+                Builder(
+                  builder: (BuildContext context) {
+                    return IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () {
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
-        centerTitle: true,
-        actions: [
-          Builder(
-            builder: (BuildContext context) {
-              return IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openEndDrawer();
-                },
-              );
-            },
-          ),
-        ],
-      ),
       endDrawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -554,152 +552,171 @@ class _ReadPageUiState extends State<ReadPageUi> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DropdownButton<String>(
-                      value: selectedBook,
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      icon: Icon(
-                        Icons.arrow_drop_down,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        size: dropdownFontSize + 4,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Row(
+                    children: [
+                      if (_isFullScreen)
+                        IconButton(
+                          icon: Icon(Icons.fullscreen_exit, color: Theme.of(context).colorScheme.onSurface),
+                          onPressed: _toggleFullScreen,
+                          tooltip: 'Exit Full Screen',
+                        ),
+                      Expanded(
+                        child: DropdownButton<String>(
+                          value: selectedBook,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            size: dropdownFontSize + 4,
+                          ),
+                          items: books.map((book) {
+                            return DropdownMenuItem<String>(
+                              value: book['book'],
+                              child: Text(
+                                book['book'],
+                                style: TextStyle(
+                                  fontSize: dropdownFontSize,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedBook = value;
+                              selectedChapter = 1;
+                              loadChapter();
+                              _saveSelection();
+                            });
+                          },
+                        ),
                       ),
-                      items: books.map((book) {
-                        return DropdownMenuItem<String>(
-                          value: book['book'],
-                          child: Text(
-                            book['book'],
-                            style: TextStyle(
-                              fontSize: dropdownFontSize,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          value: selectedChapter,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            size: dropdownFontSize + 4,
+                          ),
+                          items: (selectedBook != null && books.isNotEmpty)
+                              ? List<int>.generate(
+                                  books.firstWhere(
+                                      (book) => book['book'] == selectedBook,
+                                      orElse: () => {'chapters': 0})['chapters'],
+                                  (index) => index + 1,
+                                ).map((chapter) {
+                                  return DropdownMenuItem<int>(
+                                    value: chapter,
+                                    child: Text(
+                                      '$chapter',
+                                      style: TextStyle(
+                                        fontSize: dropdownFontSize,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  );
+                                }).toList()
+                              : [],
+                          onChanged: (value) {
+                            setState(() {
+                              selectedChapter = value;
+                              loadChapter();
+                              _saveSelection();
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+                Expanded(
+                  child: isLoading
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedBook = value;
-                          selectedChapter = 1;
-                          loadChapter();
-                          _saveSelection();
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DropdownButton<int>(
-                      value: selectedChapter,
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      icon: Icon(
-                        Icons.arrow_drop_down,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        size: dropdownFontSize + 4,
-                      ),
-                      items: (selectedBook != null && books.isNotEmpty)
-                          ? List<int>.generate(
-                              books.firstWhere(
-                                  (book) => book['book'] == selectedBook,
-                                  orElse: () => {'chapters': 0})['chapters'],
-                              (index) => index + 1,
-                            ).map((chapter) {
-                              return DropdownMenuItem<int>(
-                                value: chapter,
-                                child: Text(
-                                  '$chapter',
-                                  style: TextStyle(
-                                    fontSize: dropdownFontSize,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              );
-                            }).toList()
-                          : [],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedChapter = value;
-                          loadChapter();
-                          _saveSelection();
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
-            Expanded(
-              child: isLoading
-                  ? Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      controller: _scrollController,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                        child: RichText(
-                          textAlign: TextAlign.justify,
-                          text: TextSpan(
-                            children: _buildVerseTextSpans(),
+                        )
+                      : SingleChildScrollView(
+                          controller: _scrollController,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                            child: RichText(
+                              textAlign: TextAlign.justify,
+                              text: TextSpan(
+                                children: _buildVerseTextSpans(),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          padding: const EdgeInsets.symmetric(vertical: 0.5),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: Icon(Icons.remove_circle_outline, color: Theme.of(context).colorScheme.onSurface),
-                onPressed: _decreaseAutoScrollSpeed,
-                tooltip: 'Decrease Scroll Speed',
-              ),
-              IconButton(
-                icon: Icon(
-                  _isAutoScrolling ? Icons.pause : Icons.play_arrow,
-                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-                onPressed: () {
-                  if (_isAutoScrolling) {
-                    _stopAutoScroll();
-                  } else {
-                    _startAutoScroll();
-                  }
-                },
-                tooltip: _isAutoScrolling ? 'Pause Auto Scroll' : 'Start Auto Scroll',
+              ],
+            ),
+            if (_isFullScreen)
+              Positioned(
+                bottom: MediaQuery.of(context).padding.bottom + 10, // Position above bottom padding
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.remove_circle_outline, color: Theme.of(context).colorScheme.onSurface),
+                          onPressed: _decreaseAutoScrollSpeed,
+                          tooltip: 'Decrease Scroll Speed',
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            _isAutoScrolling ? Icons.pause : Icons.play_arrow,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          onPressed: () {
+                            if (_isAutoScrolling) {
+                              _stopAutoScroll();
+                            } else {
+                              _startAutoScroll();
+                            }
+                          },
+                          tooltip: _isAutoScrolling ? 'Pause Auto Scroll' : 'Start Auto Scroll',
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.onSurface),
+                          onPressed: _increaseAutoScrollSpeed,
+                          tooltip: 'Increase Scroll Speed',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              IconButton(
-                icon: Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.onSurface),
-                onPressed: _increaseAutoScrollSpeed,
-                tooltip: 'Increase Scroll Speed',
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );

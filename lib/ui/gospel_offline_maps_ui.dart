@@ -157,16 +157,17 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
         child: Column(
           children: [
             ListTile(
+              leading: const Icon(Icons.map), // Added map icon
               title: Text(
                 'Select your own map',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               onTap: _showMapSelection,
             ),
             ExpansionTile(
               title: Text(
                 'Downloaded Maps',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               initiallyExpanded: true,
               children: [

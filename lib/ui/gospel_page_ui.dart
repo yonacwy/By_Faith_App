@@ -546,13 +546,6 @@ class _GospelPageState extends State<GospelPageUi> {
                   child: Column(
                     children: [
                       FloatingActionButton(
-                        heroTag: "add_marker_fab",
-                        mini: true,
-                        onPressed: _startAddingMarker,
-                        child: const Icon(Icons.add_location_alt_outlined),
-                      ),
-                      const SizedBox(height: 8),
-                      FloatingActionButton(
                         heroTag: "zoom_in_fab",
                         mini: true,
                         onPressed: zoomIn,
@@ -564,6 +557,12 @@ class _GospelPageState extends State<GospelPageUi> {
                         mini: true,
                         onPressed: zoomOut,
                         child: const Icon(Icons.remove),
+                      ),
+                      const SizedBox(height: 8),
+                      FloatingActionButton(
+                        heroTag: "add_marker_fab",
+                        onPressed: _startAddingMarker,
+                        child: const Icon(Icons.add_location_alt_outlined),
                       ),
                     ],
                   ),

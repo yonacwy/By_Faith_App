@@ -153,6 +153,19 @@ class _PrayShareUiState extends State<PrayShareUi> {
   Future<void> _exportPrayers(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
+        // Request storage permission
+        var status = await Permission.storage.status;
+        if (!status.isGranted) {
+          status = await Permission.storage.request();
+        }
+
+        if (!status.isGranted) {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('Storage permission not granted. Cannot export prayers.')),
+          );
+          return;
+        }
+
         final prayersBox = await Prayer.openBox();
         final unansweredPrayers = prayersBox.values.where((p) => p.status == 'unanswered').toList();
 
@@ -194,7 +207,7 @@ class _PrayShareUiState extends State<PrayShareUi> {
         }
 
         final file = File(outputFile);
-        await file.writeAsString(jsonString);
+        await file.writeAsBytes(utf8.encode(jsonString));
 
         scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Selected prayers exported to $outputFile')),
@@ -210,8 +223,9 @@ class _PrayShareUiState extends State<PrayShareUi> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
         FilePickerResult? result = await FilePicker.platform.pickFiles(
+          withData: true,
           type: FileType.custom,
-          allowedExtensions: ['json'],
+          allowedExtensions: ['pdf', 'docx', 'doc', 'txt'],
         );
 
         if (result != null && result.files.single.path != null) {

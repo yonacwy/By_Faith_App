@@ -1,8 +1,9 @@
 name: by_faith_app
-description: "A new Flutter project."
+title: By Faith App
+description: "A new Christian Missions app."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 2.0.0
 
 environment:
   sdk: ^3.7.2

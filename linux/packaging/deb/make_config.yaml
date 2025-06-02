@@ -1,4 +1,4 @@
-display_name: By Faith App
+display_name: By Faith
 package_name: by-faith-app
 maintainer:
   name: Barry Smith
@@ -23,7 +23,7 @@ keywords:
   - Religion
   - Christian
 
-generic_name: Faith Application
+generic_name: Christian Missions Application
 
 categories:
   - Education

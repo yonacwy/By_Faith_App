@@ -35,6 +35,8 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // Rename the output APK file
+            outputFileName = "by_faith_app.apk"
         }
     }
 }
