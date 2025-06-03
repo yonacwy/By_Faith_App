@@ -1,14 +1,14 @@
 # By Faith App
 
-A cross platform application built with Flutter, designed to provide resources for reading, studying, praying, and evangelism
+A cross platform application built with Flutter, designed to provide resources for reading, studying, praying, evangelism and missions.
 
 ## Features
 
 - **Home:** Features a dashboard.
-- **Gospel:** Content related to the Gospel, and integration of map data, potentially for         geographical context related to soul winning or missions.
-- **Pray:** Features to support a prayer life.
-- **Read:** Access to read the KJV Bible.
-- **Study:** Tools and resources for in-depth study of the scriptures using Strong's Greek and Hebrew KJV definitions.
+- **Gospel:** Content related to the Gospel, and integration of osm map data, for         geographical context related to soul winning or missions. Also Offline support with Map Markers to Contact Management.
+- **Pray:** Features to support a prayer life, create and share your prayers.
+- **Read:** Read the KJV Bible, auto scrolling and save your bookmarks or favorite versus.
+- **Study:** Tools and resources for in-depth study of the scriptures using Strong's Greek and Hebrew Numbers, KJV definitions, Websters 1828 dictionary. Every scripture verse can be notated with Notes Manager.
 
 ## Getting Started
 
@@ -32,17 +32,21 @@ This project is a Flutter application. To get started:
    flutter run
    ```
 
-## Project Structure
+## Screens
 
-- `lib/`: Contains the main application code.
-  - `adapters/`: Adapters for various data models.
-  - `assets/`: Application assets, including maps and map data.
-    - `maps/`: Map files and render themes.
-  - `bible_data/`: Bible texts and dictionaries.
-  - `models/`: Data models.
-  - `providers/`: State management providers.
-  - `ui/`: User interface components and pages.
-  - `main.dart`: Application entry point.
+#Linux
+![Linux Dashboard](lib/assets/screenshots/linux/linux_dashboard.png)
+![Linux Gospel](lib/assets/screenshots/linux/linux_gospel.png)
+![Linux Pray](lib/assets/screenshots/linux/linux_pray.png)
+![Linux Read](lib/assets/screenshots/linux/linux_read.png)
+![Linux Study](lib/assets/screenshots/linux/linux_study.png)
+
+#Android
+![Android Dashboard](lib/assets/screenshots/android/android_dashboard.png)
+![Android Gospel](lib/assets/screenshots/android/android_gospel.png)
+![Android Pray](lib/assets/screenshots/android/android_pray.png)
+![Android Read](lib/assets/screenshots/android/android_read.png)
+![Android Study](lib/assets/screenshots/android/android_study.png)
 
 ## Contributing
 

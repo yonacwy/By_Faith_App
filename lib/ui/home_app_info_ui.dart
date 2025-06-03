@@ -28,7 +28,7 @@ class HomeAppInfoUi extends StatelessWidget {
               ),
               SizedBox(height: 8),
               Text(
-                'Version: 1.0.0',
+                'Version: 2.0.0',
                 style: TextStyle(fontSize: 18),
               ),
               SizedBox(height: 8),
