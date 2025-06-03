@@ -39,7 +39,7 @@ class _StudySettingsPageUiState extends State<StudySettingsPageUi> {
       'Lora',
     ];
     const String sampleText =
-        "In the beginning God created the heaven and the earth.";
+        "Study to shew thyself approved unto God, a workman that needeth not to be ashamed, rightly dividing the word of truth.";
 
     return Scaffold(
       appBar: AppBar(

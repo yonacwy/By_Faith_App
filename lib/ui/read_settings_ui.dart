@@ -73,7 +73,7 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
       'Open Sans',
       'Lora',
     ];
-    const String sampleText = "The Lord is my shepherd; I shall not want.";
+    const String sampleText = "Till I come, give attendance to reading, to exhortation, to doctrine.";
 
     if (_isLoading) {
       return Scaffold(
