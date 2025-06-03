@@ -363,7 +363,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.primaryContainer,
               ),
               child: Text(
                 'Menu',

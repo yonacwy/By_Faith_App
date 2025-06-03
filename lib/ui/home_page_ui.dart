@@ -101,8 +101,6 @@ class _HomePageUiState extends State<HomePageUi> {
   void _updateDashboardData() {
     if (!mounted || !_isInitialized) return;
 
-    //print('[_updateDashboardData] called'); // Debug print
-
     setState(() {
       _newPrayersCount = _prayerBox.values.where((p) => p.status == 'new').length;
       _answeredPrayersCount = _prayerBox.values.where((p) => p.status == 'answered').length;
@@ -128,11 +126,6 @@ class _HomePageUiState extends State<HomePageUi> {
       _lastSearch = _userPrefsBox.get('lastSearch') ?? 'N/A';
       _lastContact = _userPrefsBox.get('lastContact') ?? 'N/A';
       _currentMap = _userPrefsBox.get('currentMap') ?? 'N/A';
-
-      //print('[_updateDashboardData] Retrieved _lastBookmark: $_lastBookmark'); // Debug print
-      //print('[_updateDashboardData] Retrieved _lastStudied: $_lastStudied'); // Debug print
-      //print('[_updateDashboardData] Retrieved _lastNote: $_lastNote'); // Debug print
-      //print('[_updateDashboardData] Retrieved _currentMap: $_currentMap'); // Debug print
 
       _downloadedMapsCount = _mapBox.values.where((map) => map is MapInfo && !map.isTemporary).length;
     });
@@ -383,6 +376,87 @@ class _HomePageUiState extends State<HomePageUi> {
     );
   }
 
+  // New method for Map Information card
+  Widget _buildMapInfoCard(String title, String value, int downloadedMaps, int pageIndex) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Calculate progress based on downloaded maps (max 10 maps for visualization)
+    final progress = downloadedMaps / 10.0 > 1.0 ? 1.0 : downloadedMaps / 10.0;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: InkWell(
+        onTap: () {
+          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(pageIndex);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(screenWidth * 0.03), // Responsive padding
+          child: Row(
+            children: [
+              SizedBox(
+                width: screenWidth * 0.15,
+                height: screenWidth * 0.15,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 4,
+                      color: Theme.of(context).colorScheme.primary,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ),
+                    Text(
+                      '$downloadedMaps',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontFamily: _selectedFont,
+                            fontSize: _selectedFontSize * 0.7,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: _selectedFont,
+                            fontSize: _selectedFontSize * 0.9,
+                          ),
+                    ),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontFamily: _selectedFont,
+                            fontSize: _selectedFontSize * 0.8,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Downloaded: $downloadedMaps',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontFamily: _selectedFont,
+                            fontSize: _selectedFontSize * 0.8,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -578,57 +652,11 @@ class _HomePageUiState extends State<HomePageUi> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      InkWell(
-                        onTap: () {
-                          Provider.of<PageNotifier>(context, listen: false).setSelectedIndex(1); // Navigate to GospelPageUi (index 1)
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Current Map',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: _selectedFont,
-                                        fontSize: adjustedFontSize * 0.9,
-                                      ),
-                                ),
-                                Text(
-                                  _currentMap,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        fontFamily: _selectedFont,
-                                        fontSize: adjustedFontSize * 0.8,
-                                      ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Downloaded Maps',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: _selectedFont,
-                                        fontSize: adjustedFontSize * 0.9,
-                                      ),
-                                ),
-                                Text(
-                                  '$_downloadedMapsCount',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        fontFamily: _selectedFont,
-                                        fontSize: adjustedFontSize * 0.8,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      _buildMapInfoCard(
+                        'Current Map',
+                        _currentMap,
+                        _downloadedMapsCount,
+                        1, // Navigate to GospelPageUi
                       ),
                       const SizedBox(height: 16),
                       Row(

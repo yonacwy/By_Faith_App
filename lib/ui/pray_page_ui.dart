@@ -404,7 +404,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
-        centerTitle: false,
+        centerTitle: true,
         actions: [
           Builder(
             builder: (BuildContext context) {

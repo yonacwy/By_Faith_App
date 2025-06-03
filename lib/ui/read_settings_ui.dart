@@ -9,6 +9,8 @@ class ReadSettingsUi extends StatefulWidget {
   final double initialFontSize;
   final Function(bool) onAutoScrollChanged;
   final bool initialAutoScrollState;
+  final Function(String) onAutoScrollModeChanged; // New callback for mode
+  final String initialAutoScrollMode; // New initial mode
 
   const ReadSettingsUi({
     super.key,
@@ -17,6 +19,8 @@ class ReadSettingsUi extends StatefulWidget {
     required this.initialFontSize,
     required this.onAutoScrollChanged,
     required this.initialAutoScrollState,
+    required this.onAutoScrollModeChanged,
+    required this.initialAutoScrollMode,
   });
 
   @override
@@ -27,16 +31,17 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
   String? currentFont;
   double? currentFontSize;
   bool? _isAutoScrollingEnabled;
+  String? _autoScrollMode; // New: 'Normal' or 'Continuous'
   late Box userPrefsBox;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with widget values to avoid late initialization errors
     currentFont = widget.initialFont;
     currentFontSize = widget.initialFontSize;
     _isAutoScrollingEnabled = widget.initialAutoScrollState;
+    _autoScrollMode = widget.initialAutoScrollMode;
     _loadSettings();
   }
 
@@ -47,6 +52,7 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
         currentFont = userPrefsBox.get('selectedFont', defaultValue: widget.initialFont) as String;
         currentFontSize = userPrefsBox.get('selectedFontSize', defaultValue: widget.initialFontSize) as double;
         _isAutoScrollingEnabled = userPrefsBox.get('isAutoScrollingEnabled', defaultValue: widget.initialAutoScrollState) as bool;
+        _autoScrollMode = userPrefsBox.get('autoScrollMode', defaultValue: widget.initialAutoScrollMode) as String;
         _isLoading = false;
       });
     } catch (e) {
@@ -277,24 +283,59 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                   ),
-                  child: ListTile(
-                    title: const Text('Enable Auto Scroll'),
-                    trailing: Switch(
-                      value: _isAutoScrollingEnabled!,
-                      onChanged: (value) {
-                        setState(() {
-                          _isAutoScrollingEnabled = value;
-                          widget.onAutoScrollChanged(value);
-                          userPrefsBox.put('isAutoScrollingEnabled', value);
-                        });
-                      },
-                    ),
-                    subtitle: Text(
-                      _isAutoScrollingEnabled! ? 'On' : 'Off',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: const Text('Enable Auto Scroll'),
+                        trailing: Switch(
+                          value: _isAutoScrollingEnabled!,
+                          onChanged: (value) {
+                            setState(() {
+                              _isAutoScrollingEnabled = value;
+                              widget.onAutoScrollChanged(value);
+                              userPrefsBox.put('isAutoScrollingEnabled', value);
+                            });
+                          },
+                        ),
+                        subtitle: Text(
+                          _isAutoScrollingEnabled! ? 'On' : 'Off',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ),
+                      if (_isAutoScrollingEnabled!) ...[
+                        const Divider(height: 1),
+                        RadioListTile<String>(
+                          title: const Text('Normal (Stop at chapter end)'),
+                          value: 'Normal',
+                          groupValue: _autoScrollMode,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _autoScrollMode = value;
+                                widget.onAutoScrollModeChanged(value);
+                                userPrefsBox.put('autoScrollMode', value);
+                              });
+                            }
+                          },
+                        ),
+                        RadioListTile<String>(
+                          title: const Text('Continuous (Scroll through entire Bible)'),
+                          value: 'Continuous',
+                          groupValue: _autoScrollMode,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _autoScrollMode = value;
+                                widget.onAutoScrollModeChanged(value);
+                                userPrefsBox.put('autoScrollMode', value);
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],

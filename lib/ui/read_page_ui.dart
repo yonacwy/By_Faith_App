@@ -38,6 +38,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
   double selectedFontSize = 16.0;
   bool _isAutoScrollingEnabled = false;
   bool _isFullScreen = false;
+  String _autoScrollMode = 'Normal'; // New: 'Normal' or 'Continuous'
 
   late ScrollController _scrollController;
   bool _isAutoScrolling = false;
@@ -59,15 +60,14 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _loadSavedSelection() async {
-    userPrefsBox = await
-
- Hive.openBox('userPreferences');
+    userPrefsBox = await Hive.openBox('userPreferences');
     setState(() {
       selectedBook = widget.initialBook ?? userPrefsBox.get('lastSelectedBook') ?? "Genesis";
       selectedChapter = widget.initialChapter ?? userPrefsBox.get('lastSelectedChapter') ?? 1;
       selectedFont = userPrefsBox.get('selectedFont') ?? 'Roboto';
       selectedFontSize = userPrefsBox.get('selectedFontSize') ?? 16.0;
       _isAutoScrollingEnabled = userPrefsBox.get('isAutoScrollingEnabled') ?? false;
+      _autoScrollMode = userPrefsBox.get('autoScrollMode') ?? 'Normal';
     });
     loadData();
   }
@@ -82,6 +82,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
     await userPrefsBox.put('selectedFont', selectedFont);
     await userPrefsBox.put('selectedFontSize', selectedFontSize);
     await userPrefsBox.put('isAutoScrollingEnabled', _isAutoScrollingEnabled);
+    await userPrefsBox.put('autoScrollMode', _autoScrollMode);
   }
 
   Future<void> loadData() async {
@@ -90,7 +91,6 @@ class _ReadPageUiState extends State<ReadPageUi> {
       String bookChapterData = await DefaultAssetBundle.of(context)
           .loadString('lib/bible_data/book.chapters.json');
       books = jsonDecode(bookChapterData);
-
       String kjvData = await DefaultAssetBundle.of(context)
           .loadString('lib/bible_data/kjv.json');
       bibleData = jsonDecode(kjvData);
@@ -210,6 +210,36 @@ class _ReadPageUiState extends State<ReadPageUi> {
     }
   }
 
+  Future<bool> _loadNextContent() async {
+    if (selectedBook == null || selectedChapter == null) return false;
+
+    var currentBook = books.firstWhere(
+      (book) => book['book'] == selectedBook,
+      orElse: () => null,
+    );
+
+    if (currentBook == null) return false;
+
+    int maxChapters = currentBook['chapters'];
+    if (selectedChapter! < maxChapters) {
+      selectedChapter = selectedChapter! + 1;
+      await _saveSelection();
+      await loadChapter();
+      return true;
+    } else {
+      int currentBookIndex = books.indexOf(currentBook);
+      if (currentBookIndex < books.length - 1) {
+        selectedBook = books[currentBookIndex + 1]['book'];
+        selectedChapter = 1;
+        await _saveSelection();
+        await loadChapter();
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
   void _startAutoScroll() {
     if (_isAutoScrolling || !_isAutoScrollingEnabled) return;
 
@@ -217,22 +247,40 @@ class _ReadPageUiState extends State<ReadPageUi> {
       _isAutoScrolling = true;
     });
 
-    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (_scrollController.hasClients) {
-        final maxScrollExtent = _scrollController.position.maxScrollExtent;
-        final currentScroll = _scrollController.position.pixels;
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) async {
+      if (!_scrollController.hasClients || !_isAutoScrolling) {
+        _stopAutoScroll();
+        return;
+      }
 
-        if (currentScroll < maxScrollExtent) {
-          _scrollController.animateTo(
-            currentScroll + _autoScrollSpeed,
-            duration: const Duration(milliseconds: 50),
-            curve: Curves.linear,
-          );
+      final maxScrollExtent = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+
+      if (currentScroll >= maxScrollExtent - 10) {
+        if (_autoScrollMode == 'Continuous') {
+          bool hasMoreContent = await _loadNextContent();
+          if (!hasMoreContent) {
+            _stopAutoScroll();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Reached the end of the Bible.')),
+            );
+            return;
+          }
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(0);
+          }
         } else {
           _stopAutoScroll();
+          return;
         }
       } else {
-        _stopAutoScroll();
+        _scrollController.animateTo(
+          currentScroll + _autoScrollSpeed,
+          duration: const Duration(milliseconds: 50),
+          curve: Curves.linear,
+        );
       }
     });
   }
@@ -371,6 +419,13 @@ class _ReadPageUiState extends State<ReadPageUi> {
             });
           },
           initialAutoScrollState: _isAutoScrollingEnabled,
+          onAutoScrollModeChanged: (mode) {
+            setState(() {
+              _autoScrollMode = mode;
+              _saveSelection();
+            });
+          },
+          initialAutoScrollMode: _autoScrollMode,
         ),
       ),
     );
@@ -473,35 +528,33 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: _isFullScreen
-          ? null
-          : AppBar(
-              title: const Text('Bible Reader'),
-              elevation: 0,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-              titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
-              centerTitle: true,
-              leading: IconButton(
-                icon: Icon(_isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen),
-                onPressed: _toggleFullScreen,
-                tooltip: _isFullScreen ? 'Exit Full Screen' : 'Enter Full Screen',
-              ),
-              actions: [
-                Builder(
-                  builder: (BuildContext context) {
-                    return IconButton(
-                      icon: const Icon(Icons.menu),
-                      onPressed: () {
-                        Scaffold.of(context).openEndDrawer();
-                      },
-                    );
-                  },
-                ),
-              ],
+      appBar: AppBar(
+        title: const Text('Bible Reader'),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
             ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(_isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen),
+          onPressed: _toggleFullScreen,
+          tooltip: _isFullScreen ? 'Exit Full Screen' : 'Enter Full Screen',
+        ),
+        actions: [
+          Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              );
+            },
+          ),
+        ],
+      ),
       endDrawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -557,97 +610,93 @@ class _ReadPageUiState extends State<ReadPageUi> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: Row(
-                    children: [
-                      if (_isFullScreen)
-                        IconButton(
-                          icon: Icon(Icons.fullscreen_exit, color: Theme.of(context).colorScheme.onSurface),
-                          onPressed: _toggleFullScreen,
-                          tooltip: 'Exit Full Screen',
-                        ),
-                      Expanded(
-                        child: DropdownButton<String>(
-                          value: selectedBook,
-                          isExpanded: true,
-                          underline: const SizedBox(),
-                          icon: Icon(
-                            Icons.arrow_drop_down,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            size: dropdownFontSize + 4,
-                          ),
-                          items: books.map((book) {
-                            return DropdownMenuItem<String>(
-                              value: book['book'],
-                              child: Text(
-                                book['book'],
-                                style: TextStyle(
-                                  fontSize: dropdownFontSize,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  overflow: TextOverflow.ellipsis,
+                if (!_isFullScreen)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: selectedBook,
+                            isExpanded: true,
+                            underline: const SizedBox(),
+                            icon: Icon(
+                              Icons.arrow_drop_down,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              size: dropdownFontSize + 4,
+                            ),
+                            items: books.map((book) {
+                              return DropdownMenuItem<String>(
+                                value: book['book'],
+                                child: Text(
+                                  book['book'],
+                                  style: TextStyle(
+                                    fontSize: dropdownFontSize,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedBook = value;
-                              selectedChapter = 1;
-                              loadChapter();
-                              _saveSelection();
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: DropdownButton<int>(
-                          value: selectedChapter,
-                          isExpanded: true,
-                          underline: const SizedBox(),
-                          icon: Icon(
-                            Icons.arrow_drop_down,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            size: dropdownFontSize + 4,
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedBook = value;
+                                selectedChapter = 1;
+                                loadChapter();
+                                _saveSelection();
+                              });
+                            },
                           ),
-                          items: (selectedBook != null && books.isNotEmpty)
-                              ? List<int>.generate(
-                                  books.firstWhere(
-                                      (book) => book['book'] == selectedBook,
-                                      orElse: () => {'chapters': 0})['chapters'],
-                                  (index) => index + 1,
-                                ).map((chapter) {
-                                  return DropdownMenuItem<int>(
-                                    value: chapter,
-                                    child: Text(
-                                      '$chapter',
-                                      style: TextStyle(
-                                        fontSize: dropdownFontSize,
-                                        color: Theme.of(context).colorScheme.onSurface,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  );
-                                }).toList()
-                              : [],
-                          onChanged: (value) {
-                            setState(() {
-                              selectedChapter = value;
-                              loadChapter();
-                              _saveSelection();
-                            });
-                          },
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButton<int>(
+                            value: selectedChapter,
+                            isExpanded: true,
+                            underline: const SizedBox(),
+                            icon: Icon(
+                              Icons.arrow_drop_down,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              size: dropdownFontSize + 4,
+                            ),
+                            items: (selectedBook != null && books.isNotEmpty)
+                                ? List<int>.generate(
+                                    books.firstWhere(
+                                        (book) => book['book'] == selectedBook,
+                                        orElse: () => {'chapters': 0})['chapters'],
+                                    (index) => index + 1,
+                                  ).map((chapter) {
+                                    return DropdownMenuItem<int>(
+                                      value: chapter,
+                                      child: Text(
+                                        '$chapter',
+                                        style: TextStyle(
+                                          fontSize: dropdownFontSize,
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList()
+                                : [],
+                            onChanged: (value) {
+                              setState(() {
+                                selectedChapter = value;
+                                loadChapter();
+                                _saveSelection();
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                ),
+                if (!_isFullScreen)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
                 Expanded(
                   child: isLoading
                       ? Center(
@@ -674,7 +723,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
             ),
             if (_isFullScreen)
               Positioned(
-                bottom: MediaQuery.of(context).padding.bottom + 10, // Position above bottom padding
+                bottom: MediaQuery.of(context).padding.bottom + 10,
                 left: 0,
                 right: 0,
                 child: Center(
