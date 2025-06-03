@@ -4,7 +4,7 @@ A cross platform application built with Flutter, designed to provide resources f
 
 ## Features
 
-- **Onboarding:** Non-Christian and Christian onboarding.
+- **Onboarding:** Non-Christian and Christian onboarding, also the gospel message "The Romans Road" is a placeholder till production realease.
 - **Home:** Features a dashboard.
 - **Gospel:** Content related to the Gospel, and integration of osm map data, for         geographical context related to soul winning or missions. Also Offline support with Map Markers to Contact Management.
 - **Pray:** Features to support a prayer life, create and share your prayers.
