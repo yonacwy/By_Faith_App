@@ -368,7 +368,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
               child: Text(
                 'Menu',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onBackground,
                       fontWeight: FontWeight.bold,
                     ),
               ),

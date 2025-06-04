@@ -566,14 +566,17 @@ class _HomePageUiState extends State<HomePageUi> {
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               fontFamily: _selectedFont,
-              fontSize: adjustedFontSize,
             ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openEndDrawer();
+          Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              );
             },
           ),
         ],
@@ -591,8 +594,6 @@ class _HomePageUiState extends State<HomePageUi> {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
-                      fontFamily: _selectedFont,
-                      fontSize: adjustedFontSize,
                     ),
               ),
             ),
