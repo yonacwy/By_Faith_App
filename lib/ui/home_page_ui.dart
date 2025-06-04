@@ -300,7 +300,6 @@ class _HomePageUiState extends State<HomePageUi> {
                         enabled: true,
                         touchTooltipData: BarTouchTooltipData(
                           getTooltipColor: (group) => Theme.of(context).colorScheme.surfaceContainerHighest,
-                          tooltipRoundedRadius: 8,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             String label;
                             switch (group.x) {

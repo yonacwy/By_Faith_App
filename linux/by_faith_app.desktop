@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=By Faith App
+Comment=A description of the By Faith App
+Exec=by_faith_app
+Icon=by_faith_app
+Terminal=false
+Type=Application
+Categories=Education;

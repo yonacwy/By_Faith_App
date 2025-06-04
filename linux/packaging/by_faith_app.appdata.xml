@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>by_faith_app</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Unknown</project_license>
+  <name>By Faith App</name>
+  <summary>A description of the By Faith App.</summary>
+  <description>
+    <p>
+      This is a placeholder AppStream metadata file for the By Faith App.
+    </p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://example.com/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://example.com</url>
+</component>

@@ -27,4 +27,4 @@ startup_notify: true
 include: []
 # You can also specify [metainfo](https://www.freedesktop.org/software/appstream/metainfocreator/#/) file
 # which contains metadata of the app.
-# metainfo: linux/packaging/myappid.appdata.xml
+metainfo: linux/packaging/by_faith_app.appdata.xml
