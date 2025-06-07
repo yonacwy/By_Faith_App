@@ -9,7 +9,8 @@ import 'study_notes_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill; // Added for Quill notes
 import '../objectbox.dart';
 import '../objectbox.g.dart';
-import '../models/read_data_model.dart';
+import '../models/user_preference_model.dart'; // Changed from read_data_model.dart
+import 'package:by_faith_app/models/bible_note_model.dart';
 
 class StudyPageUi extends StatefulWidget {
   final String? initialBook;
@@ -48,19 +49,19 @@ class _StudyPageUiState extends State<StudyPageUi> {
     objectbox = await ObjectBox.create();
     userPreferenceBox = objectbox.store.box<UserPreference>();
 
-    UserPreference? prefs = userPreferenceBox.get(1); // Assuming a single UserPreference object with ID 1
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1); // Ensure prefs is not null
 
     setState(() {
-      selectedBook = widget.initialBook ?? prefs?.lastSelectedStudyBook ?? "Genesis";
-      selectedChapter = widget.initialChapter ?? prefs?.lastSelectedStudyChapter ?? 1;
-      selectedFont = prefs?.selectedStudyFont ?? 'Arial';
-      selectedFontSize = prefs?.selectedStudyFontSize ?? 16.0;
+      selectedBook = widget.initialBook ?? prefs.lastSelectedStudyBook ?? "Genesis";
+      selectedChapter = widget.initialChapter ?? prefs.lastSelectedStudyChapter ?? 1;
+      selectedFont = prefs.selectedStudyFont ?? 'Arial';
+      selectedFontSize = prefs.selectedStudyFontSize ?? 16.0;
     });
     await loadData();
   }
 
   Future<void> _saveSelection() async {
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
     prefs.lastSelectedStudyBook = selectedBook;
     prefs.lastSelectedStudyChapter = selectedChapter;
     prefs.selectedStudyFont = selectedFont;
@@ -323,7 +324,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
       const SnackBar(content: Text('Verse added to Bible Notes')),
     );
 
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
     prefs.lastBibleNote = '$selectedBook $selectedChapter:$verseNumber';
     userPreferenceBox.put(prefs);
 

@@ -97,38 +97,3 @@ class StudyNote {
     required this.timestamp,
   });
 }
-
-@Entity()
-class UserPreference {
-  @Id()
-  int id = 0;
-  String? lastSelectedBook;
-  int? lastSelectedChapter;
-  String? selectedFont;
-  double? selectedFontSize;
-  bool? isAutoScrollingEnabled;
-  String? autoScrollMode;
-  String? lastBookmark;
-  String? lastFavorite;
-  String? lastBibleNote;
-  String? lastPersonalNote;
-  String? lastStudyNote;
-  String? lastSearch;
-
-
-  UserPreference({
-    this.id = 0,
-    this.lastSelectedBook,
-    this.lastSelectedChapter,
-    this.selectedFont,
-    this.selectedFontSize,
-    this.isAutoScrollingEnabled,
-    this.autoScrollMode,
-    this.lastBookmark,
-    this.lastFavorite,
-    this.lastBibleNote,
-    this.lastPersonalNote,
-    this.lastStudyNote,
-    this.lastSearch,
-  });
-}

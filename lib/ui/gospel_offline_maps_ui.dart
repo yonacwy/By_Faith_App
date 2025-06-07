@@ -2,6 +2,7 @@ import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import 'package:flutter/material.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/models/user_preference_model.dart'; // Added import
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart' as fmtc;
 import 'gospel_map_selection_ui.dart'; // New file for map selection screen
 

@@ -4,6 +4,7 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:by_faith_app/objectbox.dart';
 import 'dart:convert';
 import '../models/pray_model.dart';
+import 'package:objectbox/objectbox.dart';
 
 class PraySearchUi extends StatefulWidget {
   final TextEditingController searchController;

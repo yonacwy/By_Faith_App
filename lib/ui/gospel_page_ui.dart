@@ -62,8 +62,8 @@ class _GospelPageState extends State<GospelPageUi> {
 
   Future<void> _restoreLastMap() async {
     if (_isDisposed || !mounted) return;
-    final UserPreference? savedMapPref = _userPreferenceBox.query(UserPreference_.key.eq('currentMap')).build().findFirst();
-    final String? savedMapName = savedMapPref?.value;
+    final UserPreference? savedMapPref = _userPreferenceBox.get(1);
+    final String? savedMapName = savedMapPref?.currentMap;
 
     if (savedMapName != null) {
       final mapInfo = objectbox.mapInfoBox.query(MapInfo_.name.eq(savedMapName)).build().findFirst();
@@ -235,8 +235,8 @@ class _GospelPageState extends State<GospelPageUi> {
         });
 
         // Save the current map name to user preferences
-        final UserPreference currentMapPref = UserPreference(key: 'currentMap', value: mapInfo.name);
-        _userPreferenceBox.put(currentMapPref);
+        _userPreferenceBox.put(_userPreferenceBox.get(1)!
+          ..currentMap = mapInfo.name);
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _mapController.move(newCenter, newZoom);

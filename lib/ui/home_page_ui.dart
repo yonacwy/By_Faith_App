@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:by_faith_app/objectbox.dart';
 import 'package:by_faith_app/models/pray_model.dart';
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
-import 'package:by_faith_app/models/gospel_onboarding_model.dart'; // For user preferences
+import 'package:by_faith_app/models/user_preference_model.dart'; // For user preferences
+import 'package:objectbox/objectbox.dart'; // Added import for Box
 import '../models/pray_model.dart';
 import 'package:by_faith_app/ui/gospel_page_ui.dart';
 import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart';
@@ -27,7 +28,7 @@ class HomePageUi extends StatefulWidget {
 
 class _HomePageUiState extends State<HomePageUi> {
   late Box<Prayer> _prayerBox;
-  late Box<GospelOnboardingModel> _userPrefsBox; // Using GospelOnboardingModel for user preferences
+  late Box<UserPreference> _userPrefsBox; // Using UserPreference for user preferences
   late Box<MapInfo> _mapBox;
   PageNotifier? _pageNotifier; // Nullable PageNotifier instance
 
@@ -89,14 +90,14 @@ class _HomePageUiState extends State<HomePageUi> {
 
       final store = objectbox.store;
       _prayerBox = store.box<Prayer>();
-      _userPrefsBox = store.box<GospelOnboardingModel>(); // Using GospelOnboardingModel for user preferences
+      _userPrefsBox = store.box<UserPreference>(); // Using UserPreference for user preferences
       _mapBox = store.box<MapInfo>();
 
       setState(() {
         // For user preferences, we'll need to fetch a specific entity or manage a single settings entity
         // For now, we'll assume a single settings entity with ID 1 for simplicity.
         // This might need a dedicated AppSettings model if more preferences are stored.
-        GospelOnboardingModel? settings = _userPrefsBox.get(1);
+        UserPreference? settings = _userPrefsBox.get(1);
         _selectedFont = settings?.homeSelectedFont ?? 'Roboto';
         _selectedFontSize = settings?.homeSelectedFontSize ?? 16.0;
         _isInitialized = true;
@@ -131,7 +132,7 @@ class _HomePageUiState extends State<HomePageUi> {
         _unansweredPrayersCount = _prayerBox.query(Prayer_.status.equals('unanswered')).build().count().toInt();
 
         // For user preferences, we'll need to fetch a specific entity or manage a single settings entity
-        GospelOnboardingModel? settings = _userPrefsBox.get(1);
+        UserPreference? settings = _userPrefsBox.get(1);
 
         _lastRead = (settings?.lastSelectedBook != null && settings?.lastSelectedChapter != null)
             ? '${settings!.lastSelectedBook} ${settings.lastSelectedChapter}'
@@ -159,7 +160,7 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates reading progress (example: based on Bible chapters)
   double _calculateReadingProgress() {
     const totalChapters = 1189; // Total Bible chapters
-    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    UserPreference? settings = _userPrefsBox.get(1);
     final readChapters = settings?.readChaptersCount ?? 0;
     return readChapters / totalChapters;
   }
@@ -167,7 +168,7 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates bookmark progress (example: based on bookmarks count)
   double _calculateBookmarkProgress() {
     const maxBookmarks = 100; // Hypothetical max
-    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    UserPreference? settings = _userPrefsBox.get(1);
     final bookmarkCount = settings?.bookmarkCount ?? 0;
     return bookmarkCount / maxBookmarks;
   }
@@ -175,7 +176,7 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates favorite progress (example: based on favorites count)
   double _calculateFavoriteProgress() {
     const maxFavorites = 50; // Hypothetical max
-    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    UserPreference? settings = _userPrefsBox.get(1);
     final favoriteCount = settings?.favoriteCount ?? 0;
     return favoriteCount / maxFavorites;
   }
@@ -183,7 +184,7 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates study progress (example: based on study chapters)
   double _calculateStudyProgress() {
     const totalStudyChapters = 1189; // Same as Bible chapters
-    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    UserPreference? settings = _userPrefsBox.get(1);
     final studiedChapters = settings?.studiedChaptersCount ?? 0;
     return studiedChapters / totalStudyChapters;
   }
@@ -191,7 +192,7 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates note progress (example: based on note count)
   double _calculateNoteProgress(String noteType) {
     const maxNotes = 100; // Hypothetical max
-    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    UserPreference? settings = _userPrefsBox.get(1);
     int noteCount = 0;
     if (noteType == 'bibleNote') {
       noteCount = settings?.bibleNoteCount ?? 0;
@@ -206,7 +207,7 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates search progress (example: based on search history)
   double _calculateSearchProgress() {
     const maxSearches = 50; // Hypothetical max
-    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    UserPreference? settings = _userPrefsBox.get(1);
     final searchCount = settings?.searchCount ?? 0;
     return searchCount / maxSearches;
   }
@@ -217,9 +218,9 @@ class _HomePageUiState extends State<HomePageUi> {
       _selectedFont = font;
       _selectedFontSize = fontSize;
     });
-    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    UserPreference? settings = _userPrefsBox.get(1);
     if (settings == null) {
-      settings = GospelOnboardingModel(id: 1, onboardingComplete: false); // Assuming onboarding is false initially
+      settings = UserPreference(id: 1, onboardingComplete: false); // Assuming onboarding is false initially
     }
     settings.homeSelectedFont = font;
     settings.homeSelectedFontSize = fontSize;

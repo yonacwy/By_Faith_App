@@ -7,6 +7,12 @@ import 'package:by_faith_app/models/pray_model.dart';
 import 'package:by_faith_app/models/read_data_model.dart';
 import 'package:by_faith_app/models/gospel_onboarding_model.dart';
 
+import 'package:by_faith_app/models/user_preference_model.dart';
+import 'package:by_faith_app/objectbox.g.dart'; // For openStore() and Box
+import 'package:by_faith_app/models/bible_note_model.dart';
+import 'package:by_faith_app/models/personal_note_model.dart';
+import 'package:by_faith_app/models/study_note_model.dart';
+
 late ObjectBox objectbox;
 
 class ObjectBox {

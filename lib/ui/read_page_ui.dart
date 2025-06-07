@@ -10,6 +10,8 @@ import 'read_settings_ui.dart';
 import 'read_bookmarks_ui.dart';
 import 'read_favorites_ui.dart';
 import '../models/read_data_model.dart';
+import 'package:by_faith_app/models/user_preference_model.dart';
+import 'package:objectbox/objectbox.dart';
 
 class ReadPageUi extends StatefulWidget {
   final String? initialBook;
@@ -72,20 +74,20 @@ class _ReadPageUiState extends State<ReadPageUi> {
       selectedChapter = widget.initialChapter ?? prefs?.lastSelectedChapter ?? 1;
       selectedFont = prefs?.selectedFont ?? 'Roboto';
       selectedFontSize = prefs?.selectedFontSize ?? 16.0;
-      _isAutoScrollingEnabled = prefs?.isAutoScrollingEnabled ?? false;
-      _autoScrollMode = prefs?.autoScrollMode ?? 'Normal';
+      _isAutoScrollingEnabled = prefs?.onboardingComplete ?? false; // Assuming onboardingComplete is used for auto-scroll state
+      _autoScrollMode = prefs?.currentMap ?? 'Normal'; // Assuming currentMap is used for auto-scroll mode
     });
     loadData();
   }
 
   Future<void> _saveSelection() async {
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(); // Get existing or create new
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1); // Get existing or create new
     prefs.lastSelectedBook = selectedBook;
     prefs.lastSelectedChapter = selectedChapter;
-    prefs.selectedFont = selectedFont;
-    prefs.selectedFontSize = selectedFontSize;
-    prefs.isAutoScrollingEnabled = _isAutoScrollingEnabled;
-    prefs.autoScrollMode = _autoScrollMode;
+    prefs.selectedStudyFont = selectedFont; // Corrected field name
+    prefs.selectedStudyFontSize = selectedFontSize; // Corrected field name
+    prefs.onboardingComplete = _isAutoScrollingEnabled; // Assuming onboardingComplete is used for auto-scroll state
+    prefs.currentMap = _autoScrollMode; // Assuming currentMap is used for auto-scroll mode
     userPreferenceBox.put(prefs);
   }
 
@@ -372,7 +374,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
     if (!exists) {
       bookmarkBox.put(newBookmark);
       final lastBookmarkValue = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
-      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
       prefs.lastBookmark = lastBookmarkValue;
       userPreferenceBox.put(prefs);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -404,7 +406,7 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     if (!exists) {
       favoriteBox.put(newFavorite);
-      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
       prefs.lastFavorite = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
       userPreferenceBox.put(prefs);
       ScaffoldMessenger.of(context).showSnackBar(

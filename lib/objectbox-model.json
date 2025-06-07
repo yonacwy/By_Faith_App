@@ -462,7 +462,7 @@
     },
     {
       "id": "13:7575709876387753993",
-      "lastPropertyId": "83:8933026844669946565",
+      "lastPropertyId": "105:8274179153599952749",
       "name": "UserPreference",
       "properties": [
         {
@@ -495,6 +495,116 @@
           "id": "83:8933026844669946565",
           "name": "currentMap",
           "type": 9
+        },
+        {
+          "id": "84:257423518712751450",
+          "name": "lastSelectedStudyBook",
+          "type": 9
+        },
+        {
+          "id": "85:981189357313835951",
+          "name": "lastSelectedStudyChapter",
+          "type": 6
+        },
+        {
+          "id": "86:5040823402785109436",
+          "name": "selectedStudyFont",
+          "type": 9
+        },
+        {
+          "id": "87:4896993662775859550",
+          "name": "selectedStudyFontSize",
+          "type": 8
+        },
+        {
+          "id": "88:2330285302000765545",
+          "name": "lastBookmark",
+          "type": 9
+        },
+        {
+          "id": "89:9103017050552188278",
+          "name": "lastFavorite",
+          "type": 9
+        },
+        {
+          "id": "90:4938170290838364920",
+          "name": "lastBibleNote",
+          "type": 9
+        },
+        {
+          "id": "91:2527546751777538576",
+          "name": "lastPersonalNote",
+          "type": 9
+        },
+        {
+          "id": "92:3739038119292572867",
+          "name": "lastStudyNote",
+          "type": 9
+        },
+        {
+          "id": "93:5589883922522306542",
+          "name": "lastSearch",
+          "type": 9
+        },
+        {
+          "id": "94:7131798287625428262",
+          "name": "lastContact",
+          "type": 9
+        },
+        {
+          "id": "95:188957741095396842",
+          "name": "readChaptersCount",
+          "type": 6
+        },
+        {
+          "id": "96:6081944901646795609",
+          "name": "bookmarkCount",
+          "type": 6
+        },
+        {
+          "id": "97:3886468718624978195",
+          "name": "favoriteCount",
+          "type": 6
+        },
+        {
+          "id": "98:5460021559142538250",
+          "name": "studiedChaptersCount",
+          "type": 6
+        },
+        {
+          "id": "99:8711505158276281099",
+          "name": "bibleNoteCount",
+          "type": 6
+        },
+        {
+          "id": "100:6415993113056809782",
+          "name": "personalNoteCount",
+          "type": 6
+        },
+        {
+          "id": "101:4975152408498419658",
+          "name": "studyNoteCount",
+          "type": 6
+        },
+        {
+          "id": "102:8796346350609619179",
+          "name": "searchCount",
+          "type": 6
+        },
+        {
+          "id": "103:952161304950970725",
+          "name": "homeSelectedFont",
+          "type": 9
+        },
+        {
+          "id": "104:5731923316426049864",
+          "name": "homeSelectedFontSize",
+          "type": 8
+        },
+        {
+          "id": "105:8274179153599952749",
+          "name": "onboardingComplete",
+          "type": 1
         }
       ],
       "relations": []

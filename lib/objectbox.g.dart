@@ -484,7 +484,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(13, 7575709876387753993),
       name: 'UserPreference',
-      lastPropertyId: const obx_int.IdUid(83, 8933026844669946565),
+      lastPropertyId: const obx_int.IdUid(105, 8274179153599952749),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -516,6 +516,116 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(83, 8933026844669946565),
             name: 'currentMap',
             type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(84, 257423518712751450),
+            name: 'lastSelectedStudyBook',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(85, 981189357313835951),
+            name: 'lastSelectedStudyChapter',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(86, 5040823402785109436),
+            name: 'selectedStudyFont',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(87, 4896993662775859550),
+            name: 'selectedStudyFontSize',
+            type: 8,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(88, 2330285302000765545),
+            name: 'lastBookmark',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(89, 9103017050552188278),
+            name: 'lastFavorite',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(90, 4938170290838364920),
+            name: 'lastBibleNote',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(91, 2527546751777538576),
+            name: 'lastPersonalNote',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(92, 3739038119292572867),
+            name: 'lastStudyNote',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(93, 5589883922522306542),
+            name: 'lastSearch',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(94, 7131798287625428262),
+            name: 'lastContact',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(95, 188957741095396842),
+            name: 'readChaptersCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(96, 6081944901646795609),
+            name: 'bookmarkCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(97, 3886468718624978195),
+            name: 'favoriteCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(98, 5460021559142538250),
+            name: 'studiedChaptersCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(99, 8711505158276281099),
+            name: 'bibleNoteCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(100, 6415993113056809782),
+            name: 'personalNoteCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(101, 4975152408498419658),
+            name: 'studyNoteCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(102, 8796346350609619179),
+            name: 'searchCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(103, 952161304950970725),
+            name: 'homeSelectedFont',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(104, 5731923316426049864),
+            name: 'homeSelectedFontSize',
+            type: 8,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(105, 8274179153599952749),
+            name: 'onboardingComplete',
+            type: 1,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -1316,13 +1426,66 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final themeModeOffset = fbb.writeString(object.themeMode);
           final lastReadChapterOffset = fbb.writeString(object.lastReadChapter);
           final currentMapOffset = fbb.writeString(object.currentMap);
-          fbb.startTable(84);
+          final lastSelectedStudyBookOffset =
+              object.lastSelectedStudyBook == null
+                  ? null
+                  : fbb.writeString(object.lastSelectedStudyBook!);
+          final selectedStudyFontOffset = object.selectedStudyFont == null
+              ? null
+              : fbb.writeString(object.selectedStudyFont!);
+          final lastBookmarkOffset = object.lastBookmark == null
+              ? null
+              : fbb.writeString(object.lastBookmark!);
+          final lastFavoriteOffset = object.lastFavorite == null
+              ? null
+              : fbb.writeString(object.lastFavorite!);
+          final lastBibleNoteOffset = object.lastBibleNote == null
+              ? null
+              : fbb.writeString(object.lastBibleNote!);
+          final lastPersonalNoteOffset = object.lastPersonalNote == null
+              ? null
+              : fbb.writeString(object.lastPersonalNote!);
+          final lastStudyNoteOffset = object.lastStudyNote == null
+              ? null
+              : fbb.writeString(object.lastStudyNote!);
+          final lastSearchOffset = object.lastSearch == null
+              ? null
+              : fbb.writeString(object.lastSearch!);
+          final lastContactOffset = object.lastContact == null
+              ? null
+              : fbb.writeString(object.lastContact!);
+          final homeSelectedFontOffset = object.homeSelectedFont == null
+              ? null
+              : fbb.writeString(object.homeSelectedFont!);
+          fbb.startTable(106);
           fbb.addInt64(0, object.id);
           fbb.addOffset(78, themeModeOffset);
           fbb.addFloat64(79, object.fontSize);
           fbb.addOffset(80, lastReadChapterOffset);
           fbb.addInt64(81, object.lastPageIndex);
           fbb.addOffset(82, currentMapOffset);
+          fbb.addOffset(83, lastSelectedStudyBookOffset);
+          fbb.addInt64(84, object.lastSelectedStudyChapter);
+          fbb.addOffset(85, selectedStudyFontOffset);
+          fbb.addFloat64(86, object.selectedStudyFontSize);
+          fbb.addOffset(87, lastBookmarkOffset);
+          fbb.addOffset(88, lastFavoriteOffset);
+          fbb.addOffset(89, lastBibleNoteOffset);
+          fbb.addOffset(90, lastPersonalNoteOffset);
+          fbb.addOffset(91, lastStudyNoteOffset);
+          fbb.addOffset(92, lastSearchOffset);
+          fbb.addOffset(93, lastContactOffset);
+          fbb.addInt64(94, object.readChaptersCount);
+          fbb.addInt64(95, object.bookmarkCount);
+          fbb.addInt64(96, object.favoriteCount);
+          fbb.addInt64(97, object.studiedChaptersCount);
+          fbb.addInt64(98, object.bibleNoteCount);
+          fbb.addInt64(99, object.personalNoteCount);
+          fbb.addInt64(100, object.studyNoteCount);
+          fbb.addInt64(101, object.searchCount);
+          fbb.addOffset(102, homeSelectedFontOffset);
+          fbb.addFloat64(103, object.homeSelectedFontSize);
+          fbb.addBool(104, object.onboardingComplete);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1342,13 +1505,88 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 166, 0);
           final currentMapParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 168, '');
+          final lastSelectedStudyBookParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 170);
+          final lastSelectedStudyChapterParam =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 172);
+          final selectedStudyFontParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 174);
+          final selectedStudyFontSizeParam = const fb.Float64Reader()
+              .vTableGetNullable(buffer, rootOffset, 176);
+          final lastBookmarkParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 178);
+          final lastFavoriteParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 180);
+          final lastBibleNoteParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 182);
+          final lastPersonalNoteParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 184);
+          final lastStudyNoteParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 186);
+          final lastSearchParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGetNullable(buffer, rootOffset, 188);
+          final lastContactParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 190);
+          final readChaptersCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 192, 0);
+          final bookmarkCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 194, 0);
+          final favoriteCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 196, 0);
+          final studiedChaptersCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 198, 0);
+          final bibleNoteCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 200, 0);
+          final personalNoteCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 202, 0);
+          final studyNoteCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 204, 0);
+          final searchCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 206, 0);
+          final homeSelectedFontParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGetNullable(buffer, rootOffset, 208);
+          final homeSelectedFontSizeParam = const fb.Float64Reader()
+              .vTableGetNullable(buffer, rootOffset, 210);
+          final onboardingCompleteParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 212, false);
           final object = UserPreference(
               id: idParam,
               themeMode: themeModeParam,
               fontSize: fontSizeParam,
               lastReadChapter: lastReadChapterParam,
               lastPageIndex: lastPageIndexParam,
-              currentMap: currentMapParam);
+              currentMap: currentMapParam,
+              lastSelectedStudyBook: lastSelectedStudyBookParam,
+              lastSelectedStudyChapter: lastSelectedStudyChapterParam,
+              selectedStudyFont: selectedStudyFontParam,
+              selectedStudyFontSize: selectedStudyFontSizeParam,
+              lastBookmark: lastBookmarkParam,
+              lastFavorite: lastFavoriteParam,
+              lastBibleNote: lastBibleNoteParam,
+              lastPersonalNote: lastPersonalNoteParam,
+              lastStudyNote: lastStudyNoteParam,
+              lastSearch: lastSearchParam,
+              lastContact: lastContactParam,
+              readChaptersCount: readChaptersCountParam,
+              bookmarkCount: bookmarkCountParam,
+              favoriteCount: favoriteCountParam,
+              studiedChaptersCount: studiedChaptersCountParam,
+              bibleNoteCount: bibleNoteCountParam,
+              personalNoteCount: personalNoteCountParam,
+              studyNoteCount: studyNoteCountParam,
+              searchCount: searchCountParam,
+              homeSelectedFont: homeSelectedFontParam,
+              homeSelectedFontSize: homeSelectedFontSizeParam,
+              onboardingComplete: onboardingCompleteParam);
 
           return object;
         }),
@@ -1797,6 +2035,94 @@ class UserPreference_ {
   /// See [UserPreference.currentMap].
   static final currentMap =
       obx.QueryStringProperty<UserPreference>(_entities[10].properties[5]);
+
+  /// See [UserPreference.lastSelectedStudyBook].
+  static final lastSelectedStudyBook =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[6]);
+
+  /// See [UserPreference.lastSelectedStudyChapter].
+  static final lastSelectedStudyChapter =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[7]);
+
+  /// See [UserPreference.selectedStudyFont].
+  static final selectedStudyFont =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[8]);
+
+  /// See [UserPreference.selectedStudyFontSize].
+  static final selectedStudyFontSize =
+      obx.QueryDoubleProperty<UserPreference>(_entities[10].properties[9]);
+
+  /// See [UserPreference.lastBookmark].
+  static final lastBookmark =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[10]);
+
+  /// See [UserPreference.lastFavorite].
+  static final lastFavorite =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[11]);
+
+  /// See [UserPreference.lastBibleNote].
+  static final lastBibleNote =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[12]);
+
+  /// See [UserPreference.lastPersonalNote].
+  static final lastPersonalNote =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[13]);
+
+  /// See [UserPreference.lastStudyNote].
+  static final lastStudyNote =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[14]);
+
+  /// See [UserPreference.lastSearch].
+  static final lastSearch =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[15]);
+
+  /// See [UserPreference.lastContact].
+  static final lastContact =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[16]);
+
+  /// See [UserPreference.readChaptersCount].
+  static final readChaptersCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[17]);
+
+  /// See [UserPreference.bookmarkCount].
+  static final bookmarkCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[18]);
+
+  /// See [UserPreference.favoriteCount].
+  static final favoriteCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[19]);
+
+  /// See [UserPreference.studiedChaptersCount].
+  static final studiedChaptersCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[20]);
+
+  /// See [UserPreference.bibleNoteCount].
+  static final bibleNoteCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[21]);
+
+  /// See [UserPreference.personalNoteCount].
+  static final personalNoteCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[22]);
+
+  /// See [UserPreference.studyNoteCount].
+  static final studyNoteCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[23]);
+
+  /// See [UserPreference.searchCount].
+  static final searchCount =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[24]);
+
+  /// See [UserPreference.homeSelectedFont].
+  static final homeSelectedFont =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[25]);
+
+  /// See [UserPreference.homeSelectedFontSize].
+  static final homeSelectedFontSize =
+      obx.QueryDoubleProperty<UserPreference>(_entities[10].properties[26]);
+
+  /// See [UserPreference.onboardingComplete].
+  static final onboardingComplete =
+      obx.QueryBooleanProperty<UserPreference>(_entities[10].properties[27]);
 }
 
 /// [Contact] entity fields to define ObjectBox queries.
