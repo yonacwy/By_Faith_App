@@ -1,19 +1,12 @@
-import 'package:hive/hive.dart';
+import 'package:objectbox/objectbox.dart';
 
-part 'read_data_model.g.dart';
-
-@HiveType(typeId: 6)
-class VerseData extends HiveObject {
-  @HiveField(0)
+@Entity()
+class VerseData {
+  @Id()
+  int id = 0;
   String book;
-
-  @HiveField(1)
   int chapter;
-
-  @HiveField(2)
   int verse;
-
-  @HiveField(3)
   String text;
 
   VerseData({required this.book, required this.chapter, required this.verse, required this.text});
@@ -31,24 +24,111 @@ class VerseData extends HiveObject {
   int get hashCode => book.hashCode ^ chapter.hashCode ^ verse.hashCode;
 }
 
-@HiveType(typeId: 1)
-class Bookmark extends HiveObject {
-  @HiveField(0)
-  VerseData verseData;
-
-  @HiveField(1)
+@Entity()
+class Bookmark {
+  @Id()
+  int id = 0;
+  String book;
+  int chapter;
+  int verse;
+  String text;
+  @Property(type: PropertyType.date)
   DateTime timestamp;
 
-  Bookmark({required this.verseData, required this.timestamp});
+  Bookmark({required this.book, required this.chapter, required this.verse, required this.text, required this.timestamp});
 }
 
-@HiveType(typeId: 2)
-class Favorite extends HiveObject {
-  @HiveField(0)
-  VerseData verseData;
-
-  @HiveField(1)
+@Entity()
+class Favorite {
+  @Id()
+  int id = 0;
+  String book;
+  int chapter;
+  int verse;
+  String text;
+  @Property(type: PropertyType.date)
   DateTime timestamp;
 
-  Favorite({required this.verseData, required this.timestamp});
+  Favorite({required this.book, required this.chapter, required this.verse, required this.text, required this.timestamp});
+}
+
+@Entity()
+class BibleNote {
+  @Id()
+  int id = 0;
+  String verse;
+  String verseText;
+  String note; // JSON string from Quill
+  @Property(type: PropertyType.date)
+  DateTime timestamp;
+
+  BibleNote({
+    required this.verse,
+    required this.verseText,
+    required this.note,
+    required this.timestamp,
+  });
+}
+
+@Entity()
+class PersonalNote {
+  @Id()
+  int id = 0;
+  String note; // JSON string from Quill
+  @Property(type: PropertyType.date)
+  DateTime timestamp;
+
+  PersonalNote({
+    required this.note,
+    required this.timestamp,
+  });
+}
+
+@Entity()
+class StudyNote {
+  @Id()
+  int id = 0;
+  String note; // JSON string from Quill
+  @Property(type: PropertyType.date)
+  DateTime timestamp;
+
+  StudyNote({
+    required this.note,
+    required this.timestamp,
+  });
+}
+
+@Entity()
+class UserPreference {
+  @Id()
+  int id = 0;
+  String? lastSelectedBook;
+  int? lastSelectedChapter;
+  String? selectedFont;
+  double? selectedFontSize;
+  bool? isAutoScrollingEnabled;
+  String? autoScrollMode;
+  String? lastBookmark;
+  String? lastFavorite;
+  String? lastBibleNote;
+  String? lastPersonalNote;
+  String? lastStudyNote;
+  String? lastSearch;
+
+
+  UserPreference({
+    this.id = 0,
+    this.lastSelectedBook,
+    this.lastSelectedChapter,
+    this.selectedFont,
+    this.selectedFontSize,
+    this.isAutoScrollingEnabled,
+    this.autoScrollMode,
+    this.lastBookmark,
+    this.lastFavorite,
+    this.lastBibleNote,
+    this.lastPersonalNote,
+    this.lastStudyNote,
+    this.lastSearch,
+  });
 }

@@ -26,7 +26,7 @@ class _StudySettingsPageUiState extends State<StudySettingsPageUi> {
   void initState() {
     super.initState();
     currentFont = widget.initialFont;
-    currentFontSize = 20.0;
+    currentFontSize = widget.initialFontSize;
   }
 
   @override

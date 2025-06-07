@@ -14,42 +14,24 @@ import 'package:by_faith_app/ui/study_page_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:onboarding/onboarding.dart';
+import 'package:by_faith_app/objectbox.dart';
 import 'package:by_faith_app/models/gospel_profile_model.dart';
 import 'package:by_faith_app/ui/gospel_onboarding_ui.dart';
 import 'package:provider/provider.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FMTCObjectBoxBackend().initialise();
-  await Hive.initFlutter();
-
-  // Register Hive adapters
-  Hive.registerAdapter(ContactAdapter());
-  Hive.registerAdapter(PrayerAdapter());
-  Hive.registerAdapter(MapInfoAdapter());
-  Hive.registerAdapter(GospelProfileAdapter());
-  Hive.registerAdapter(VerseDataAdapter());
-  Hive.registerAdapter(BookmarkAdapter());
-  Hive.registerAdapter(FavoriteAdapter());
-
-  // Open Hive boxes
-  final themeBox = await Hive.openBox('themeBox'); // For theme persistence
-  await Hive.openBox<Prayer>('prayers'); // For Prayer model
-  await Hive.openBox('userPreferences'); // For ReadPage book and chapter
-  await Hive.openBox<MapInfo>('maps'); // For maps
-  await Hive.openBox<GospelProfile>('userProfileBox');
-  await Hive.openBox<Bookmark>('bookmarks');
-  await Hive.openBox<Favorite>('favorites');
-  // Contacts box is opened in GospelPageUi._initHive
+  objectbox = await ObjectBox.create();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeNotifier(themeBox)),
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
         ChangeNotifierProvider(create: (_) => PageNotifier()),
       ],
       child: const MyApp(),
@@ -63,8 +45,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
-    final userProfileBox = Hive.box<GospelProfile>('userProfileBox');
-    final bool profileExists = userProfileBox.get('currentProfile') != null;
+    final bool profileExists = objectbox.gospelProfileBox.getAll().isNotEmpty;
 
     return MaterialApp(
       title: 'By Faith App',

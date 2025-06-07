@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:by_faith_app/objectbox.dart'; // ObjectBox import
 import '../models/pray_model.dart';
 import '../providers/theme_notifier.dart';
 
@@ -120,8 +120,8 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
          return;
        }
 
-       final prayersBox = await Prayer.openBox();
-       final unansweredPrayers = prayersBox.values.where((p) => p.status == 'unanswered').toList();
+       final prayersBox = objectbox.store.box<Prayer>(); // Get ObjectBox Prayer Box
+       final unansweredPrayers = prayersBox.query(Prayer_.status.equals('unanswered')).build().find();
 
        if (unansweredPrayers.isEmpty) {
          scaffoldMessenger.showSnackBar(
@@ -188,11 +188,11 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
          final List<dynamic> jsonList = jsonDecode(contents);
          final List<Prayer> importedPrayers = jsonList.map((json) => Prayer.fromJson(json)).toList();
 
-         final prayersBox = await Prayer.openBox();
+         final prayersBox = objectbox.store.box<Prayer>(); // Get ObjectBox Prayer Box
          for (var prayer in importedPrayers) {
            // Ensure imported prayers are marked as 'unanswered'
            prayer.status = 'unanswered';
-           await prayersBox.put(prayer.key, prayer);
+           prayersBox.put(prayer); // Use ObjectBox put
          }
 
          scaffoldMessenger.showSnackBar(

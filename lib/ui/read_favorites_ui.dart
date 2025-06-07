@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:by_faith_app/objectbox.dart';
 import '../models/read_data_model.dart'; // Import your data model
 import 'read_page_ui.dart'; // Import ReadPageUi
+import 'package:flutter/material.dart';
 
 class ReadFavoritesUi extends StatefulWidget {
   const ReadFavoritesUi({super.key});
@@ -11,21 +12,15 @@ class ReadFavoritesUi extends StatefulWidget {
 }
 
 class _ReadFavoritesUiState extends State<ReadFavoritesUi> {
-  late Box<Favorite> favoritesBox;
+  // late Box<Favorite> favoritesBox; // Not needed with ObjectBox
 
   @override
   void initState() {
     super.initState();
-    _openFavoritesBox();
   }
 
-  Future<void> _openFavoritesBox() async {
-    favoritesBox = await Hive.openBox<Favorite>('favorites');
-    setState(() {}); // Refresh UI after box is opened
-  }
-
-  Future<void> _deleteFavorite(int index) async {
-    await favoritesBox.deleteAt(index);
+  Future<void> _deleteFavorite(Favorite favorite) async {
+    objectbox.favoriteBox.remove(favorite.id);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Favorite removed!')),
     );
@@ -43,23 +38,27 @@ class _ReadFavoritesUiState extends State<ReadFavoritesUi> {
             ),
         centerTitle: true,
       ),
-      body: ValueListenableBuilder(
-        valueListenable: Hive.box<Favorite>('favorites').listenable(),
-        builder: (context, Box<Favorite> box, _) {
-          if (box.values.isEmpty) {
-            return Center(
-              child: Text(
-                'No favorites yet.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            );
-          }
-          return ListView.builder(
-            itemCount: box.values.length,
-            itemBuilder: (context, index) {
-              final favorite = box.getAt(index)!;
+      body: StreamBuilder<List<Favorite>>(
+       stream: objectbox.favoriteBox.query().watch(triggerImmediately: true).map((query) => query.find()),
+       builder: (context, snapshot) {
+         if (snapshot.connectionState == ConnectionState.waiting) {
+           return const Center(child: CircularProgressIndicator());
+         }
+         if (!snapshot.hasData || snapshot.data!.isEmpty) {
+           return Center(
+             child: Text(
+               'No favorites yet.',
+               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                     color: Theme.of(context).colorScheme.onSurfaceVariant,
+                   ),
+             ),
+           );
+         }
+         final favorites = snapshot.data!;
+         return ListView.builder(
+           itemCount: favorites.length,
+           itemBuilder: (context, index) {
+             final favorite = favorites[index];
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -81,7 +80,7 @@ class _ReadFavoritesUiState extends State<ReadFavoritesUi> {
                   ),
                   trailing: IconButton(
                     icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                    onPressed: () => _deleteFavorite(index),
+                    onPressed: () => _deleteFavorite(favorite),
                   ),
                   onTap: () {
                     Navigator.push(

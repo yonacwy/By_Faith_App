@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:by_faith_app/models/gospel_profile_model.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:by_faith_app/objectbox.dart';
 import 'package:by_faith_app/ui/home_page_ui.dart'; // Assuming this is your main home page
 
 class GospelProfileUi extends StatefulWidget {
@@ -30,8 +30,9 @@ class _GospelProfileUiState extends State<GospelProfileUi> {
   }
 
   Future<void> _loadProfile() async {
-    var box = await Hive.openBox<GospelProfile>('userProfileBox');
-    var profile = box.get('currentProfile');
+    final store = objectbox.store;
+    final profileBox = store.box<GospelProfile>();
+    var profile = profileBox.get(1); // Assuming ID 1 for the single profile
     if (profile != null) {
       _firstNameController.text = profile.firstName ?? '';
       _lastNameController.text = profile.lastName ?? '';
@@ -51,17 +52,32 @@ class _GospelProfileUiState extends State<GospelProfileUi> {
 
   Future<void> _saveProfileChanges() async {
     if (_formKey.currentState!.validate()) {
-      var box = await Hive.openBox<GospelProfile>('userProfileBox');
-      var profile = GospelProfile(
-        firstName: _firstNameController.text,
-        lastName: _lastNameController.text,
-        address: _addressController.text,
-        naturalBirthday: _naturalBirthday,
-        phone: _phoneController.text,
-        email: _emailController.text,
-        spiritualBirthday: _spiritualBirthday,
-      );
-      await box.put('currentProfile', profile);
+      final store = objectbox.store;
+      final profileBox = store.box<GospelProfile>();
+      GospelProfile? profile = profileBox.get(1); // Try to get existing profile
+      if (profile == null) {
+        // Create new profile if it doesn't exist
+        profile = GospelProfile(
+          id: 1, // Assign ID 1 for the single profile
+          firstName: _firstNameController.text,
+          lastName: _lastNameController.text,
+          address: _addressController.text,
+          naturalBirthday: _naturalBirthday,
+          phone: _phoneController.text,
+          email: _emailController.text,
+          spiritualBirthday: _spiritualBirthday,
+        );
+      } else {
+        // Update existing profile
+        profile.firstName = _firstNameController.text;
+        profile.lastName = _lastNameController.text;
+        profile.address = _addressController.text;
+        profile.naturalBirthday = _naturalBirthday;
+        profile.phone = _phoneController.text;
+        profile.email = _emailController.text;
+        profile.spiritualBirthday = _spiritualBirthday;
+      }
+      profileBox.put(profile);
 
       if (widget.isNewProfile) {
         Navigator.of(context).pushReplacementNamed('/home');
@@ -77,8 +93,9 @@ class _GospelProfileUiState extends State<GospelProfileUi> {
   }
 
   Future<void> _deleteProfile() async {
-    var box = await Hive.openBox<GospelProfile>('userProfileBox');
-    await box.delete('currentProfile');
+    final store = objectbox.store;
+    final profileBox = store.box<GospelProfile>();
+    profileBox.remove(1); // Remove the profile with ID 1
     // Clear text controllers and state
     _firstNameController.clear();
     _lastNameController.clear();

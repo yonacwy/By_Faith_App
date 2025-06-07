@@ -1,35 +1,27 @@
-import 'package:hive/hive.dart';
+import 'dart:convert';
+import 'package:objectbox/objectbox.dart';
 import 'package:flutter_quill/flutter_quill.dart' show QuillController;
 
-part 'gospel_contacts_model.g.dart';
-
-@HiveType(typeId: 0)
-class Contact extends HiveObject {
-  @HiveField(0)
-  final String id;
-  @HiveField(1)
+@Entity()
+class Contact {
+  @Id()
+  int id = 0;
+  @Unique()
+  int contactId;
   final String firstName;
-  @HiveField(2)
   final String lastName;
-  @HiveField(3)
   final String address;
-  @HiveField(4)
+  @Property(type: PropertyType.date)
   final DateTime? birthday;
-  @HiveField(5)
   final double latitude;
-  @HiveField(6)
   final double longitude;
-  @HiveField(7)
   final String? phone;
-  @HiveField(8)
   final String? email;
-  @HiveField(9)
   final String? picturePath;
-  @HiveField(10)
-  final List<dynamic>? notes; // Store Quill Delta JSON
-
+  String? notes; // Store Quill Delta JSON
+ 
   Contact({
-    required this.id,
+    this.contactId = 0, // Default to 0 for new contacts
     required this.firstName,
     required this.lastName,
     required this.address,
@@ -41,6 +33,5 @@ class Contact extends HiveObject {
     this.picturePath,
     this.notes,
   });
-
   String get name => '$firstName $lastName';
 }

@@ -1,23 +1,22 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:by_faith_app/models/gospel_contacts_model.dart';
-import 'package:uuid/uuid.dart';
+import 'package:by_faith_app/objectbox.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:intl/intl.dart';
 
 class ContactsPage extends StatelessWidget {
-  final Box<Contact> contactBox;
+  final ObjectBox objectbox;
 
-  const ContactsPage({Key? key, required this.contactBox}) : super(key: key);
+  const ContactsPage({Key? key, required this.objectbox}) : super(key: key);
 
   void _navigateToAddContact(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AddEditContactPage(
-          contactBox: contactBox,
+          objectbox: objectbox,
           onContactAdded: (contact) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Contact ${contact.name} added')),
@@ -28,26 +27,26 @@ class ContactsPage extends StatelessWidget {
     );
   }
 
-  void _navigateToEditContact(BuildContext context, Contact contact, int index) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddEditContactPage(
-          contactBox: contactBox,
-          contact: contact,
-          contactIndex: index,
-          onContactUpdated: (updatedContact) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Contact ${updatedContact.name} updated')),
-            );
-          },
-          onDeleteContact: _deleteContact,
+  
+    void _navigateToEditContact(BuildContext context, Contact contact) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddEditContactPage(
+            objectbox: objectbox,
+            contact: contact,
+            onContactUpdated: (updatedContact) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Contact ${updatedContact.name} updated')),
+              );
+            },
+            onDeleteContact: _deleteContact,
+          ),
         ),
-      ),
-    );
-  }
-
-  void _deleteContact(BuildContext context, Contact contact, int index) {
+      );
+    }
+  
+  void _deleteContact(BuildContext context, Contact contact) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -60,7 +59,7 @@ class ContactsPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              contactBox.deleteAt(index);
+              objectbox.contactBox.remove(contact.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Contact ${contact.name} deleted')),
@@ -93,21 +92,25 @@ class ContactsPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: contactBox.listenable(),
-        builder: (context, Box<Contact> box, _) {
-          if (box.isEmpty) {
+      body: StreamBuilder<List<Contact>>(
+        stream: objectbox.contactBox.query().watch(triggerImmediately: true),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final contacts = snapshot.data!;
+          if (contacts.isEmpty) {
             return const Center(child: Text('No contacts added yet.'));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
-            itemCount: box.length,
+            itemCount: contacts.length,
             itemBuilder: (context, index) {
-              final contact = box.getAt(index)!;
+              final contact = contacts[index];
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
                 child: InkWell(
-                  onTap: () => _navigateToEditContact(context, contact, index),
+                  onTap: () => _navigateToEditContact(context, contact),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
@@ -144,23 +147,19 @@ class ContactsPage extends StatelessWidget {
 }
 
 class AddEditContactPage extends StatefulWidget {
-  final Box<Contact> contactBox;
+  final ObjectBox objectbox;
   final Contact? contact;
   final Function(Contact)? onContactAdded;
-  final Function(Contact)? onContactUpdated;
-  final Function(BuildContext, Contact, int)? onDeleteContact;
-  final int? contactIndex;
+  final Function(BuildContext, Contact)? onDeleteContact;
   final double? latitude;
   final double? longitude;
 
   const AddEditContactPage({
     Key? key,
-    required this.contactBox,
+    required this.objectbox,
     this.contact,
     this.onContactAdded,
-    this.onContactUpdated,
     this.onDeleteContact,
-    this.contactIndex,
     this.latitude,
     this.longitude,
   }) : super(key: key);
@@ -254,7 +253,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
     if (_formKey.currentState!.validate()) {
       try {
         final contact = Contact(
-          id: _isEditing ? widget.contact!.id : const Uuid().v4(),
+          id: _isEditing ? widget.contact!.id : 0,
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
           address: _addressController.text,
@@ -269,20 +268,15 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
           notes: _notesController.document.toDelta().toJson(),
         );
 
+        contact.id = widget.contact?.id ?? 0;
+        widget.objectbox.contactBox.put(contact);
+
         if (_isEditing) {
-          await widget.contactBox.putAt(
-            widget.contactBox.values.toList().indexWhere((c) => c.id == widget.contact!.id),
-            contact,
-          );
           widget.onContactUpdated?.call(contact);
         } else {
-          await widget.contactBox.add(contact);
           widget.onContactAdded?.call(contact);
         }
- 
-        // Save the last contact name to user preferences
-        await Hive.box('userPreferences').put('lastContact', '${contact.firstName} ${contact.lastName}');
- 
+
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_isEditing ? 'Contact updated' : 'Contact added')),
@@ -334,8 +328,8 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        if (widget.contact != null && widget.contactIndex != null) {
-                          widget.onDeleteContact?.call(context, widget.contact!, widget.contactIndex!);
+                        if (widget.contact != null) {
+                          widget.onDeleteContact?.call(context, widget.contact!);
                         }
                       },
                       tooltip: 'Delete Contact',

@@ -1,7 +1,10 @@
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import '../providers/page_notifier.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/models/pray_model.dart';
+import 'package:by_faith_app/models/gospel_map_info_model.dart';
+import 'package:by_faith_app/models/gospel_onboarding_model.dart'; // For user preferences
 import '../models/pray_model.dart';
 import 'package:by_faith_app/ui/gospel_page_ui.dart';
 import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart';
@@ -24,7 +27,7 @@ class HomePageUi extends StatefulWidget {
 
 class _HomePageUiState extends State<HomePageUi> {
   late Box<Prayer> _prayerBox;
-  late Box _userPrefsBox;
+  late Box<GospelOnboardingModel> _userPrefsBox; // Using GospelOnboardingModel for user preferences
   late Box<MapInfo> _mapBox;
   PageNotifier? _pageNotifier; // Nullable PageNotifier instance
 
@@ -66,12 +69,6 @@ class _HomePageUiState extends State<HomePageUi> {
 
   @override
   void dispose() {
-    // Remove listeners only if initialized
-    if (_isInitialized) {
-      _prayerBox.listenable().removeListener(_updateDashboardData);
-      _userPrefsBox.listenable().removeListener(_updateDashboardData);
-      _mapBox.listenable().removeListener(_updateDashboardData);
-    }
     _pageNotifier?.removeListener(_onPageNotifierChanged);
     super.dispose();
   }
@@ -83,34 +80,28 @@ class _HomePageUiState extends State<HomePageUi> {
     }
   }
 
-  /// Opens Hive boxes and sets up listeners
+  /// Opens ObjectBox boxes
   Future<void> _openBoxes() async {
     try {
       // Remove existing listeners if initialized
-      if (_isInitialized) {
-        _prayerBox.listenable().removeListener(_updateDashboardData);
-        _userPrefsBox.listenable().removeListener(_updateDashboardData);
-        _mapBox.listenable().removeListener(_updateDashboardData);
-      }
-
       _isInitialized = false;
       setState(() => _isLoading = true);
 
-      _prayerBox = await Hive.openBox<Prayer>('prayers');
-      _userPrefsBox = await Hive.openBox('userPreferences');
-      _mapBox = await Hive.openBox<MapInfo>('maps');
+      final store = objectbox.store;
+      _prayerBox = store.box<Prayer>();
+      _userPrefsBox = store.box<GospelOnboardingModel>(); // Using GospelOnboardingModel for user preferences
+      _mapBox = store.box<MapInfo>();
 
       setState(() {
-        _selectedFont = _userPrefsBox.get('homeSelectedFont') ?? 'Roboto';
-        _selectedFontSize = _userPrefsBox.get('homeSelectedFontSize') ?? 16.0;
+        // For user preferences, we'll need to fetch a specific entity or manage a single settings entity
+        // For now, we'll assume a single settings entity with ID 1 for simplicity.
+        // This might need a dedicated AppSettings model if more preferences are stored.
+        GospelOnboardingModel? settings = _userPrefsBox.get(1);
+        _selectedFont = settings?.homeSelectedFont ?? 'Roboto';
+        _selectedFontSize = settings?.homeSelectedFontSize ?? 16.0;
         _isInitialized = true;
         _isLoading = false;
       });
-
-      // Add listeners to boxes
-      _prayerBox.listenable().addListener(_updateDashboardData);
-      _userPrefsBox.listenable().addListener(_updateDashboardData);
-      _mapBox.listenable().addListener(_updateDashboardData);
 
       _updateDashboardData();
     } catch (e) {
@@ -126,44 +117,40 @@ class _HomePageUiState extends State<HomePageUi> {
     }
   }
 
-  /// Updates dashboard data from Hive boxes with debouncing
+  /// Updates dashboard data from ObjectBox boxes with debouncing
   void _updateDashboardData() {
     if (!mounted || !_isInitialized) return;
 
     Future.delayed(const Duration(milliseconds: 100), () {
-      if (!mounted || !_prayerBox.isOpen || !_userPrefsBox.isOpen || !_mapBox.isOpen) {
-        _openBoxes();
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
         _isLoading = true;
-        _newPrayersCount = _prayerBox.values.where((p) => p.status == 'new').length;
-        _answeredPrayersCount = _prayerBox.values.where((p) => p.status == 'answered').length;
-        _unansweredPrayersCount = _prayerBox.values.where((p) => p.status == 'unanswered').length;
+        _newPrayersCount = _prayerBox.query(Prayer_.status.equals('new')).build().count().toInt();
+        _answeredPrayersCount = _prayerBox.query(Prayer_.status.equals('answered')).build().count().toInt();
+        _unansweredPrayersCount = _prayerBox.query(Prayer_.status.equals('unanswered')).build().count().toInt();
 
-        final lastReadBook = _userPrefsBox.get('lastSelectedBook');
-        final lastReadChapter = _userPrefsBox.get('lastSelectedChapter');
-        _lastRead = (lastReadBook != null && lastReadChapter != null)
-            ? '$lastReadBook $lastReadChapter'
+        // For user preferences, we'll need to fetch a specific entity or manage a single settings entity
+        GospelOnboardingModel? settings = _userPrefsBox.get(1);
+
+        _lastRead = (settings?.lastSelectedBook != null && settings?.lastSelectedChapter != null)
+            ? '${settings!.lastSelectedBook} ${settings.lastSelectedChapter}'
             : 'N/A';
 
-        final lastStudiedBook = _userPrefsBox.get('lastSelectedStudyBook');
-        final lastStudiedChapter = _userPrefsBox.get('lastSelectedStudyChapter');
-        _lastStudied = (lastStudiedBook != null && lastStudiedChapter != null)
-            ? '$lastStudiedBook $lastStudiedChapter'
+        _lastStudied = (settings?.lastSelectedStudyBook != null && settings?.lastSelectedStudyChapter != null)
+            ? '${settings!.lastSelectedStudyBook} ${settings.lastSelectedStudyChapter}'
             : 'N/A';
 
-        _lastBookmark = _userPrefsBox.get('lastBookmark') ?? 'N/A';
-        _lastFavorite = _userPrefsBox.get('lastFavorite') ?? 'N/A';
-        _lastBibleNote = _userPrefsBox.get('lastBibleNote') ?? 'N/A';
-        _lastPersonalNote = _userPrefsBox.get('lastPersonalNote') ?? 'N/A';
-        _lastStudyNote = _userPrefsBox.get('lastStudyNote') ?? 'N/A';
-        _lastSearch = _userPrefsBox.get('lastSearch') ?? 'N/A';
-        _lastContact = _userPrefsBox.get('lastContact') ?? 'N/A';
-        _currentMap = _userPrefsBox.get('currentMap') ?? 'N/A';
+        _lastBookmark = settings?.lastBookmark ?? 'N/A';
+        _lastFavorite = settings?.lastFavorite ?? 'N/A';
+        _lastBibleNote = settings?.lastBibleNote ?? 'N/A';
+        _lastPersonalNote = settings?.lastPersonalNote ?? 'N/A';
+        _lastStudyNote = settings?.lastStudyNote ?? 'N/A';
+        _lastSearch = settings?.lastSearch ?? 'N/A';
+        _lastContact = settings?.lastContact ?? 'N/A';
+        _currentMap = settings?.currentMap ?? 'N/A';
 
-        _downloadedMapsCount = _mapBox.values.where((map) => map is MapInfo && !map.isTemporary).length;
+        _downloadedMapsCount = _mapBox.query(MapInfo_.isTemporary.equals(false)).build().count().toInt();
         _isLoading = false;
       });
     });
@@ -172,42 +159,55 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates reading progress (example: based on Bible chapters)
   double _calculateReadingProgress() {
     const totalChapters = 1189; // Total Bible chapters
-    final readChapters = _userPrefsBox.get('readChaptersCount', defaultValue: 0);
+    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    final readChapters = settings?.readChaptersCount ?? 0;
     return readChapters / totalChapters;
   }
 
   /// Calculates bookmark progress (example: based on bookmarks count)
   double _calculateBookmarkProgress() {
     const maxBookmarks = 100; // Hypothetical max
-    final bookmarkCount = _userPrefsBox.get('bookmarkCount', defaultValue: 0);
+    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    final bookmarkCount = settings?.bookmarkCount ?? 0;
     return bookmarkCount / maxBookmarks;
   }
 
   /// Calculates favorite progress (example: based on favorites count)
   double _calculateFavoriteProgress() {
     const maxFavorites = 50; // Hypothetical max
-    final favoriteCount = _userPrefsBox.get('favoriteCount', defaultValue: 0);
+    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    final favoriteCount = settings?.favoriteCount ?? 0;
     return favoriteCount / maxFavorites;
   }
 
   /// Calculates study progress (example: based on study chapters)
   double _calculateStudyProgress() {
     const totalStudyChapters = 1189; // Same as Bible chapters
-    final studiedChapters = _userPrefsBox.get('studiedChaptersCount', defaultValue: 0);
+    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    final studiedChapters = settings?.studiedChaptersCount ?? 0;
     return studiedChapters / totalStudyChapters;
   }
 
   /// Calculates note progress (example: based on note count)
   double _calculateNoteProgress(String noteType) {
     const maxNotes = 100; // Hypothetical max
-    final noteCount = _userPrefsBox.get('${noteType}Count', defaultValue: 0);
+    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    int noteCount = 0;
+    if (noteType == 'bibleNote') {
+      noteCount = settings?.bibleNoteCount ?? 0;
+    } else if (noteType == 'personalNote') {
+      noteCount = settings?.personalNoteCount ?? 0;
+    } else if (noteType == 'studyNote') {
+      noteCount = settings?.studyNoteCount ?? 0;
+    }
     return noteCount / maxNotes;
   }
 
   /// Calculates search progress (example: based on search history)
   double _calculateSearchProgress() {
     const maxSearches = 50; // Hypothetical max
-    final searchCount = _userPrefsBox.get('searchCount', defaultValue: 0);
+    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    final searchCount = settings?.searchCount ?? 0;
     return searchCount / maxSearches;
   }
 
@@ -217,8 +217,13 @@ class _HomePageUiState extends State<HomePageUi> {
       _selectedFont = font;
       _selectedFontSize = fontSize;
     });
-    _userPrefsBox.put('homeSelectedFont', font);
-    _userPrefsBox.put('homeSelectedFontSize', fontSize);
+    GospelOnboardingModel? settings = _userPrefsBox.get(1);
+    if (settings == null) {
+      settings = GospelOnboardingModel(id: 1, onboardingComplete: false); // Assuming onboarding is false initially
+    }
+    settings.homeSelectedFont = font;
+    settings.homeSelectedFontSize = fontSize;
+    _userPrefsBox.put(settings);
   }
 
   /// Opens the settings page

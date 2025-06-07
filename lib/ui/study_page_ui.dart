@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'study_search_ui.dart';
 import 'study_settings_ui.dart';
 import 'study_dictionary_ui.dart';
 import 'study_notes_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill; // Added for Quill notes
+import '../objectbox.dart';
+import '../objectbox.g.dart';
+import '../models/read_data_model.dart';
 
 class StudyPageUi extends StatefulWidget {
   final String? initialBook;
@@ -28,7 +30,6 @@ class _StudyPageUiState extends State<StudyPageUi> {
   Map<String, dynamic> greekDictionary = {};
   List<Map<String, dynamic>> verses = [];
   bool isLoading = true;
-  late Box<dynamic> userPrefsBox;
   String selectedFont = 'Arial';
   double selectedFontSize = 16.0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -39,32 +40,32 @@ class _StudyPageUiState extends State<StudyPageUi> {
     _loadSavedSelection();
   }
 
+  late ObjectBox objectbox;
+  late Box<UserPreference> userPreferenceBox;
+  late Box<BibleNote> bibleNotesBox;
+
   Future<void> _loadSavedSelection() async {
-    userPrefsBox = await Hive.openBox('userPreferences'); // Changed from 'userPrefs'
+    objectbox = await ObjectBox.create();
+    userPreferenceBox = objectbox.store.box<UserPreference>();
+
+    UserPreference? prefs = userPreferenceBox.get(1); // Assuming a single UserPreference object with ID 1
+
     setState(() {
-      selectedBook = widget.initialBook ??
-          userPrefsBox.get('lastSelectedStudyBook') ??
-          "Genesis";
-      selectedChapter = widget.initialChapter ??
-          userPrefsBox.get('lastSelectedStudyChapter') ??
-          1;
-      selectedFont = userPrefsBox.get('selectedStudyFont') ?? 'Arial';
-      selectedFontSize = userPrefsBox.get('selectedStudyFontSize') ?? 16.0;
+      selectedBook = widget.initialBook ?? prefs?.lastSelectedStudyBook ?? "Genesis";
+      selectedChapter = widget.initialChapter ?? prefs?.lastSelectedStudyChapter ?? 1;
+      selectedFont = prefs?.selectedStudyFont ?? 'Arial';
+      selectedFontSize = prefs?.selectedStudyFontSize ?? 16.0;
     });
     await loadData();
   }
 
   Future<void> _saveSelection() async {
-    if (selectedBook != null) {
-      await userPrefsBox.put('lastSelectedStudyBook', selectedBook!);
-      //print('[_saveSelection] lastSelectedStudyBook saved: $selectedBook'); // Debug print
-    }
-    if (selectedChapter != null) {
-      await userPrefsBox.put('lastSelectedStudyChapter', selectedChapter);
-      //print('[_saveSelection] lastSelectedStudyChapter saved: $selectedChapter'); // Debug print
-    }
-    await userPrefsBox.put('selectedStudyFont', selectedFont);
-    await userPrefsBox.put('selectedStudyFontSize', selectedFontSize);
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+    prefs.lastSelectedStudyBook = selectedBook;
+    prefs.lastSelectedStudyChapter = selectedChapter;
+    prefs.selectedStudyFont = selectedFont;
+    prefs.selectedStudyFontSize = selectedFontSize;
+    userPreferenceBox.put(prefs);
   }
 
   Future<void> loadData() async {
@@ -304,25 +305,28 @@ class _StudyPageUiState extends State<StudyPageUi> {
   }
 
   void _addVerseToBibleNotes(int verseNumber, String verseText) async {
-    final bibleNotesBox = await Hive.openBox('bibleNotes');
-    // Remove Strong's numbers from verseText before saving
+    bibleNotesBox = objectbox.store.box<BibleNote>();
     final cleanedVerseText = verseText.replaceAll(RegExp(r'\{[HG]\d+\}'), '').trim();
     final noteJson = jsonEncode(quill.Document.fromDelta(
       quill.Document().toDelta(), // Empty note to start
     ).toDelta().toJson());
-    final verseData = {
-      'verse': '$selectedBook $selectedChapter:$verseNumber',
-      'verseText': cleanedVerseText,
-      'note': noteJson,
-    };
-    await bibleNotesBox.add(jsonEncode(verseData));
+
+    final newBibleNote = BibleNote(
+      verse: '$selectedBook $selectedChapter:$verseNumber',
+      verseText: cleanedVerseText,
+      note: noteJson,
+      timestamp: DateTime.now(),
+    );
+    bibleNotesBox.put(newBibleNote);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Verse added to Bible Notes')),
     );
-    // Update lastBibleNote in userPreferences
-    final userPrefsBox = await Hive.openBox('userPreferences');
-    userPrefsBox.put('lastBibleNote', '$selectedBook $selectedChapter:$verseNumber');
-    // Navigate to the StudyNotesPageUi after adding the note
+
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+    prefs.lastBibleNote = '$selectedBook $selectedChapter:$verseNumber';
+    userPreferenceBox.put(prefs);
+
     Navigator.push(
       context,
       MaterialPageRoute(

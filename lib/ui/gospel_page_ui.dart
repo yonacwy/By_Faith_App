@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:by_faith_app/models/gospel_contacts_model.dart';
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
+import 'package:by_faith_app/models/user_preference_model.dart';
 import 'package:by_faith_app/ui/gospel_contacts_ui.dart' as gospel_contacts_ui;
 import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart' as gospel_offline_maps_ui;
 import 'package:by_faith_app/ui/gospel_profile_ui.dart' as gospel_profile_ui;
@@ -8,9 +8,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as fm;
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart' as fmtc;
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
+import 'package:by_faith_app/objectbox.dart';
+import 'package:objectbox/objectbox.dart';
 
 class GospelPageUi extends StatefulWidget {
   const GospelPageUi({super.key});
@@ -21,12 +22,12 @@ class GospelPageUi extends StatefulWidget {
 
 class _GospelPageState extends State<GospelPageUi> {
   late fm.MapController _mapController;
-  late Box<MapInfo> _mapBox;
+  late Box<MapInfo> _mapInfoBox;
   late Box<Contact> _contactBox;
-  late Box _userPrefsBox;
+  late Box<UserPreference> _userPreferenceBox;
   bool _isLoadingMaps = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool _isHiveInitialized = false;
+  bool _isObjectBoxInitialized = false;
   List<fm.Marker> _markers = [];
   bool _isAddingMarker = false;
   bool _isDisposed = false;
@@ -41,10 +42,10 @@ class _GospelPageState extends State<GospelPageUi> {
   void initState() {
     super.initState();
     _mapController = fm.MapController();
-    _initHive().then((_) async {
+    _initObjectBox().then((_) async {
       if (_isDisposed) return;
-      _isHiveInitialized = true;
-      await _openUserPrefsBox();
+      _isObjectBoxInitialized = true;
+      _userPreferenceBox = objectbox.userPreferenceBox;
       await _initTileProvider();
       await _restoreLastMap();
       await _setupMarkers();
@@ -53,31 +54,30 @@ class _GospelPageState extends State<GospelPageUi> {
           _isLoadingMaps = false;
         });
       }
-      _contactBox.listenable().addListener(_onContactBoxChanged);
+      objectbox.contactBox.watch().listen((_) {
+        _onContactBoxChanged();
+      });
     });
-  }
-
-  Future<void> _openUserPrefsBox() async {
-    _userPrefsBox = await Hive.openBox('userPreferences');
   }
 
   Future<void> _restoreLastMap() async {
     if (_isDisposed || !mounted) return;
-    final String? savedMapName = _userPrefsBox.get('currentMap');
+    final UserPreference? savedMapPref = _userPreferenceBox.query(UserPreference_.key.eq('currentMap')).build().findFirst();
+    final String? savedMapName = savedMapPref?.value;
+
     if (savedMapName != null) {
-      final mapInfo = _mapBox.values.firstWhere(
-        (map) => map.name == savedMapName,
-        orElse: () => MapInfo(
-          name: 'World',
-          filePath: '',
-          downloadUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          isTemporary: false,
-          latitude: 39.0, // Center on the Americas
-          longitude: -98.0,
-          zoomLevel: 2,
-        ),
-      );
-      await _loadMap(mapInfo);
+      final mapInfo = objectbox.mapInfoBox.query(MapInfo_.name.eq(savedMapName)).build().findFirst();
+      if (mapInfo != null) {
+        await _loadMap(mapInfo);
+      } else {
+        // If the saved map is not found, default to "World"
+        _currentMapName = 'World';
+        _currentCenter = const LatLng(39.0, -98.0); // Center on the Americas
+        _currentZoom = 2.0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _mapController.move(_currentCenter, _currentZoom);
+        });
+      }
     } else {
       _currentMapName = 'World';
       _currentCenter = const LatLng(39.0, -98.0); // Center on the Americas
@@ -127,14 +127,15 @@ class _GospelPageState extends State<GospelPageUi> {
     }
   }
 
-  Future<void> _initHive() async {
+  Future<void> _initObjectBox() async {
     try {
-      await Hive.initFlutter();
-      _mapBox = await Hive.openBox<MapInfo>('maps');
-      _contactBox = await Hive.openBox<Contact>('contacts');
-      MapInfo? worldMapInfo = _mapBox.values.firstWhere(
-        (map) => map.name == 'World',
-        orElse: () => MapInfo(
+      _mapInfoBox = objectbox.mapInfoBox;
+      _contactBox = objectbox.contactBox;
+
+      MapInfo? worldMapInfo = _mapInfoBox.query(MapInfo_.name.eq('World')).build().findFirst();
+
+      if (worldMapInfo == null) {
+        worldMapInfo = MapInfo(
           name: 'World',
           filePath: '',
           downloadUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -142,17 +143,13 @@ class _GospelPageState extends State<GospelPageUi> {
           latitude: 39.0, // Center on the Americas
           longitude: -98.0,
           zoomLevel: 2,
-        ),
-      );
-
-      if (!_mapBox.values.any((map) => map.name == 'World')) {
-        await _mapBox.add(worldMapInfo);
+        );
+        _mapInfoBox.put(worldMapInfo);
       } else {
-        final key = _mapBox.keyAt(_mapBox.values.toList().indexOf(worldMapInfo));
         worldMapInfo.latitude = 39.0; // Center on the Americas
         worldMapInfo.longitude = -98.0;
         worldMapInfo.zoomLevel = 2;
-        await _mapBox.put(key, worldMapInfo);
+        _mapInfoBox.put(worldMapInfo);
       }
     } catch (error) {
       if (mounted) {
@@ -166,7 +163,8 @@ class _GospelPageState extends State<GospelPageUi> {
   Future<void> _setupMarkers() async {
     if (_isDisposed || !mounted) return;
     final List<fm.Marker> newMarkers = [];
-    for (final contact in _contactBox.values) {
+    final contacts = objectbox.contactBox.getAll();
+    for (final contact in contacts) {
       final marker = _createMarker(contact);
       newMarkers.add(marker);
     }
@@ -235,6 +233,10 @@ class _GospelPageState extends State<GospelPageUi> {
           _currentZoom = newZoom;
           _markerUpdateKey++;
         });
+
+        // Save the current map name to user preferences
+        final UserPreference currentMapPref = UserPreference(key: 'currentMap', value: mapInfo.name);
+        _userPreferenceBox.put(currentMapPref);
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _mapController.move(newCenter, newZoom);
@@ -324,7 +326,7 @@ class _GospelPageState extends State<GospelPageUi> {
         longitude: (southWestLng + northEastLng) / 2,
         zoomLevel: zoomLevel,
       );
-      await _mapBox.add(mapInfo);
+      _mapInfoBox.put(mapInfo);
 
       if (mounted && Navigator.of(dialogContext).canPop()) {
         Navigator.of(dialogContext).pop();
@@ -346,7 +348,7 @@ class _GospelPageState extends State<GospelPageUi> {
   }
 
   void _showOfflineMaps() {
-    if (!_isHiveInitialized || _isDisposed || !mounted) return;
+    if (!_isObjectBoxInitialized || _isDisposed || !mounted) return;
     Navigator.pop(context);
     Navigator.push(
       context,
@@ -356,7 +358,7 @@ class _GospelPageState extends State<GospelPageUi> {
           onLoadMap: (mapInfo) {
             _loadMap(mapInfo);
           },
-          mapBox: _mapBox,
+          mapInfoBox: _mapInfoBox,
           onDownloadMap: _downloadMap,
           onUploadMap: (String mapFilePath, String mapName, bool isTemporary) {},
         ),
@@ -365,18 +367,18 @@ class _GospelPageState extends State<GospelPageUi> {
   }
 
   void _showContacts() {
-    if (!_isHiveInitialized || _isDisposed || !mounted) return;
+    if (!_isObjectBoxInitialized || _isDisposed || !mounted) return;
     Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => gospel_contacts_ui.ContactsPage(contactBox: _contactBox),
+        builder: (context) => gospel_contacts_ui.ContactsPage(contactBox: objectbox.contactBox),
       ),
     );
   }
 
   void _showProfile() {
-    if (!_isHiveInitialized || _isDisposed || !mounted) return;
+    if (!_isObjectBoxInitialized || _isDisposed || !mounted) return;
     Navigator.pop(context);
     Navigator.push(
       context,
@@ -402,7 +404,7 @@ class _GospelPageState extends State<GospelPageUi> {
       context,
       MaterialPageRoute(
         builder: (context) => gospel_contacts_ui.AddEditContactPage(
-          contactBox: _contactBox,
+          contactBox: objectbox.contactBox,
           latitude: latLng.latitude,
           longitude: latLng.longitude,
           onContactAdded: (contact) {
@@ -438,7 +440,6 @@ class _GospelPageState extends State<GospelPageUi> {
   @override
   void dispose() {
     _isDisposed = true;
-    _contactBox.listenable().removeListener(_onContactBoxChanged);
     _mapController.dispose();
     super.dispose();
   }
@@ -499,7 +500,7 @@ class _GospelPageState extends State<GospelPageUi> {
           ],
         ),
       ),
-      body: _isLoadingMaps || !_isHiveInitialized
+      body: _isLoadingMaps || !_isObjectBoxInitialized
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [

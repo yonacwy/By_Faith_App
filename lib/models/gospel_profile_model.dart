@@ -1,28 +1,17 @@
-import 'package:hive/hive.dart';
+import 'package:objectbox/objectbox.dart';
 
-part 'gospel_profile_model.g.dart';
-
-@HiveType(typeId: 5)
-class GospelProfile extends HiveObject {
-  @HiveField(0)
+@Entity()
+class GospelProfile {
+  @Id()
+  int id = 0;
   String? firstName;
-
-  @HiveField(1)
   String? lastName;
-
-  @HiveField(2)
   String? address;
-
-  @HiveField(3)
+  @Property(type: PropertyType.date)
   DateTime? naturalBirthday;
-
-  @HiveField(4)
   String? phone;
-
-  @HiveField(5)
   String? email;
-
-  @HiveField(6)
+  @Property(type: PropertyType.date)
   DateTime? spiritualBirthday;
 
   GospelProfile({
@@ -34,4 +23,17 @@ class GospelProfile extends HiveObject {
     this.email,
     this.spiritualBirthday,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'firstName': firstName,
+      'lastName': lastName,
+      'address': address,
+      'naturalBirthday': naturalBirthday?.toIso8601String(),
+      'phone': phone,
+      'email': email,
+      'spiritualBirthday': spiritualBirthday?.toIso8601String(),
+    };
+  }
 }

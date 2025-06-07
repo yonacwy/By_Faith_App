@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import '../models/read_data_model.dart'; // Import your data model
 import 'read_page_ui.dart'; // Import ReadPageUi
+import '../objectbox.dart'; // Import objectbox
+import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 class ReadBookmarksUi extends StatefulWidget {
   const ReadBookmarksUi({super.key});
@@ -11,21 +12,14 @@ class ReadBookmarksUi extends StatefulWidget {
 }
 
 class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
-  late Box<Bookmark> bookmarksBox;
 
   @override
   void initState() {
     super.initState();
-    _openBookmarksBox();
   }
 
-  Future<void> _openBookmarksBox() async {
-    bookmarksBox = await Hive.openBox<Bookmark>('bookmarks');
-    setState(() {}); // Refresh UI after box is opened
-  }
-
-  Future<void> _deleteBookmark(int index) async {
-    await bookmarksBox.deleteAt(index);
+  Future<void> _deleteBookmark(int id) async {
+    objectbox.bookmarkBox.remove(id);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Bookmark removed!')),
     );
@@ -43,10 +37,13 @@ class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
             ),
         centerTitle: true,
       ),
-      body: ValueListenableBuilder(
-        valueListenable: Hive.box<Bookmark>('bookmarks').listenable(),
-        builder: (context, Box<Bookmark> box, _) {
-          if (box.values.isEmpty) {
+      body: StreamBuilder<List<Bookmark>>(
+        stream: objectbox.bookmarkBox.query().watch(triggerImmediately: true).map((query) => query.find()),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Text(
                 'No bookmarks yet.',
@@ -56,10 +53,11 @@ class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
               ),
             );
           }
+          final bookmarks = snapshot.data!;
           return ListView.builder(
-            itemCount: box.values.length,
+            itemCount: bookmarks.length,
             itemBuilder: (context, index) {
-              final bookmark = box.getAt(index)!;
+              final bookmark = bookmarks[index];
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -81,7 +79,7 @@ class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
                   ),
                   trailing: IconButton(
                     icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                    onPressed: () => _deleteBookmark(index),
+                    onPressed: () => _deleteBookmark(bookmark.id),
                   ),
                   onTap: () {
                     Navigator.push(

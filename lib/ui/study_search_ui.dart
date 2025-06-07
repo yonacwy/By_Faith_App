@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import '../objectbox.dart';
+import '../objectbox.g.dart';
+import '../models/read_data_model.dart';
 import 'study_page_ui.dart';
 
 class BibleSearchDelegate extends SearchDelegate {
@@ -96,7 +98,10 @@ class BibleSearchDelegate extends SearchDelegate {
     _lastQuery = query;
 
     // Save the last search query to user preferences for the dashboard
-    Hive.box('userPreferences').put('lastSearch', query);
+    final userPreferenceBox = (await ObjectBox.create()).store.box<UserPreference>();
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+    prefs.lastSearch = query;
+    userPreferenceBox.put(prefs);
 
     final lowerQuery = query.toLowerCase();
 

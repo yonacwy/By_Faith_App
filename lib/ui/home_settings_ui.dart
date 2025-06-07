@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive_io.dart';
 import '../providers/theme_notifier.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:by_faith_app/objectbox.dart';
 Future<bool> _requestStoragePermission() async {
   if (Platform.isAndroid || Platform.isIOS) {
     var status = await Permission.storage.request();
@@ -46,16 +45,6 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
     super.initState();
     currentFont = widget.initialFont;
     currentFontSize = widget.initialFontSize;
-    _openHiveBoxes();
-  }
-
-  Future<void> _openHiveBoxes() async {
-    await Hive.openBox('gospel_contacts');
-    await Hive.openBox('gospel_map_info');
-    await Hive.openBox('gospel_profile');
-    await Hive.openBox('pray_data');
-    await Hive.openBox('read_data');
-    await Hive.openBox('study_data');
   }
 
   Future<void> _exportData() async {
@@ -74,24 +63,24 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
     }
 
     try {
-      // Get all relevant Hive boxes
-      final boxes = {
-        'gospel_contacts': Hive.box('gospel_contacts'),
-        'gospel_map_info': Hive.box('gospel_map_info'),
-        'gospel_profile': Hive.box('gospel_profile'),
-        'pray_data': Hive.box('pray_data'),
-        'read_data': Hive.box('read_data'),
-        'study_data': Hive.box('study_data'),
+      // Get all relevant ObjectBox data
+      final data = {
+        'gospel_contacts': objectbox.contactBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_map_info': objectbox.mapInfoBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_profile': objectbox.gospelProfileBox.getAll().map((e) => e.toMap()).toList(),
+        'pray_data': objectbox.prayerBox.getAll().map((e) => e.toMap()).toList(),
+        'read_data': objectbox.verseDataBox.getAll().map((e) => e.toMap()).toList(),
+        'study_data': [], // No study data in ObjectBox
       };
 
       // Create export data based on selection
       Map<String, dynamic> exportData = {};
       if (_selectedExportData == 'all') {
-        for (var entry in boxes.entries) {
-          exportData[entry.key] = entry.value.toMap();
+        for (var entry in data.entries) {
+          exportData[entry.key] = entry.value;
         }
       } else {
-        exportData[_selectedExportData!] = boxes[_selectedExportData]!.toMap();
+        exportData[_selectedExportData!] = data[_selectedExportData!];
       }
 
       // Convert to JSON
@@ -160,24 +149,24 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
     }
 
     try {
-      // Get all relevant Hive boxes
-      final boxes = {
-        'gospel_contacts': Hive.box('gospel_contacts'),
-        'gospel_map_info': Hive.box('gospel_map_info'),
-        'gospel_profile': Hive.box('gospel_profile'),
-        'pray_data': Hive.box('pray_data'),
-        'read_data': Hive.box('read_data'),
-        'study_data': Hive.box('study_data'),
+      // Get all relevant ObjectBox data
+      final data = {
+        'gospel_contacts': objectbox.contactBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_map_info': objectbox.mapInfoBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_profile': objectbox.gospelProfileBox.getAll().map((e) => e.toMap()).toList(),
+        'pray_data': objectbox.prayerBox.getAll().map((e) => e.toMap()).toList(),
+        'read_data': objectbox.verseDataBox.getAll().map((e) => e.toMap()).toList(),
+        'study_data': [], // No study data in ObjectBox
       };
 
       // Create export data based on selection
       Map<String, dynamic> exportData = {};
       if (_selectedExportData == 'all') {
-        for (var entry in boxes.entries) {
-          exportData[entry.key] = entry.value.toMap();
+        for (var entry in data.entries) {
+          exportData[entry.key] = entry.value;
         }
       } else {
-        exportData[_selectedExportData!] = boxes[_selectedExportData]!.toMap();
+        exportData[_selectedExportData!] = data[_selectedExportData!];
       }
 
       // Convert to JSON
@@ -301,12 +290,44 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
           throw Exception('Import cancelled by user');
         }
 
-        // Restore data to Hive boxes
-        for (var entry in importData.entries) {
-          final box = Hive.box(entry.key);
-          await box.clear();
-          await box.putAll(entry.value);
+        // Restore data to ObjectBox
+        final store = objectbox.store;
+        if (importData.containsKey('gospel_contacts')) {
+          objectbox.contactBox.removeAll();
+          objectbox.contactBox.putMany(
+              (importData['gospel_contacts'] as List)
+                  .map((e) => GospelContact.fromMap(e))
+                  .toList());
         }
+        if (importData.containsKey('gospel_map_info')) {
+          objectbox.mapInfoBox.removeAll();
+          objectbox.mapInfoBox.putMany(
+              (importData['gospel_map_info'] as List)
+                  .map((e) => MapInfo.fromMap(e))
+                  .toList());
+        }
+        if (importData.containsKey('gospel_profile')) {
+          objectbox.gospelProfileBox.removeAll();
+          objectbox.gospelProfileBox.putMany(
+              (importData['gospel_profile'] as List)
+                  .map((e) => GospelProfile.fromMap(e))
+                  .toList());
+        }
+        if (importData.containsKey('pray_data')) {
+          objectbox.prayerBox.removeAll();
+          objectbox.prayerBox.putMany(
+              (importData['pray_data'] as List)
+                  .map((e) => Prayer.fromMap(e))
+                  .toList());
+        }
+        if (importData.containsKey('read_data')) {
+          objectbox.verseDataBox.removeAll();
+          objectbox.verseDataBox.putMany(
+              (importData['read_data'] as List)
+                  .map((e) => VerseData.fromMap(e))
+                  .toList());
+        }
+        // Note: 'study_data' is empty in export, so no import logic needed unless it changes.
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

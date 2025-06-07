@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import '../objectbox.dart';
+import '../objectbox.g.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 import 'read_settings_ui.dart';
@@ -33,7 +34,8 @@ class _ReadPageUiState extends State<ReadPageUi> {
   List<dynamic> bibleData = [];
   String chapterText = "";
   bool isLoading = true;
-  late Box userPrefsBox;
+  late ObjectBox objectbox;
+  late Box<UserPreference> userPreferenceBox;
   String selectedFont = 'Roboto';
   double selectedFontSize = 16.0;
   bool _isAutoScrollingEnabled = false;
@@ -60,29 +62,31 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _loadSavedSelection() async {
-    userPrefsBox = await Hive.openBox('userPreferences');
+    objectbox = await ObjectBox.create();
+    userPreferenceBox = objectbox.store.box<UserPreference>();
+
+    UserPreference? prefs = userPreferenceBox.get(1); // Assuming a single UserPreference object with ID 1
+
     setState(() {
-      selectedBook = widget.initialBook ?? userPrefsBox.get('lastSelectedBook') ?? "Genesis";
-      selectedChapter = widget.initialChapter ?? userPrefsBox.get('lastSelectedChapter') ?? 1;
-      selectedFont = userPrefsBox.get('selectedFont') ?? 'Roboto';
-      selectedFontSize = userPrefsBox.get('selectedFontSize') ?? 16.0;
-      _isAutoScrollingEnabled = userPrefsBox.get('isAutoScrollingEnabled') ?? false;
-      _autoScrollMode = userPrefsBox.get('autoScrollMode') ?? 'Normal';
+      selectedBook = widget.initialBook ?? prefs?.lastSelectedBook ?? "Genesis";
+      selectedChapter = widget.initialChapter ?? prefs?.lastSelectedChapter ?? 1;
+      selectedFont = prefs?.selectedFont ?? 'Roboto';
+      selectedFontSize = prefs?.selectedFontSize ?? 16.0;
+      _isAutoScrollingEnabled = prefs?.isAutoScrollingEnabled ?? false;
+      _autoScrollMode = prefs?.autoScrollMode ?? 'Normal';
     });
     loadData();
   }
 
   Future<void> _saveSelection() async {
-    if (selectedBook != null) {
-      await userPrefsBox.put('lastSelectedBook', selectedBook!);
-    }
-    if (selectedChapter != null) {
-      await userPrefsBox.put('lastSelectedChapter', selectedChapter!);
-    }
-    await userPrefsBox.put('selectedFont', selectedFont);
-    await userPrefsBox.put('selectedFontSize', selectedFontSize);
-    await userPrefsBox.put('isAutoScrollingEnabled', _isAutoScrollingEnabled);
-    await userPrefsBox.put('autoScrollMode', _autoScrollMode);
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(); // Get existing or create new
+    prefs.lastSelectedBook = selectedBook;
+    prefs.lastSelectedChapter = selectedChapter;
+    prefs.selectedFont = selectedFont;
+    prefs.selectedFontSize = selectedFontSize;
+    prefs.isAutoScrollingEnabled = _isAutoScrollingEnabled;
+    prefs.autoScrollMode = _autoScrollMode;
+    userPreferenceBox.put(prefs);
   }
 
   Future<void> loadData() async {
@@ -349,18 +353,28 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _addVerseToBookmarks(VerseData verseData) async {
-    final bookmarksBox = await Hive.openBox<Bookmark>('bookmarks');
-    final newBookmark = Bookmark(verseData: verseData, timestamp: DateTime.now());
+    final bookmarkBox = objectbox.store.box<Bookmark>();
+    final newBookmark = Bookmark(
+      book: verseData.book,
+      chapter: verseData.chapter,
+      verse: verseData.verse,
+      text: verseData.text,
+      timestamp: DateTime.now(),
+    );
 
-    bool exists = bookmarksBox.values.any((bookmark) =>
-        bookmark.verseData.book == verseData.book &&
-        bookmark.verseData.chapter == verseData.chapter &&
-        bookmark.verseData.verse == verseData.verse);
+    bool exists = bookmarkBox.query(Bookmark_.book.eq(verseData.book)
+        .and(Bookmark_.chapter.eq(verseData.chapter))
+        .and(Bookmark_.verse.eq(verseData.verse)))
+        .build()
+        .find()
+        .isNotEmpty;
 
     if (!exists) {
-      await bookmarksBox.add(newBookmark);
+      bookmarkBox.put(newBookmark);
       final lastBookmarkValue = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
-      await userPrefsBox.put('lastBookmark', lastBookmarkValue);
+      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+      prefs.lastBookmark = lastBookmarkValue;
+      userPreferenceBox.put(prefs);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Bookmarks!')),
       );
@@ -372,17 +386,27 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _addVerseToFavorites(VerseData verseData) async {
-    final favoritesBox = await Hive.openBox<Favorite>('favorites');
-    final newFavorite = Favorite(verseData: verseData, timestamp: DateTime.now());
+    final favoriteBox = objectbox.store.box<Favorite>();
+    final newFavorite = Favorite(
+      book: verseData.book,
+      chapter: verseData.chapter,
+      verse: verseData.verse,
+      text: verseData.text,
+      timestamp: DateTime.now(),
+    );
 
-    bool exists = favoritesBox.values.any((favorite) =>
-        favorite.verseData.book == verseData.book &&
-        favorite.verseData.chapter == verseData.chapter &&
-        favorite.verseData.verse == verseData.verse);
+    bool exists = favoriteBox.query(Favorite_.book.eq(verseData.book)
+        .and(Favorite_.chapter.eq(verseData.chapter))
+        .and(Favorite_.verse.eq(verseData.verse)))
+        .build()
+        .find()
+        .isNotEmpty;
 
     if (!exists) {
-      await favoritesBox.add(newFavorite);
-      await userPrefsBox.put('lastFavorite', '${verseData.book} ${verseData.chapter}:${verseData.verse}');
+      favoriteBox.put(newFavorite);
+      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+      prefs.lastFavorite = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
+      userPreferenceBox.put(prefs);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Favorites!')),
       );

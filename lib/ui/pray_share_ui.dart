@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart'; // Import share_plus
 import '../models/pray_model.dart';
 import '../providers/theme_notifier.dart';
 import 'dart:convert';
+import '../objectbox.dart'; // Import objectbox
 
 class PrayShareUi extends StatefulWidget {
   const PrayShareUi({Key? key}) : super(key: key);
@@ -71,8 +72,7 @@ class _PrayShareUiState extends State<PrayShareUi> {
   Future<void> _sharePrayer(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
-      final prayersBox = await Prayer.openBox();
-      final allPrayers = prayersBox.values.toList();
+      final allPrayers = objectbox.prayerBox.getAll();
 
       if (allPrayers.isEmpty) {
         scaffoldMessenger.showSnackBar(

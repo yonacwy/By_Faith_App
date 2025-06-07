@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:by_faith_app/objectbox.dart';
 import 'dart:convert';
 import '../models/pray_model.dart';
 
@@ -39,7 +39,7 @@ class _PraySearchUiState extends State<PraySearchUi> {
   void initState() {
     super.initState();
     _searchQuery = widget.initialSearchQuery;
-    _prayerBox = Hive.box<Prayer>('prayers');
+    _prayerBox = objectbox.store.box<Prayer>();
     widget.searchController.addListener(_onSearchChanged);
   }
 
@@ -187,15 +187,13 @@ class _PraySearchUiState extends State<PraySearchUi> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       ),
-      body: ValueListenableBuilder(
-        valueListenable: _prayerBox.listenable(),
-        builder: (context, Box<Prayer> box, _) {
-          var prayers = box.values
-              .where((prayer) {
-                final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
-                return document.toPlainText().toLowerCase().contains(_searchQuery);
-              })
-              .toList();
+      body: Builder(
+        builder: (context) {
+          var prayers = _prayerBox.query().build().find(); // Get all prayers
+          prayers = prayers.where((prayer) {
+            final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
+            return document.toPlainText().toLowerCase().contains(_searchQuery);
+          }).toList();
           prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
           return prayers.isEmpty

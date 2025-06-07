@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:by_faith_app/ui/gospel_profile_ui.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-// import 'package:by_faith_app/models/gospel_profile_model.dart'; // Not used in this snippet
+import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/models/gospel_onboarding_model.dart';
 
 class GospelOnboardingUI extends StatefulWidget {
   const GospelOnboardingUI({super.key});
@@ -412,8 +412,16 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
   }
 
   void _markOnboardingComplete() async {
-    var settingsBox = await Hive.openBox<bool>('appSettings');
-    await settingsBox.put('onboardingComplete', true);
+    final store = objectbox.store;
+    final onboardingBox = store.box<GospelOnboardingModel>();
+    GospelOnboardingModel? onboarding = onboardingBox.get(1); // Assuming ID 1 for the single onboarding setting
+    if (onboarding == null) {
+      onboarding = GospelOnboardingModel(id: 1, onboardingComplete: true);
+      onboardingBox.put(onboarding);
+    } else {
+      onboarding.onboardingComplete = true;
+      onboardingBox.put(onboarding);
+    }
   }
 
   void _navigateToHome(BuildContext context) {
