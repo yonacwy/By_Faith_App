@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import '../database/database.dart'; // Import your Drift database
+import 'package:by_faith_app/database/database_provider.dart'; // Import DatabaseProvider
 import 'study_search_ui.dart';
 import 'study_settings_ui.dart';
 import 'study_dictionary_ui.dart';
 import 'study_notes_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill; // Added for Quill notes
+import 'package:drift/drift.dart' hide Column; // Import drift and hide Column to avoid conflict with flutter
 
 class StudyPageUi extends StatefulWidget {
   final String? initialBook;
@@ -28,7 +30,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
   Map<String, dynamic> greekDictionary = {};
   List<Map<String, dynamic>> verses = [];
   bool isLoading = true;
-  late Box<dynamic> userPrefsBox;
+  final AppDatabase _database = DatabaseProvider.instance; // Use singleton database instance
   String selectedFont = 'Arial';
   double selectedFontSize = 16.0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -39,32 +41,44 @@ class _StudyPageUiState extends State<StudyPageUi> {
     _loadSavedSelection();
   }
 
-  Future<void> _loadSavedSelection() async {
-    userPrefsBox = await Hive.openBox('userPreferences'); // Changed from 'userPrefs'
+Future<void> _loadSavedSelection() async {
+    // Fetch settings from Drift database
+    final settings = await _database.getSettings();
+
     setState(() {
       selectedBook = widget.initialBook ??
-          userPrefsBox.get('lastSelectedStudyBook') ??
+          settings?.lastSelectedStudyBook ??
           "Genesis";
       selectedChapter = widget.initialChapter ??
-          userPrefsBox.get('lastSelectedStudyChapter') ??
+          settings?.lastSelectedStudyChapter ??
           1;
-      selectedFont = userPrefsBox.get('selectedStudyFont') ?? 'Arial';
-      selectedFontSize = userPrefsBox.get('selectedStudyFontSize') ?? 16.0;
+      selectedFont = settings?.selectedStudyFont ?? 'Arial';
+      selectedFontSize = settings?.selectedStudyFontSize ?? 16.0;
     });
     await loadData();
   }
 
   Future<void> _saveSelection() async {
-    if (selectedBook != null) {
-      await userPrefsBox.put('lastSelectedStudyBook', selectedBook!);
-      //print('[_saveSelection] lastSelectedStudyBook saved: $selectedBook'); // Debug print
+    // Save settings to Drift database
+    final settings = SettingsCompanion(
+      lastSelectedStudyBook: Value(selectedBook),
+      lastSelectedStudyChapter: Value(selectedChapter),
+      selectedStudyFont: Value(selectedFont),
+      selectedStudyFontSize: Value(selectedFontSize),
+    );
+
+    // Assuming there's only one settings entry, update or insert
+    final existingSettings = await _database.select(_database.settings).getSingleOrNull();
+    if (existingSettings != null) {
+      await _database.update(_database.settings).replace(existingSettings.copyWith(
+        lastSelectedStudyBook: Value(selectedBook),
+        lastSelectedStudyChapter: Value(selectedChapter),
+        selectedStudyFont: Value(selectedFont),
+        selectedStudyFontSize: Value(selectedFontSize),
+      ));
+    } else {
+      await _database.into(_database.settings).insert(settings);
     }
-    if (selectedChapter != null) {
-      await userPrefsBox.put('lastSelectedStudyChapter', selectedChapter);
-      //print('[_saveSelection] lastSelectedStudyChapter saved: $selectedChapter'); // Debug print
-    }
-    await userPrefsBox.put('selectedStudyFont', selectedFont);
-    await userPrefsBox.put('selectedStudyFontSize', selectedFontSize);
   }
 
   Future<void> loadData() async {
@@ -304,24 +318,25 @@ class _StudyPageUiState extends State<StudyPageUi> {
   }
 
   void _addVerseToBibleNotes(int verseNumber, String verseText) async {
-    final bibleNotesBox = await Hive.openBox('bibleNotes');
     // Remove Strong's numbers from verseText before saving
     final cleanedVerseText = verseText.replaceAll(RegExp(r'\{[HG]\d+\}'), '').trim();
     final noteJson = jsonEncode(quill.Document.fromDelta(
       quill.Document().toDelta(), // Empty note to start
     ).toDelta().toJson());
-    final verseData = {
-      'verse': '$selectedBook $selectedChapter:$verseNumber',
-      'verseText': cleanedVerseText,
-      'note': noteJson,
-    };
-    await bibleNotesBox.add(jsonEncode(verseData));
+
+    await _database.into(_database.bibleNotes).insert(BibleNotesCompanion(
+      verse: Value('$selectedBook $selectedChapter:$verseNumber'),
+      verseText: Value(cleanedVerseText),
+      note: Value(noteJson),
+    ));
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Verse added to Bible Notes')),
     );
-    // Update lastBibleNote in userPreferences
-    final userPrefsBox = await Hive.openBox('userPreferences');
-    userPrefsBox.put('lastBibleNote', '$selectedBook $selectedChapter:$verseNumber');
+
+    // Update lastBibleNote in settings
+    await _database.updateLastBibleNote('$selectedBook $selectedChapter:$verseNumber');
+
     // Navigate to the StudyNotesPageUi after adding the note
     Navigator.push(
       context,

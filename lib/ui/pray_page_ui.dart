@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import '../models/pray_model.dart';
+import '../database/database.dart'; // Import your Drift database
+import 'package:by_faith_app/database/database_provider.dart'; // Import DatabaseProvider
 import '../providers/theme_notifier.dart';
 import 'dart:convert';
 import 'pray_settings_ui.dart';
 import 'pray_search_ui.dart';
 import 'pray_share_ui.dart';
+import 'package:drift/drift.dart' hide Column; // Import drift and hide Column to avoid conflict with flutter
+import 'package:uuid/uuid.dart';
 
 class PrayPageUi extends StatefulWidget {
   PrayPageUi({Key? key}) : super(key: key);
@@ -18,7 +20,7 @@ class PrayPageUi extends StatefulWidget {
 }
 
 class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
-  late Box<Prayer> _prayerBox;
+  final AppDatabase _database = DatabaseProvider.instance; // Use singleton database instance
   final GlobalKey<AnimatedListState> _newListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _answeredListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _unansweredListKey = GlobalKey<AnimatedListState>();
@@ -27,7 +29,6 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _prayerBox = Hive.box<Prayer>('prayers');
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -37,14 +38,14 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _updatePrayerStatus(Prayer prayer, String newStatus, int index) {
+Future<void> _updatePrayerStatus(PrayerEntry prayer, String newStatus, int index) async {
     final oldStatus = prayer.status;
     if (oldStatus == newStatus) return;
 
-    setState(() {
-      prayer.status = newStatus;
-      prayer.save();
-    });
+    // Update the prayer status in the database
+    await _database.update(_database.prayers).replace(prayer.copyWith(status: newStatus));
+
+    // No need for setState here, ValueListenableBuilder will handle updates
 
     final oldListKey = oldStatus == 'new'
         ? _newListKey
@@ -60,14 +61,18 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
 
+    // Fetch the updated list for the new status to determine the correct insertion index
+    final prayersInNewStatus = await (_database.select(_database.prayers)
+          ..where((p) => p.status.equals(newStatus))
+          ..orderBy([(p) => OrderingTerm(expression: p.timestamp, mode: OrderingMode.desc)]))
+        .get();
+
+    final insertionIndex = prayersInNewStatus.indexWhere((p) => p.id == prayer.id);
     final newListKey = newStatus == 'new'
         ? _newListKey
         : newStatus == 'answered'
             ? _answeredListKey
             : _unansweredListKey;
-    final prayersInNewStatus = _prayerBox.values.where((p) => p.status == newStatus).toList();
-    prayersInNewStatus.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    final insertionIndex = prayersInNewStatus.indexWhere((p) => p.id == prayer.id);
     newListKey.currentState?.insertItem(
       insertionIndex >= 0 ? insertionIndex : 0,
       duration: const Duration(milliseconds: 300),
@@ -81,14 +86,15 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     );
   }
 
-  void _deletePrayer(Prayer prayer, int index, String status) {
+Future<void> _deletePrayer(PrayerEntry prayer, int index, String status) async {
     final listKey = status == 'new'
         ? _newListKey
         : status == 'answered'
             ? _answeredListKey
             : _unansweredListKey;
 
-    final deletedPrayerData = Prayer(
+    // Store data for undo functionality
+    final deletedPrayerData = PrayerEntry(
       richTextJson: prayer.richTextJson,
       status: prayer.status,
       timestamp: prayer.timestamp,
@@ -104,12 +110,8 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
 
-    Future.delayed(const Duration(milliseconds: 50), () {
-      if (prayer.isInBox) {
-        prayer.delete();
-      }
-      setState(() {});
-    });
+    // Delete the prayer from the database
+    await (_database.delete(_database.prayers)..where((p) => p.id.equals(prayer.id))).go();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -117,9 +119,9 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Undo',
-          onPressed: () {
-            _prayerBox.put(deletedPrayerData.id, deletedPrayerData);
-            setState(() {});
+          onPressed: () async {
+            // Re-insert the deleted prayer into the database
+            await _database.into(_database.prayers).insert(deletedPrayerData);
           },
         ),
         duration: const Duration(seconds: 4),
@@ -127,11 +129,11 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     );
   }
 
-  void _editPrayer(Prayer prayer, int index) {
+  void _editPrayer(PrayerEntry prayer, int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => _EditPrayerPage(prayer: prayer, index: index),
+        builder: (context) => _EditPrayerPage(prayer: prayer, index: index, database: _database), // Pass database instance
       ),
     );
   }
@@ -141,8 +143,9 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
       context,
       MaterialPageRoute(
         builder: (context) => _NewPrayerPage(
+          database: _database, // Pass the database instance
           onSave: (newPrayer) {
-            _prayerBox.add(newPrayer);
+            // The prayer is already inserted in _NewPrayerPageState
             _newListKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -180,7 +183,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     setState(() {});
   }
 
-  Widget _buildPrayerCard(Prayer prayer, String status, int index) {
+  Widget _buildPrayerCard(PrayerEntry prayer, String status, int index) {
     final quillController = quill.QuillController(
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
@@ -292,17 +295,20 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     return DateFormat('MMM d, yyyy').format(timestamp);
   }
 
-  Widget _buildPrayerList(String status, GlobalKey<AnimatedListState> listKey) {
-    return ValueListenableBuilder(
-      valueListenable: _prayerBox.listenable(),
-      builder: (context, Box<Prayer> box, _) {
-        var prayers = box.values
-            .where((prayer) {
-              final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
-              return prayer.status == status;
-            })
-            .toList();
-        prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+Widget _buildPrayerList(String status, GlobalKey<AnimatedListState> listKey) {
+    return StreamBuilder<List<PrayerEntry>>(
+      stream: (_database.select(_database.prayers)
+            ..where((p) => p.status.equals(status))
+            ..orderBy([(p) => OrderingTerm(expression: p.timestamp, mode: OrderingMode.desc)]))
+          .watch(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final prayers = snapshot.data ?? [];
 
         if (status == 'new') {
           return Column(
@@ -328,14 +334,14 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
               Expanded(
                 child: prayers.isEmpty
                     ? Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          'No new prayers',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      )
+                         padding: const EdgeInsets.all(16),
+                         child: Text(
+                           'No new prayers',
+                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+                               ),
+                         ),
+                       )
                     : AnimatedList(
                         key: listKey,
                         shrinkWrap: true,
@@ -357,31 +363,31 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
           );
         } else {
           return prayers.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'No ${status == 'answered' ? 'answered' : 'unanswered'} prayers',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                )
-              : AnimatedList(
-                  key: listKey,
-                  shrinkWrap: true,
-                  physics: const ClampingScrollPhysics(),
-                  initialItemCount: prayers.length,
-                  itemBuilder: (context, index, animation) {
-                    if (index >= prayers.length) {
-                      return Container(child: const Text("Error: Index out of bounds"));
-                    }
-                    final prayer = prayers[index];
-                    return SizeTransition(
-                      sizeFactor: animation,
-                      child: _buildPrayerCard(prayer, status, index),
-                    );
-                  },
-                );
+               ? Padding(
+                   padding: const EdgeInsets.all(16),
+                   child: Text(
+                     'No ${status == 'answered' ? 'answered' : 'unanswered'} prayers',
+                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                           color: Theme.of(context).colorScheme.onSurfaceVariant,
+                         ),
+                   ),
+                 )
+               : AnimatedList(
+                   key: listKey,
+                   shrinkWrap: true,
+                   physics: const ClampingScrollPhysics(),
+                   initialItemCount: prayers.length,
+                   itemBuilder: (context, index, animation) {
+                     if (index >= prayers.length) {
+                       return Container(child: const Text("Error: Index out of bounds"));
+                     }
+                     final prayer = prayers[index];
+                     return SizeTransition(
+                       sizeFactor: animation,
+                       child: _buildPrayerCard(prayer, status, index),
+                     );
+                   },
+                 );
         }
       },
     );
@@ -481,9 +487,10 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
                       newListKey: _newListKey,
                       answeredListKey: _answeredListKey,
                       unansweredListKey: _unansweredListKey,
-                      updatePrayerStatus: _updatePrayerStatus,
+                      onUpdatePrayerStatus: _updatePrayerStatus,
                       deletePrayer: _deletePrayer,
                       editPrayer: _editPrayer,
+                      database: _database,
                     ),
                   ),
                 );
@@ -527,10 +534,11 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
 }
 
 class _EditPrayerPage extends StatefulWidget {
-  final Prayer prayer;
+final PrayerEntry prayer;
   final int index;
+  final AppDatabase database; // Pass the database instance
 
-  const _EditPrayerPage({required this.prayer, required this.index});
+  const _EditPrayerPage({required this.prayer, required this.index, required this.database});
 
   @override
   _EditPrayerPageState createState() => _EditPrayerPageState();
@@ -555,7 +563,7 @@ class _EditPrayerPageState extends State<_EditPrayerPage> {
     super.dispose();
   }
 
-  void _savePrayer() {
+  Future<void> _savePrayer() async {
     if (_quillController.document.isEmpty()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -565,10 +573,11 @@ class _EditPrayerPageState extends State<_EditPrayerPage> {
       );
       return;
     }
-    setState(() {
-      widget.prayer.richTextJson = jsonEncode(_quillController.document.toDelta().toJson());
-      widget.prayer.save();
-    });
+    // Update the prayer in the database
+    await widget.database.update(widget.database.prayers).replace(widget.prayer.copyWith(
+      richTextJson: jsonEncode(_quillController.document.toDelta().toJson()),
+    ));
+
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -646,9 +655,10 @@ class _EditPrayerPageState extends State<_EditPrayerPage> {
 }
 
 class _NewPrayerPage extends StatefulWidget {
-  final Function(Prayer) onSave;
+final Function(PrayerEntry) onSave; // Use PrayerEntry
+  final AppDatabase database; // Pass the database instance
 
-  const _NewPrayerPage({required this.onSave});
+  const _NewPrayerPage({required this.onSave, required this.database});
 
   @override
   _NewPrayerPageState createState() => _NewPrayerPageState();
@@ -670,7 +680,7 @@ class _NewPrayerPageState extends State<_NewPrayerPage> {
     super.dispose();
   }
 
-  void _savePrayer() {
+  Future<void> _savePrayer() async { // Make async
     if (_quillController.document.isEmpty()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -680,11 +690,13 @@ class _NewPrayerPageState extends State<_NewPrayerPage> {
       );
       return;
     }
-    final newPrayer = Prayer(
+    final newPrayer = PrayerEntry( // Use PrayerEntry
+      id: const Uuid().v4(), // Generate a unique ID
       richTextJson: jsonEncode(_quillController.document.toDelta().toJson()),
       status: 'new',
       timestamp: DateTime.now(),
     );
+    await widget.database.into(widget.database.prayers).insert(newPrayer); // Insert into database
     widget.onSave(newPrayer);
     Navigator.pop(context);
   }

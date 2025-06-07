@@ -1,26 +1,30 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:by_faith_app/models/gospel_contacts_model.dart';
+import 'dart:io';
+import 'dart:convert'; // Import for jsonDecode and jsonEncode
+import 'package:flutter/material.dart';
+import 'package:by_faith_app/database/database.dart'; // Import Drift database
+import 'package:by_faith_app/models/gospel_contacts_model.dart'; // Keep the model for now, might need mapping
 import 'package:uuid/uuid.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart'; // Import provider
+import 'package:drift/drift.dart' hide Column; // Import drift and hide Column to avoid conflict with flutter material
 
 class ContactsPage extends StatelessWidget {
-  final Box<Contact> contactBox;
-
-  const ContactsPage({Key? key, required this.contactBox}) : super(key: key);
+  final AppDatabase database; // Add this line
+  const ContactsPage({Key? key, required this.database}) : super(key: key); // Modified constructor
 
   void _navigateToAddContact(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AddEditContactPage(
-          contactBox: contactBox,
+          database: database,
           onContactAdded: (contact) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Contact ${contact.name} added')),
+              SnackBar(content: Text('Contact ${contact.firstName} ${contact.lastName} added')),
             );
           },
         ),
@@ -28,42 +32,41 @@ class ContactsPage extends StatelessWidget {
     );
   }
 
-  void _navigateToEditContact(BuildContext context, Contact contact, int index) {
+  void _navigateToEditContact(BuildContext context, ContactEntry contact) { // Use ContactEntry
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AddEditContactPage(
-          contactBox: contactBox,
+          database: database,
           contact: contact,
-          contactIndex: index,
           onContactUpdated: (updatedContact) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Contact ${updatedContact.name} updated')),
+              SnackBar(content: Text('Contact ${updatedContact.firstName} ${updatedContact.lastName} updated')), // Use ContactEntry fields
             );
           },
-          onDeleteContact: _deleteContact,
         ),
       ),
     );
   }
 
-  void _deleteContact(BuildContext context, Contact contact, int index) {
+  Future<void> _deleteContact(BuildContext context, ContactEntry contact) async { // Use ContactEntry
+    final database = Provider.of<AppDatabase>(context, listen: false);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Contact'),
-        content: Text('Are you sure you want to delete ${contact.name}?'),
+        content: Text('Are you sure you want to delete ${contact.firstName} ${contact.lastName}?'), // Use ContactEntry fields
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              contactBox.deleteAt(index);
+            onPressed: () async {
+              await database.deleteContact(contact.id); // Implement deleteContact in database.dart
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Contact ${contact.name} deleted')),
+                SnackBar(content: Text('Contact ${contact.firstName} ${contact.lastName} deleted')), // Use ContactEntry fields
               );
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -75,15 +78,17 @@ class ContactsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final database = Provider.of<AppDatabase>(context); // Get database instance
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+               color: Theme.of(context).colorScheme.onSurface,
+               fontWeight: FontWeight.bold,
+             ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -93,50 +98,56 @@ class ContactsPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: contactBox.listenable(),
-        builder: (context, Box<Contact> box, _) {
-          if (box.isEmpty) {
+      body: StreamBuilder<List<ContactEntry>>( // Use StreamBuilder and ContactEntry
+        stream: database.watchAllContacts(), // Implement watchAllContacts in database.dart
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No contacts added yet.'));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: box.length,
-            itemBuilder: (context, index) {
-              final contact = box.getAt(index)!;
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 4.0),
-                child: InkWell(
-                  onTap: () => _navigateToEditContact(context, contact, index),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        contact.picturePath != null
-                            ? CircleAvatar(
-                                backgroundImage: FileImage(File(contact.picturePath!)),
-                                radius: 25,
-                              )
-                            : const CircleAvatar(
-                                child: Icon(Icons.person),
-                                radius: 25,
-                              ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: Text(
-                            contact.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                            overflow: TextOverflow.ellipsis,
+          } else {
+            final contacts = snapshot.data!;
+            return ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: contacts.length,
+              itemBuilder: (context, index) {
+                final contact = contacts[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: InkWell(
+                    onTap: () => _navigateToEditContact(context, contact), // Pass ContactEntry
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          contact.picturePath != null && File(contact.picturePath!).existsSync() // Check if file exists
+                              ? CircleAvatar(
+                                  backgroundImage: FileImage(File(contact.picturePath!)),
+                                  radius: 25,
+                                )
+                              : const CircleAvatar(
+                                  child: Icon(Icons.person),
+                                  radius: 25,
+                                ),
+                          const SizedBox(width: 16.0),
+                          Expanded(
+                            child: Text(
+                              '${contact.firstName} ${contact.lastName}', // Use ContactEntry fields
+                              style: Theme.of(context).textTheme.titleMedium,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          );
+                );
+              },
+            );
+          }
         },
       ),
     );
@@ -144,30 +155,30 @@ class ContactsPage extends StatelessWidget {
 }
 
 class AddEditContactPage extends StatefulWidget {
-  final Box<Contact> contactBox;
-  final Contact? contact;
-  final Function(Contact)? onContactAdded;
-  final Function(Contact)? onContactUpdated;
-  final Function(BuildContext, Contact, int)? onDeleteContact;
-  final int? contactIndex;
+  @override
+  _AddEditContactPageState createState() => _AddEditContactPageState();
+  final ContactEntry? contact; // Use ContactEntry
+  final Function(ContactEntry)? onContactAdded; // Use ContactEntry
+  final Function(ContactEntry)? onContactUpdated; // Use ContactEntry
   final double? latitude;
   final double? longitude;
 
   const AddEditContactPage({
     Key? key,
-    required this.contactBox,
     this.contact,
     this.onContactAdded,
     this.onContactUpdated,
-    this.onDeleteContact,
-    this.contactIndex,
     this.latitude,
     this.longitude,
+    required this.database,
   }) : super(key: key);
 
-  @override
-  _AddEditContactPageState createState() => _AddEditContactPageState();
+  final AppDatabase database;
+
 }
+
+  @override
+  State<AddEditContactPage> createState() => _AddEditContactPageState();
 
 class _AddEditContactPageState extends State<AddEditContactPage> {
   final _formKey = GlobalKey<FormState>();
@@ -183,6 +194,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
   String? _picturePath;
   bool _isEditing = false;
   bool _isReadOnly = false; // New state variable
+  late AppDatabase _database; // Declare database instance
 
   @override
   void initState() {
@@ -201,7 +213,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
       _longitudeController.text = widget.contact!.longitude.toString();
       _picturePath = widget.contact!.picturePath;
       if (widget.contact!.notes != null) {
-        _notesController.document = quill.Document.fromJson(widget.contact!.notes!);
+        _notesController.document = quill.Document.fromJson(widget.contact!.notes!.isNotEmpty ? jsonDecode(widget.contact!.notes!) : []); // Decode JSON notes
       }
       _isReadOnly = true; // Initially read-only for existing contacts
     } else {
@@ -211,6 +223,12 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
       _isReadOnly = false; // Not read-only for new contacts
     }
     _notesController.readOnly = _isReadOnly; // Set initial read-only state for notes
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _database = Provider.of<AppDatabase>(context); // Get database instance
   }
 
   @override
@@ -253,36 +271,33 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
   Future<void> _saveContact() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final contact = Contact(
-          id: _isEditing ? widget.contact!.id : const Uuid().v4(),
-          firstName: _firstNameController.text,
-          lastName: _lastNameController.text,
-          address: _addressController.text,
-          birthday: _birthdayController.text.isNotEmpty
+        final contactCompanion = ContactsCompanion( // Use ContactsCompanion for insert/update
+          id: Value(_isEditing ? widget.contact!.id : const Uuid().v4()),
+          firstName: Value(_firstNameController.text),
+          lastName: Value(_lastNameController.text),
+          address: Value(_addressController.text),
+          birthday: Value(_birthdayController.text.isNotEmpty
               ? DateFormat.yMMMd().parse(_birthdayController.text)
-              : null,
-          latitude: double.parse(_latitudeController.text),
-          longitude: double.parse(_longitudeController.text),
-          phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-          email: _emailController.text.isNotEmpty ? _emailController.text : null,
-          picturePath: _picturePath,
-          notes: _notesController.document.toDelta().toJson(),
+              : null),
+          latitude: Value(double.parse(_latitudeController.text)),
+          longitude: Value(double.parse(_longitudeController.text)),
+          phone: Value(_phoneController.text.isNotEmpty ? _phoneController.text : null),
+          email: Value(_emailController.text.isNotEmpty ? _emailController.text : null),
+          picturePath: Value(_picturePath),
+          notes: Value(jsonEncode(_notesController.document.toDelta().toJson())), // Encode notes to JSON string
         );
 
         if (_isEditing) {
-          await widget.contactBox.putAt(
-            widget.contactBox.values.toList().indexWhere((c) => c.id == widget.contact!.id),
-            contact,
-          );
-          widget.onContactUpdated?.call(contact);
+          await _database.updateContact(contactCompanion); // Implement updateContact in database.dart
+          widget.onContactUpdated?.call(widget.contact!.copyWithCompanion(contactCompanion)); // Pass updated ContactEntry
         } else {
-          await widget.contactBox.add(contact);
-          widget.onContactAdded?.call(contact);
+          final newContact = await _database.insertContact(contactCompanion); // Implement insertContact in database.dart
+          if (newContact != null) {
+             widget.onContactAdded?.call(newContact); // Pass new ContactEntry
+          }
         }
  
-        // Save the last contact name to user preferences
-        await Hive.box('userPreferences').put('lastContact', '${contact.firstName} ${contact.lastName}');
- 
+
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_isEditing ? 'Contact updated' : 'Contact added')),
@@ -290,6 +305,42 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving contact: $e')),
+        );
+      }
+    }
+  }
+
+  void _onDeleteContact(BuildContext context, ContactEntry contact) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: Text('Are you sure you want to delete ${contact.firstName} ${contact.lastName}?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await _database.deleteContact(contact.id);
+        Navigator.pop(context); // Pop AddEditContactPage
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Contact deleted')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting contact: $e')),
         );
       }
     }
@@ -307,9 +358,9 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+               color: Theme.of(context).colorScheme.onSurface,
+               fontWeight: FontWeight.bold,
+             ),
         centerTitle: true,
         actions: _isEditing
             ? (_isReadOnly
@@ -334,13 +385,13 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        if (widget.contact != null && widget.contactIndex != null) {
-                          widget.onDeleteContact?.call(context, widget.contact!, widget.contactIndex!);
+                        if (widget.contact != null) {
+                          _onDeleteContact(context, widget.contact!);
                         }
                       },
                       tooltip: 'Delete Contact',
                     ),
-                  ])
+                   ])
             : null,
       ),
       body: Padding(
@@ -354,7 +405,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                 // Picture
                 Row(
                   children: [
-                    _picturePath != null
+                    _picturePath != null && File(_picturePath!).existsSync() // Check if file exists
                         ? CircleAvatar(
                             backgroundImage: FileImage(File(_picturePath!)),
                             radius: 40,

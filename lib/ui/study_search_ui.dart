@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:by_faith_app/database/database.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'study_page_ui.dart';
 
 class BibleSearchDelegate extends SearchDelegate {
@@ -95,8 +96,9 @@ class BibleSearchDelegate extends SearchDelegate {
     dictionaryResults.clear();
     _lastQuery = query;
 
+    final AppDatabase database = AppDatabase(AppDatabase.openConnection());
     // Save the last search query to user preferences for the dashboard
-    Hive.box('userPreferences').put('lastSearch', query);
+    await database.updateLastSearch(query);
 
     final lowerQuery = query.toLowerCase();
 
@@ -121,15 +123,15 @@ class BibleSearchDelegate extends SearchDelegate {
       debugPrint('Error loading Webster\'s dictionary: $e');
     }
 
-    // Perform Bible search
-    final List<Map<String, dynamic>> allResults = bibleData
-        .where((verse) =>
-            verse['text'].toString().toLowerCase().contains(lowerQuery))
+    // Perform Bible search using Drift
+    final List<VerseDataEntry> allVerseData = await database.searchVerses(lowerQuery);
+
+    final List<Map<String, dynamic>> allResults = allVerseData
         .map<Map<String, dynamic>>((verse) => {
-              'book': verse['book_name'],
-              'chapter': verse['chapter'],
-              'verse': verse['verse'],
-              'text': verse['text'],
+              'book': verse.bookName,
+              'chapter': verse.chapter,
+              'verse': verse.verse,
+              'text': verse.verseTextContent,
             })
         .toList();
 

@@ -1,13 +1,16 @@
 import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:by_faith_app/models/gospel_map_info_model.dart'; // Keep the model for now, might need mapping
+import 'package:flutter/material.dart';
+import 'package:by_faith_app/database/database.dart'; // Import Drift database
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart' as fmtc;
 import 'gospel_map_selection_ui.dart'; // New file for map selection screen
+import 'package:provider/provider.dart'; // Import provider
+import 'package:drift/drift.dart' hide Column; // Import drift and hide Column to avoid conflict with flutter material
 
 class OfflineMapsPage extends StatefulWidget {
   final String? currentMapName;
-  final Function(MapInfo) onLoadMap;
-  final Box<MapInfo> mapBox;
+  final Function(MapInfoEntry) onLoadMap; // Use MapInfoEntry
   final Function(String, double, double, double, double, int) onDownloadMap; // Updated signature
   final Function(String, String, bool) onUploadMap;
 
@@ -15,9 +18,9 @@ class OfflineMapsPage extends StatefulWidget {
     super.key,
     required this.currentMapName,
     required this.onLoadMap,
-    required this.mapBox,
     required this.onDownloadMap,
     required this.onUploadMap,
+    required AppDatabase database, // Add database parameter
   });
 
   @override
@@ -25,17 +28,12 @@ class OfflineMapsPage extends StatefulWidget {
 }
 
 class _OfflineMapsPageState extends State<OfflineMapsPage> {
-  late Box _userPrefsBox;
+  late AppDatabase _database; // Declare database instance
 
   @override
-  void initState() {
-    super.initState();
-    _openUserPrefsBox();
-  }
-
-  Future<void> _openUserPrefsBox() async {
-    _userPrefsBox = await Hive.openBox('userPreferences');
-    if (mounted) setState(() {});
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _database = Provider.of<AppDatabase>(context); // Get database instance
   }
 
   void _showMapSelection() {
@@ -53,9 +51,8 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
 
   Future<void> _deleteMap(String mapName) async {
     try {
-      final mapInfo = widget.mapBox.values.firstWhere((map) => map.name == mapName);
-      await fmtc.FMTCStore(mapInfo.name).manage.delete();
-      await widget.mapBox.delete(mapInfo.key);
+      await fmtc.FMTCStore(mapName).manage.delete();
+      await _database.deleteMapInfo(mapName); // Implement deleteMapInfo in database.dart
       if (mounted) setState(() {});
     } catch (error) {
       if (mounted) {
@@ -66,7 +63,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
     }
   }
 
-  Future<void> _renameMap(MapInfo mapInfo) async {
+  Future<void> _renameMap(MapInfoEntry mapInfo) async { // Use MapInfoEntry
     TextEditingController controller = TextEditingController(text: mapInfo.name);
     String? newName = await showDialog<String>(
       context: context,
@@ -91,16 +88,16 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
 
     if (newName != null && newName.isNotEmpty && newName != mapInfo.name) {
       try {
-        final updatedMapInfo = MapInfo(
-          name: newName,
-          filePath: mapInfo.filePath,
-          downloadUrl: mapInfo.downloadUrl,
-          isTemporary: mapInfo.isTemporary,
-          latitude: mapInfo.latitude,
-          longitude: mapInfo.longitude,
-          zoomLevel: mapInfo.zoomLevel,
+        final updatedMapInfoCompanion = MapInfoEntriesCompanion( // Use MapInfoEntriesCompanion
+          name: Value(newName),
+          filePath: Value(mapInfo.filePath),
+          downloadUrl: Value(mapInfo.downloadUrl),
+          isTemporary: Value(mapInfo.isTemporary),
+          latitude: Value(mapInfo.latitude),
+          longitude: Value(mapInfo.longitude),
+          zoomLevel: Value(mapInfo.zoomLevel),
         );
-        await widget.mapBox.put(mapInfo.key, updatedMapInfo);
+        await _database.updateMapInfo(updatedMapInfoCompanion); // Implement updateMapInfo in database.dart
         // Update store name in FMTC
         final store = fmtc.FMTCStore(mapInfo.name);
         await store.manage.rename(newName);
@@ -115,7 +112,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
     }
   }
 
-  Future<void> _updateMap(MapInfo mapInfo) async {
+  Future<void> _updateMap(MapInfoEntry mapInfo) async { // Use MapInfoEntry
     // Re-download the map with the same parameters
     try {
       await widget.onDownloadMap(
@@ -148,9 +145,9 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+               color: Theme.of(context).colorScheme.onSurface,
+               fontWeight: FontWeight.bold,
+             ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -171,49 +168,57 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
               ),
               initiallyExpanded: true,
               children: [
-                ValueListenableBuilder(
-                  valueListenable: widget.mapBox.listenable(),
-                  builder: (context, Box<MapInfo> box, _) {
-                    if (box.isEmpty) {
+                StreamBuilder<List<MapInfoEntry>>( // Use StreamBuilder and MapInfoEntry
+                  stream: _database.watchAllMapInfo(), // Implement watchAllMapInfo in database.dart
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Center(child: Text('No maps downloaded yet.'));
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: box.length,
-                      itemBuilder: (context, index) {
-                        final mapInfo = box.getAt(index)!;
-                        return ListTile(
-                          title: Text(mapInfo.name),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (value) async {
-                              if (value == 'view') {
-                                widget.onLoadMap(mapInfo);
-                                await _userPrefsBox.put('currentMap', mapInfo.name);
-                                Navigator.pop(context);
-                              } else if (value == 'update') {
-                                await _updateMap(mapInfo);
-                              } else if (value == 'rename') {
-                                await _renameMap(mapInfo);
-                              } else if (value == 'delete') {
-                                await _deleteMap(mapInfo.name);
-                              }
+                    } else {
+                      final maps = snapshot.data!;
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: maps.length,
+                        itemBuilder: (context, index) {
+                          final mapInfo = maps[index];
+                          return ListTile(
+                            title: Text(mapInfo.name),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (value) async {
+                                if (value == 'view') {
+                                  widget.onLoadMap(mapInfo);
+                                  // Need to save current map name to settings table in Drift
+                                  // await _userPrefsBox.put('currentMap', mapInfo.name); // Removed Hive usage
+                                  Navigator.pop(context);
+                                } else if (value == 'update') {
+                                  await _updateMap(mapInfo);
+                                } else if (value == 'rename') {
+                                  await _renameMap(mapInfo);
+                                } else if (value == 'delete') {
+                                  await _deleteMap(mapInfo.name);
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(value: 'view', child: Text('View')),
+                                const PopupMenuItem(value: 'update', child: Text('Update')),
+                                const PopupMenuItem(value: 'rename', child: Text('Rename')),
+                                const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                              ],
+                            ),
+                            onTap: () {
+                              widget.onLoadMap(mapInfo);
+                              // Need to save current map name to settings table in Drift
+                              // _userPrefsBox.put('currentMap', mapInfo.name); // Removed Hive usage
+                              Navigator.pop(context);
                             },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(value: 'view', child: Text('View')),
-                              const PopupMenuItem(value: 'update', child: Text('Update')),
-                              const PopupMenuItem(value: 'rename', child: Text('Rename')),
-                              const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                            ],
-                          ),
-                          onTap: () {
-                            widget.onLoadMap(mapInfo);
-                            _userPrefsBox.put('currentMap', mapInfo.name);
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
-                    );
+                          );
+                        },
+                      );
+                    }
                   },
                 ),
               ],

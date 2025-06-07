@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:share_plus/share_plus.dart'; // Import share_plus
+import 'package:by_faith_app/database/database.dart'; // Import AppDatabase
 import '../models/pray_model.dart';
 import '../providers/theme_notifier.dart';
-import 'dart:convert';
 
 class PrayShareUi extends StatefulWidget {
   const PrayShareUi({Key? key}) : super(key: key);
@@ -16,6 +16,14 @@ class PrayShareUi extends StatefulWidget {
 }
 
 class _PrayShareUiState extends State<PrayShareUi> {
+  late AppDatabase _database;
+
+  @override
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _database = Provider.of<AppDatabase>(context);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,8 +79,7 @@ class _PrayShareUiState extends State<PrayShareUi> {
   Future<void> _sharePrayer(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
-      final prayersBox = await Prayer.openBox();
-      final allPrayers = prayersBox.values.toList();
+      final allPrayers = await _database.select(_database.prayers).get();
 
       if (allPrayers.isEmpty) {
         scaffoldMessenger.showSnackBar(
@@ -84,7 +91,8 @@ class _PrayShareUiState extends State<PrayShareUi> {
       final List<Prayer> selectedPrayers = await showDialog(
         context: context,
         builder: (BuildContext dialogContext) {
-          return _PrayerSelectionDialog(prayers: allPrayers);
+          return _PrayerSelectionDialog(
+              prayers: allPrayers.map((e) => Prayer.fromPrayerEntry(e)).toList());
         },
       );
 

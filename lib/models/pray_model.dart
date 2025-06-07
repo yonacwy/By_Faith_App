@@ -1,19 +1,10 @@
-import 'package:hive/hive.dart';
+import 'package:drift/drift.dart'; // Import the generated Drift database file
+import '../database/database.dart'; // Import the generated Drift database file
 
-part 'pray_model.g.dart';
-
-@HiveType(typeId: 3)
-class Prayer extends HiveObject {
-  @HiveField(0)
+class Prayer {
   String id;
-
-  @HiveField(1)
   String richTextJson; // Store Quill Delta as JSON
-
-  @HiveField(2)
   String status;
-
-  @HiveField(3)
   DateTime timestamp;
 
   Prayer({
@@ -23,6 +14,27 @@ class Prayer extends HiveObject {
     String? id,
   }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
+  // Factory constructor to create a Prayer from a PrayerEntry
+  factory Prayer.fromPrayerEntry(PrayerEntry entry) {
+    return Prayer(
+      id: entry.id,
+      richTextJson: entry.richTextJson,
+      status: entry.status,
+      timestamp: entry.timestamp,
+    );
+  }
+
+  // Method to convert a Prayer to a PrayersCompanion for insertion/update
+  PrayersCompanion toPrayersCompanion() {
+    return PrayersCompanion(
+      id: Value(id),
+      richTextJson: Value(richTextJson),
+      status: Value(status),
+      timestamp: Value(timestamp),
+    );
+  }
+
+  // Existing methods (fromJson, toJson) can be kept if still needed elsewhere
   factory Prayer.fromJson(Map<String, dynamic> json) {
     return Prayer(
       id: json['id'],
@@ -39,9 +51,5 @@ class Prayer extends HiveObject {
       'status': status,
       'timestamp': timestamp.toIso8601String(),
     };
-  }
-
-  static Future<Box<Prayer>> openBox() async {
-    return await Hive.openBox<Prayer>('prayers');
   }
 }

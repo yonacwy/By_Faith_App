@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 import 'read_settings_ui.dart';
 import 'read_bookmarks_ui.dart';
 import 'read_favorites_ui.dart';
 import '../models/read_data_model.dart';
+import '../database/database.dart';
+import 'package:by_faith_app/database/database_provider.dart'; // Import DatabaseProvider
+import 'package:drift/drift.dart' hide Column;
 
 class ReadPageUi extends StatefulWidget {
   final String? initialBook;
@@ -33,7 +35,6 @@ class _ReadPageUiState extends State<ReadPageUi> {
   List<dynamic> bibleData = [];
   String chapterText = "";
   bool isLoading = true;
-  late Box userPrefsBox;
   String selectedFont = 'Roboto';
   double selectedFontSize = 16.0;
   bool _isAutoScrollingEnabled = false;
@@ -60,29 +61,27 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _loadSavedSelection() async {
-    userPrefsBox = await Hive.openBox('userPreferences');
+    final database = DatabaseProvider.instance;
+    final userPreferences = await database.getSettings();
     setState(() {
-      selectedBook = widget.initialBook ?? userPrefsBox.get('lastSelectedBook') ?? "Genesis";
-      selectedChapter = widget.initialChapter ?? userPrefsBox.get('lastSelectedChapter') ?? 1;
-      selectedFont = userPrefsBox.get('selectedFont') ?? 'Roboto';
-      selectedFontSize = userPrefsBox.get('selectedFontSize') ?? 16.0;
-      _isAutoScrollingEnabled = userPrefsBox.get('isAutoScrollingEnabled') ?? false;
-      _autoScrollMode = userPrefsBox.get('autoScrollMode') ?? 'Normal';
+      selectedBook = widget.initialBook ?? userPreferences?.lastSelectedBook ?? "Genesis";
+      selectedChapter = widget.initialChapter ?? userPreferences?.lastSelectedChapter ?? 1;
+      selectedFont = userPreferences?.selectedFont ?? 'Roboto';
+      selectedFontSize = userPreferences?.selectedFontSize ?? 16.0;
+      _isAutoScrollingEnabled = userPreferences?.isAutoScrollingEnabled ?? false;
+      _autoScrollMode = userPreferences?.autoScrollMode ?? 'Normal';
     });
     loadData();
   }
 
   Future<void> _saveSelection() async {
-    if (selectedBook != null) {
-      await userPrefsBox.put('lastSelectedBook', selectedBook!);
-    }
-    if (selectedChapter != null) {
-      await userPrefsBox.put('lastSelectedChapter', selectedChapter!);
-    }
-    await userPrefsBox.put('selectedFont', selectedFont);
-    await userPrefsBox.put('selectedFontSize', selectedFontSize);
-    await userPrefsBox.put('isAutoScrollingEnabled', _isAutoScrollingEnabled);
-    await userPrefsBox.put('autoScrollMode', _autoScrollMode);
+    final database = DatabaseProvider.instance;
+    await database.updateSelectedStudyBook(selectedBook);
+    await database.updateSelectedStudyChapter(selectedChapter);
+    await database.updateSelectedStudyFont(selectedFont);
+    await database.updateSelectedStudyFontSize(selectedFontSize);
+    await database.updateIsAutoScrollingEnabled(_isAutoScrollingEnabled);
+    await database.updateAutoScrollMode(_autoScrollMode);
   }
 
   Future<void> loadData() async {
@@ -349,18 +348,24 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _addVerseToBookmarks(VerseData verseData) async {
-    final bookmarksBox = await Hive.openBox<Bookmark>('bookmarks');
-    final newBookmark = Bookmark(verseData: verseData, timestamp: DateTime.now());
+    final database = DatabaseProvider.instance;
+    final newBookmark = BookmarkEntry(
+      verseBook: verseData.book,
+      verseChapter: verseData.chapter,
+      verseVerse: verseData.verse,
+      timestamp: DateTime.now(),
+    );
 
-    bool exists = bookmarksBox.values.any((bookmark) =>
-        bookmark.verseData.book == verseData.book &&
-        bookmark.verseData.chapter == verseData.chapter &&
-        bookmark.verseData.verse == verseData.verse);
+    final exists = await database.bookmarkExists(
+      verseData.book,
+      verseData.chapter,
+      verseData.verse,
+    );
 
     if (!exists) {
-      await bookmarksBox.add(newBookmark);
+      await database.insertBookmark(newBookmark);
       final lastBookmarkValue = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
-      await userPrefsBox.put('lastBookmark', lastBookmarkValue);
+      await database.updateLastBookmark(lastBookmarkValue);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Bookmarks!')),
       );
@@ -372,17 +377,23 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _addVerseToFavorites(VerseData verseData) async {
-    final favoritesBox = await Hive.openBox<Favorite>('favorites');
-    final newFavorite = Favorite(verseData: verseData, timestamp: DateTime.now());
+    final database = DatabaseProvider.instance;
+    final newFavorite = FavoriteEntry(
+      verseBook: verseData.book,
+      verseChapter: verseData.chapter,
+      verseVerse: verseData.verse,
+      timestamp: DateTime.now(),
+    );
 
-    bool exists = favoritesBox.values.any((favorite) =>
-        favorite.verseData.book == verseData.book &&
-        favorite.verseData.chapter == verseData.chapter &&
-        favorite.verseData.verse == verseData.verse);
+    final exists = await database.favoriteExists(
+      verseData.book,
+      verseData.chapter,
+      verseData.verse,
+    );
 
     if (!exists) {
-      await favoritesBox.add(newFavorite);
-      await userPrefsBox.put('lastFavorite', '${verseData.book} ${verseData.chapter}:${verseData.verse}');
+      await database.insertFavorite(newFavorite.toCompanion(true));
+      await database.updateLastFavorite('${verseData.book} ${verseData.chapter}:${verseData.verse}');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Verse added to Favorites!')),
       );

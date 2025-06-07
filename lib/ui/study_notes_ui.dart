@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:drift/drift.dart' hide Column;
+import 'package:by_faith_app/database/database.dart';
+import 'package:uuid/uuid.dart';
 import 'study_page_ui.dart';
+import 'package:by_faith_app/database/database_provider.dart'; // Import DatabaseProvider
 
 class StudyNotesPageUi extends StatefulWidget {
   const StudyNotesPageUi({Key? key}) : super(key: key);
@@ -12,148 +15,89 @@ class StudyNotesPageUi extends StatefulWidget {
 }
 
 class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
-  late Box bibleNotesBox;
-  late Box personalNotesBox;
-  late Box studyNotesBox;
-  List<Map<String, dynamic>> bibleNotes = [];
-  List<String> personalNotes = [];
-  List<String> studyNotes = [];
+  late final AppDatabase _database;
+  List<BibleNoteEntry> bibleNotes = [];
+  List<PersonalNoteEntry> personalNotes = [];
+  List<StudyNoteEntry> studyNotes = [];
   String _expandedCategory = 'Study Notes';
 
   @override
   void initState() {
     super.initState();
-    _initNotesBoxes();
-  }
-
-  Future<void> _initNotesBoxes() async {
-    bibleNotesBox = await Hive.openBox('bibleNotes');
-    personalNotesBox = await Hive.openBox('personalNotes');
-    studyNotesBox = await Hive.openBox('studyNotes');
-    await Hive.openBox('userPreferences');
+    _database = DatabaseProvider.instance; // Use the singleton instance
     _loadNotes();
   }
 
   void _loadNotes() {
-    setState(() {
-      bibleNotes = bibleNotesBox.values
-          .where((value) => value is String)
-          .cast<String>()
-          .map((value) {
-            try {
-              final decoded = jsonDecode(value);
-              if (decoded is Map<String, dynamic> &&
-                  decoded.containsKey('verse') &&
-                  decoded.containsKey('verseText') &&
-                  decoded.containsKey('note')) {
-                return decoded;
-              }
-            } catch (e) {
-              print('Error decoding Bible note: $e');
-            }
-            return null;
-          })
-          .where((note) => note != null)
-          .cast<Map<String, dynamic>>()
-          .toList();
-
-      personalNotes = personalNotesBox.values
-          .where((value) => value is String)
-          .cast<String>()
-          .map((value) {
-            try {
-              final decoded = jsonDecode(value);
-              if (decoded is List) {
-                return value;
-              }
-            } catch (e) {
-              print('Error decoding Personal note: $e');
-            }
-            return null;
-          })
-          .where((note) => note != null)
-          .cast<String>()
-          .toList();
-
-      studyNotes = studyNotesBox.values
-          .where((value) => value is String)
-          .cast<String>()
-          .map((value) {
-            try {
-              final decoded = jsonDecode(value);
-              if (decoded is List) {
-                return value;
-              }
-            } catch (e) {
-              print('Error decoding Study note: $e');
-            }
-            return null;
-          })
-          .where((note) => note != null)
-          .cast<String>()
-          .toList();
+    _database.watchAllBibleNotes().listen((notes) {
+      setState(() {
+        bibleNotes = notes;
+      });
+    });
+    _database.watchAllPersonalNotes().listen((notes) {
+      setState(() {
+        personalNotes = notes;
+      });
+    });
+    _database.watchAllStudyNotes().listen((notes) {
+      setState(() {
+        studyNotes = notes;
+      });
     });
   }
 
-  void _deleteNote(int index, String category) {
+  Future<void> _deleteNote(dynamic noteEntry, String category) async {
     switch (category) {
       case 'Bible Notes':
-        bibleNotesBox.deleteAt(index);
+        if (noteEntry is BibleNoteEntry) {
+          await _database.deleteBibleNote(noteEntry.verse);
+        }
         break;
       case 'Personal Notes':
-        personalNotesBox.deleteAt(index);
+        if (noteEntry is PersonalNoteEntry) {
+          await _database.deletePersonalNote(noteEntry.id);
+        }
         break;
       case 'Study Notes':
-        studyNotesBox.deleteAt(index);
+        if (noteEntry is StudyNoteEntry) {
+          await _database.deleteStudyNote(noteEntry.id);
+        }
         break;
     }
-    // Delete specific last note based on category
-    String preferenceKey;
-    switch (category) {
-      case 'Bible Notes':
-        preferenceKey = 'lastBibleNote';
-        break;
-      case 'Personal Notes':
-        preferenceKey = 'lastPersonalNote';
-        break;
-      case 'Study Notes':
-        preferenceKey = 'lastStudyNote';
-        break;
-      default:
-        preferenceKey = 'lastNote'; // Fallback
-    }
-    Hive.box('userPreferences').delete(preferenceKey);
-    _loadNotes();
+    await _updateLastNotePreference(category, null);
   }
 
-  void _editNote(int index, quill.Document document, String category, {Map<String, dynamic>? bibleNoteData}) {
+  Future<void> _editNote(dynamic noteEntry, quill.Document document, String category, {Map<String, dynamic>? bibleNoteData}) async {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AddNotePage(
           initialDocument: document,
-          onSave: (noteJson, selectedCategory) {
+          onSave: (noteJson, selectedCategory) async {
             if (noteJson.isNotEmpty) {
-              if (category == 'Bible Notes' && bibleNoteData != null) {
-                final updatedData = {
-                  'verse': bibleNoteData['verse'],
-                  'verseText': bibleNoteData['verseText'],
-                  'note': noteJson,
-                };
-                bibleNotesBox.putAt(index, jsonEncode(updatedData));
-              } else {
-                switch (category) {
-                  case 'Personal Notes':
-                    personalNotesBox.putAt(index, noteJson);
-                    break;
-                  case 'Study Notes':
-                    studyNotesBox.putAt(index, noteJson);
-                    break;
-                }
+              if (selectedCategory == 'Bible Notes' && noteEntry is BibleNoteEntry) {
+                final updatedData = BibleNotesCompanion(
+                  verse: Value(noteEntry.verse),
+                  verseText: Value(noteEntry.verseText),
+                  note: Value(noteJson),
+                );
+                await _database.updateBibleNote(updatedData);
+              } else if (selectedCategory == 'Personal Notes' && noteEntry is PersonalNoteEntry) {
+                final updatedData = PersonalNotesCompanion(
+                  id: Value(noteEntry.id),
+                  note: Value(noteJson),
+                );
+                await _database.updatePersonalNote(updatedData);
+              } else if (selectedCategory == 'Study Notes' && noteEntry is StudyNoteEntry) {
+                final updatedData = StudyNotesCompanion(
+                  id: Value(noteEntry.id),
+                  note: Value(noteJson),
+                );
+                await _database.updateStudyNote(updatedData);
               }
-              _loadNotes();
+              await _updateLastNotePreference(selectedCategory, noteJson);
             } else {
-              print('Attempted to save an empty note in $category');
+              print('Attempted to save an empty note in $selectedCategory');
             }
           },
           category: category,
@@ -161,6 +105,42 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
         ),
       ),
     );
+  }
+
+  Future<void> _updateLastNotePreference(String category, String? noteJson) async {
+    String? lastNoteText;
+    if (noteJson != null) {
+      try {
+        if (category == 'Bible Notes') {
+          final decodedBibleNote = jsonDecode(noteJson);
+          if (decodedBibleNote is Map<String, dynamic> &&
+              decodedBibleNote.containsKey('note')) {
+            final bibleNoteDeltaJson = decodedBibleNote['note'] as String;
+            lastNoteText = quill.Document.fromJson(jsonDecode(bibleNoteDeltaJson))
+                .toPlainText()
+                .trim();
+          }
+        } else {
+          lastNoteText = quill.Document.fromJson(jsonDecode(noteJson))
+              .toPlainText()
+              .trim();
+        }
+      } catch (e) {
+        print('Error decoding note for dashboard: $e');
+      }
+    }
+
+    switch (category) {
+      case 'Bible Notes':
+        await _database.updateLastBibleNote(lastNoteText);
+        break;
+      case 'Personal Notes':
+        await _database.updateLastPersonalNote(lastNoteText);
+        break;
+      case 'Study Notes':
+        await _database.updateLastStudyNote(lastNoteText);
+        break;
+    }
   }
 
   @override
@@ -187,54 +167,40 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => AddNotePage(
-                    onSave: (noteJson, category) {
-                      switch (category) {
-                        case 'Bible Notes':
-                          bibleNotesBox.add(noteJson);
-                          break;
-                        case 'Personal Notes':
-                          personalNotesBox.add(noteJson);
-                          break;
-                        case 'Study Notes':
-                          studyNotesBox.add(noteJson);
-                          break;
-                      }
-                      String lastNoteText = '';
-                      try {
-                        if (category == 'Bible Notes') {
-                          final decodedBibleNote = jsonDecode(noteJson);
-                          if (decodedBibleNote is Map<String, dynamic> &&
-                              decodedBibleNote.containsKey('note')) {
-                            final bibleNoteDeltaJson = decodedBibleNote['note'] as String;
-                            lastNoteText = quill.Document.fromJson(jsonDecode(bibleNoteDeltaJson))
-                                .toPlainText()
-                                .trim();
-                          }
-                        } else {
-                          lastNoteText = quill.Document.fromJson(jsonDecode(noteJson))
-                              .toPlainText()
-                              .trim();
+                    onSave: (noteJson, category) async {
+                      if (noteJson.isNotEmpty) {
+                        final uuid = const Uuid().v4();
+                        switch (category) {
+                          case 'Bible Notes':
+                            final decoded = jsonDecode(noteJson);
+                            if (decoded is Map<String, dynamic> &&
+                                decoded.containsKey('verse') &&
+                                decoded.containsKey('verseText') &&
+                                decoded.containsKey('note')) {
+                              await _database.insertBibleNote(BibleNotesCompanion(
+                                verse: Value(decoded['verse']),
+                                verseText: Value(decoded['verseText']),
+                                note: Value(decoded['note']),
+                              ));
+                            }
+                            break;
+                          case 'Personal Notes':
+                            await _database.insertPersonalNote(PersonalNotesCompanion(
+                              id: Value(uuid),
+                              note: Value(noteJson),
+                            ));
+                            break;
+                          case 'Study Notes':
+                            await _database.insertStudyNote(StudyNotesCompanion(
+                              id: Value(uuid),
+                              note: Value(noteJson),
+                            ));
+                            break;
                         }
-                      } catch (e) {
-                        print('Error decoding note for dashboard: $e');
+                        await _updateLastNotePreference(category, noteJson);
+                      } else {
+                        print('Attempted to save an empty note in $category');
                       }
-                      String preferenceKey;
-                      switch (category) {
-                        case 'Bible Notes':
-                          preferenceKey = 'lastBibleNote';
-                          break;
-                        case 'Personal Notes':
-                          preferenceKey = 'lastPersonalNote';
-                          break;
-                        case 'Study Notes':
-                          preferenceKey = 'lastStudyNote';
-                          break;
-                        default:
-                          preferenceKey = 'lastNote'; // Fallback
-                      }
-                      print('[_AddNotePageState] Saving $preferenceKey for category $category: $lastNoteText');
-                      Hive.box('userPreferences').put(preferenceKey, lastNoteText);
-                      _loadNotes();
                     },
                     category: 'Study Notes',
                     availableCategories: const ['Bible Notes', 'Personal Notes', 'Study Notes'],
@@ -286,11 +252,11 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
             ]
           : notes.asMap().entries.map<Widget>((entry) {
               final index = entry.key;
-              final noteData = entry.value;
+              final noteEntry = entry.value;
               if (isBibleNotes) {
-                final verse = noteData['verse'] as String;
-                final verseText = noteData['verseText'] as String;
-                final noteJson = noteData['note'] as String;
+                final verse = noteEntry.verse as String;
+                final verseText = noteEntry.verseText as String;
+                final noteJson = noteEntry.note as String;
 
                 try {
                   final document = quill.Document.fromJson(jsonDecode(noteJson));
@@ -356,7 +322,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                                   Icons.edit,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
-                                onPressed: () => _editNote(index, document, category, bibleNoteData: noteData),
+                                onPressed: () => _editNote(noteEntry, document, category, bibleNoteData: noteEntry.toJson()),
                                 tooltip: 'Edit Note',
                               ),
                               IconButton(
@@ -364,7 +330,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                                   Icons.delete,
                                   color: Theme.of(context).colorScheme.error,
                                 ),
-                                onPressed: () => _deleteNote(index, category),
+                                onPressed: () => _deleteNote(noteEntry, category),
                                 tooltip: 'Delete Note',
                               ),
                             ],
@@ -418,7 +384,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                             Icons.delete,
                             color: Theme.of(context).colorScheme.error,
                           ),
-                          onPressed: () => _deleteNote(index, category),
+                          onPressed: () => _deleteNote(noteEntry, category),
                           tooltip: 'Delete Corrupted Note',
                         ),
                       ],
@@ -426,7 +392,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                   );
                 }
               } else {
-                final noteJson = noteData as String;
+                final noteJson = noteEntry.note as String;
                 try {
                   final document = quill.Document.fromJson(jsonDecode(noteJson));
                   final noteController = quill.QuillController(
@@ -461,7 +427,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                               Icons.edit,
                               color: Theme.of(context).colorScheme.primary,
                             ),
-                            onPressed: () => _editNote(index, document, category),
+                            onPressed: () => _editNote(noteEntry, document, category),
                             tooltip: 'Edit Note',
                           ),
                           IconButton(
@@ -469,7 +435,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                               Icons.delete,
                               color: Theme.of(context).colorScheme.error,
                             ),
-                            onPressed: () => _deleteNote(index, category),
+                            onPressed: () => _deleteNote(noteEntry, category),
                             tooltip: 'Delete Note',
                           ),
                         ],
@@ -487,7 +453,7 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                           Icons.delete,
                           color: Theme.of(context).colorScheme.error,
                         ),
-                        onPressed: () => _deleteNote(index, category),
+                        onPressed: () => _deleteNote(noteEntry, category),
                         tooltip: 'Delete Corrupted Note',
                       ),
                     ),

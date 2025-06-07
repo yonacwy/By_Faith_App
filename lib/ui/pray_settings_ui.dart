@@ -1,12 +1,12 @@
+import 'dart:io' as io;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:provider/provider.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:by_faith_app/database/database.dart'; // Import AppDatabase
 import '../models/pray_model.dart';
 import '../providers/theme_notifier.dart';
 
@@ -18,6 +18,14 @@ class PraySettingsUi extends StatefulWidget {
 }
 
 class _PraySettingsUiState extends State<PraySettingsUi> {
+  late AppDatabase _database;
+
+  @override
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _database = Provider.of<AppDatabase>(context);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,8 +128,9 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
          return;
        }
 
-       final prayersBox = await Prayer.openBox();
-       final unansweredPrayers = prayersBox.values.where((p) => p.status == 'unanswered').toList();
+       final unansweredPrayers = await (_database.select(_database.prayers)
+           ..where((p) => p.status.equals('unanswered')))
+           .get();
 
        if (unansweredPrayers.isEmpty) {
          scaffoldMessenger.showSnackBar(
@@ -133,7 +142,8 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
        final List<Prayer> selectedPrayers = await showDialog(
          context: context,
          builder: (BuildContext dialogContext) {
-           return _PrayerSelectionDialog(prayers: unansweredPrayers);
+           return _PrayerSelectionDialog(
+               prayers: unansweredPrayers.map((e) => Prayer.fromPrayerEntry(e)).toList());
          },
        );
 
@@ -160,7 +170,7 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
          return;
        }
 
-       final file = File(outputFile);
+       final file = io.File(outputFile);
        await file.writeAsBytes(utf8.encode(jsonString));
 
        scaffoldMessenger.showSnackBar(
@@ -183,16 +193,19 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
        );
 
        if (result != null && result.files.single.path != null) {
-         final file = File(result.files.single.path!);
+         final file = io.File(result.files.single.path!);
          final String contents = await file.readAsString();
          final List<dynamic> jsonList = jsonDecode(contents);
          final List<Prayer> importedPrayers = jsonList.map((json) => Prayer.fromJson(json)).toList();
 
-         final prayersBox = await Prayer.openBox();
          for (var prayer in importedPrayers) {
            // Ensure imported prayers are marked as 'unanswered'
-           prayer.status = 'unanswered';
-           await prayersBox.put(prayer.key, prayer);
+           await _database.into(_database.prayers).insert(PrayersCompanion.insert(
+              id: prayer.id,
+              richTextJson: prayer.richTextJson,
+              status: 'unanswered',
+              timestamp: prayer.timestamp,
+            ));
          }
 
          scaffoldMessenger.showSnackBar(

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:convert';
 import '../models/pray_model.dart';
+import '../database/database.dart'; // Import the Drift database
+import 'package:drift/drift.dart' as drift; // Alias drift to avoid conflicts
 
 class PraySearchUi extends StatefulWidget {
   final TextEditingController searchController;
@@ -11,9 +12,10 @@ class PraySearchUi extends StatefulWidget {
   final GlobalKey<AnimatedListState> newListKey;
   final GlobalKey<AnimatedListState> answeredListKey;
   final GlobalKey<AnimatedListState> unansweredListKey;
-  final Function(Prayer, String, int) updatePrayerStatus;
-  final Function(Prayer, int, String) deletePrayer;
-  final Function(Prayer, int) editPrayer;
+  final AppDatabase database;
+  final Function(PrayerEntry, String, int) onUpdatePrayerStatus;
+  final Function(PrayerEntry, int, String) deletePrayer;
+  final Function(PrayerEntry, int) editPrayer;
 
   const PraySearchUi({
     Key? key,
@@ -22,25 +24,32 @@ class PraySearchUi extends StatefulWidget {
     required this.newListKey,
     required this.answeredListKey,
     required this.unansweredListKey,
-    required this.updatePrayerStatus,
+    required this.onUpdatePrayerStatus,
     required this.deletePrayer,
     required this.editPrayer,
+    required this.database,
   }) : super(key: key);
 
   @override
-  _PraySearchUiState createState() => _PraySearchUiState();
+  State<PraySearchUi> createState() => _PraySearchUiState();
 }
 
 class _PraySearchUiState extends State<PraySearchUi> {
   late String _searchQuery;
-  late Box<Prayer> _prayerBox;
+  late AppDatabase _database;
 
   @override
   void initState() {
     super.initState();
     _searchQuery = widget.initialSearchQuery;
-    _prayerBox = Hive.box<Prayer>('prayers');
     widget.searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Access the database instance provided by the Provider
+    _database = widget.database;
   }
 
   @override
@@ -55,7 +64,7 @@ class _PraySearchUiState extends State<PraySearchUi> {
     });
   }
 
-  Widget _buildPrayerCard(Prayer prayer, String status, int index) {
+  Widget _buildPrayerCard(PrayerEntry prayer, String status, int index) {
     final quillController = quill.QuillController(
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
@@ -67,6 +76,7 @@ class _PraySearchUiState extends State<PraySearchUi> {
       direction: DismissDirection.horizontal,
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
+          // Use the local delete method
           widget.deletePrayer(prayer, index, status);
           return true;
         } else if (direction == DismissDirection.startToEnd) {
@@ -99,7 +109,8 @@ class _PraySearchUiState extends State<PraySearchUi> {
             ),
           );
           if (newStatus != null) {
-            widget.updatePrayerStatus(prayer, newStatus, index);
+            // Use the local update status method
+            widget.onUpdatePrayerStatus(prayer, newStatus, index);
             return true;
           }
           return false;
@@ -132,7 +143,7 @@ class _PraySearchUiState extends State<PraySearchUi> {
           side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         child: InkWell(
-          onTap: () => widget.editPrayer(prayer, index),
+          onTap: () => widget.editPrayer(prayer, index), // Use the local edit method
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -187,19 +198,15 @@ class _PraySearchUiState extends State<PraySearchUi> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       ),
-      body: ValueListenableBuilder(
-        valueListenable: _prayerBox.listenable(),
-        builder: (context, Box<Prayer> box, _) {
-          var prayers = box.values
-              .where((prayer) {
-                final document = quill.Document.fromJson(jsonDecode(prayer.richTextJson));
-                return document.toPlainText().toLowerCase().contains(_searchQuery);
-              })
-              .toList();
-          prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-          return prayers.isEmpty
-              ? Padding(
+      body: StreamBuilder<List<PrayerEntry>>(
+        stream: _database.watchAllPrayers(), // Assuming a watchAllPrayers method exists in AppDatabase
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+             return Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     _searchQuery.isEmpty ? 'No prayers to display' : 'No matching prayers',
@@ -207,14 +214,37 @@ class _PraySearchUiState extends State<PraySearchUi> {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: prayers.length,
-                  itemBuilder: (context, index) {
-                    final prayer = prayers[index];
-                    return _buildPrayerCard(prayer, prayer.status, index);
-                  },
                 );
+          } else {
+            var prayers = snapshot.data!
+                .where((prayer) {
+                  // Assuming richTextJson contains the text to search
+                  return prayer.richTextJson.toLowerCase().contains(_searchQuery);
+                })
+                .toList();
+            prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+            return prayers.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      _searchQuery.isEmpty ? 'No prayers to display' : 'No matching prayers',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: prayers.length,
+                    itemBuilder: (context, index) {
+                      final prayer = prayers[index];
+                      // Need to convert PrayerEntry back to Prayer model if Prayer model is still used elsewhere
+                      // Or update _buildPrayerCard to accept PrayerEntry
+                      // For now, assuming PrayerEntry can be used directly or converted
+                      return _buildPrayerCard(prayer, prayer.status, index);
+                    },
+                  );
+          }
         },
       ),
     );

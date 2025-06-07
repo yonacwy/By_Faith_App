@@ -8,9 +8,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as fm;
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart' as fmtc;
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
+import 'package:by_faith_app/database/database.dart'; // Import Drift database
+import 'package:by_faith_app/database/database_provider.dart'; // Import DatabaseProvider
+import 'package:drift/drift.dart' hide Column; // Import drift, hide Column to avoid conflict
+import 'package:flutter_map/flutter_map.dart'; // Import for MapController.onReady
 
 class GospelPageUi extends StatefulWidget {
   const GospelPageUi({super.key});
@@ -21,16 +24,14 @@ class GospelPageUi extends StatefulWidget {
 
 class _GospelPageState extends State<GospelPageUi> {
   late fm.MapController _mapController;
-  late Box<MapInfo> _mapBox;
-  late Box<Contact> _contactBox;
-  late Box _userPrefsBox;
+  final AppDatabase _database = DatabaseProvider.instance; // Use singleton database instance
   bool _isLoadingMaps = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool _isHiveInitialized = false;
   List<fm.Marker> _markers = [];
   bool _isAddingMarker = false;
   bool _isDisposed = false;
   String? _currentMapName;
+  bool _isDatabaseInitialized = false; // Moved to after _currentMapName
   int _markerUpdateKey = 0;
   String _tileProviderUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   double _currentZoom = 2.0;
@@ -41,50 +42,44 @@ class _GospelPageState extends State<GospelPageUi> {
   void initState() {
     super.initState();
     _mapController = fm.MapController();
-    _initHive().then((_) async {
+    _initDatabase().then((_) async {
       if (_isDisposed) return;
-      _isHiveInitialized = true;
-      await _openUserPrefsBox();
-      await _initTileProvider();
-      await _restoreLastMap();
-      await _setupMarkers();
-      if (mounted) {
-        setState(() {
-          _isLoadingMaps = false;
-        });
-      }
-      _contactBox.listenable().addListener(_onContactBoxChanged);
+      _isDatabaseInitialized = true;
+      // _isLoadingMaps will be set to false in the FlutterMap's onReady callback
+      await _restoreLastMap(); // Call restoreLastMap after database is initialized
     });
-  }
-
-  Future<void> _openUserPrefsBox() async {
-    _userPrefsBox = await Hive.openBox('userPreferences');
   }
 
   Future<void> _restoreLastMap() async {
     if (_isDisposed || !mounted) return;
-    final String? savedMapName = _userPrefsBox.get('currentMap');
+    // Use Drift to get the current map setting
+    final settings = await _database.getSettings();
+    final String? savedMapName = settings?.lastSelectedMapName; // Using new column for map name
+
     if (savedMapName != null) {
-      final mapInfo = _mapBox.values.firstWhere(
-        (map) => map.name == savedMapName,
-        orElse: () => MapInfo(
-          name: 'World',
-          filePath: '',
-          downloadUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          isTemporary: false,
-          latitude: 39.0, // Center on the Americas
-          longitude: -98.0,
-          zoomLevel: 2,
-        ),
-      );
-      await _loadMap(mapInfo);
+      // Use Drift to get the map info
+      final mapInfo = await _database.getMapInfoByName(savedMapName);
+      if (mapInfo != null) {
+        await _loadMap(mapInfo);
+      } else {
+         // Handle case where saved map is not found in database
+        _currentMapName = 'World';
+        _currentCenter = const LatLng(39.0, -98.0); // Center on the Americas
+        _currentZoom = 2.0;
+        await _initTileProvider(); // Load online provider
+        // The map will move to the correct center/zoom when onReady is called
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('Saved map "$savedMapName" not found. Loading online map.')),
+           );
+        }
+      }
     } else {
       _currentMapName = 'World';
       _currentCenter = const LatLng(39.0, -98.0); // Center on the Americas
       _currentZoom = 2.0;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _mapController.move(_currentCenter, _currentZoom);
-      });
+      await _initTileProvider(); // Load online provider
+      // The map will move to the correct center/zoom when onReady is called
     }
   }
 
@@ -115,26 +110,12 @@ class _GospelPageState extends State<GospelPageUi> {
     }
   }
 
-  void _onContactBoxChanged() {
-    if (!_isDisposed && mounted) {
-      _setupMarkers().then((_) {
-        if (mounted) {
-          setState(() {
-            _markerUpdateKey++;
-          });
-        }
-      });
-    }
-  }
-
-  Future<void> _initHive() async {
+  Future<void> _initDatabase() async {
     try {
-      await Hive.initFlutter();
-      _mapBox = await Hive.openBox<MapInfo>('maps');
-      _contactBox = await Hive.openBox<Contact>('contacts');
-      MapInfo? worldMapInfo = _mapBox.values.firstWhere(
-        (map) => map.name == 'World',
-        orElse: () => MapInfo(
+      // Ensure the 'World' map exists in the database
+      final worldMapInfo = await _database.getMapInfoByName('World');
+      if (worldMapInfo == null) {
+        await _database.insertMapInfo(MapInfoEntriesCompanion.insert(
           name: 'World',
           filePath: '',
           downloadUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -142,17 +123,14 @@ class _GospelPageState extends State<GospelPageUi> {
           latitude: 39.0, // Center on the Americas
           longitude: -98.0,
           zoomLevel: 2,
-        ),
-      );
-
-      if (!_mapBox.values.any((map) => map.name == 'World')) {
-        await _mapBox.add(worldMapInfo);
+        ));
       } else {
-        final key = _mapBox.keyAt(_mapBox.values.toList().indexOf(worldMapInfo));
-        worldMapInfo.latitude = 39.0; // Center on the Americas
-        worldMapInfo.longitude = -98.0;
-        worldMapInfo.zoomLevel = 2;
-        await _mapBox.put(key, worldMapInfo);
+        // Update World map info if needed (e.g., center/zoom)
+         await _database.updateMapInfo(worldMapInfo.toCompanion(false).copyWith(
+           latitude: Value(39.0),
+           longitude: Value(-98.0),
+           zoomLevel: Value(2),
+         ));
       }
     } catch (error) {
       if (mounted) {
@@ -163,21 +141,9 @@ class _GospelPageState extends State<GospelPageUi> {
     }
   }
 
-  Future<void> _setupMarkers() async {
-    if (_isDisposed || !mounted) return;
-    final List<fm.Marker> newMarkers = [];
-    for (final contact in _contactBox.values) {
-      final marker = _createMarker(contact);
-      newMarkers.add(marker);
-    }
-    if (mounted) {
-      setState(() {
-        _markers = newMarkers;
-      });
-    }
-  }
+  // Removed _setupMarkers as markers are handled by StreamBuilder
 
-  fm.Marker _createMarker(Contact contact) {
+  fm.Marker _createMarker(ContactEntry contact) {
     return fm.Marker(
       point: LatLng(contact.latitude, contact.longitude),
       child: GestureDetector(
@@ -187,7 +153,7 @@ class _GospelPageState extends State<GospelPageUi> {
             context,
             MaterialPageRoute(
               builder: (context) => gospel_contacts_ui.AddEditContactPage(
-                contactBox: _contactBox,
+                database: _database, // Pass the database instance
                 contact: contact,
                 latitude: contact.latitude,
                 longitude: contact.longitude,
@@ -201,7 +167,7 @@ class _GospelPageState extends State<GospelPageUi> {
     );
   }
 
-  Future<void> _loadMap(MapInfo mapInfo) async {
+  Future<void> _loadMap(MapInfoEntry mapInfo) async {
     if (_isDisposed || !mounted) return;
     try {
       final newCenter = LatLng(mapInfo.latitude, mapInfo.longitude);
@@ -217,9 +183,11 @@ class _GospelPageState extends State<GospelPageUi> {
           await _initTileProvider();
           _tileProviderUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
           _currentMapName = 'World';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Offline map "${mapInfo.name}" not found. Loading online map.')),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Offline map "${mapInfo.name}" not found. Loading online map.')),
+            );
+          }
         }
       } else {
         await _initTileProvider();
@@ -227,6 +195,9 @@ class _GospelPageState extends State<GospelPageUi> {
             ? mapInfo.downloadUrl
             : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
       }
+
+      // Update the current map setting in the database
+      await _database.updateCurrentMapSetting(mapInfo.name);
 
       if (mounted) {
         setState(() {
@@ -236,9 +207,7 @@ class _GospelPageState extends State<GospelPageUi> {
           _markerUpdateKey++;
         });
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _mapController.move(newCenter, newZoom);
-        });
+        // The map will move to the correct center/zoom when onReady is called
       }
     } catch (error) {
       if (mounted) {
@@ -315,7 +284,7 @@ class _GospelPageState extends State<GospelPageUi> {
       final dialogContext = await completer.future;
       await for (final progress in broadcastDownloadProgress) {}
 
-      final mapInfo = MapInfo(
+      final mapInfo = MapInfoEntriesCompanion.insert( // Use Drift companion
         name: mapName,
         filePath: mapName,
         downloadUrl: _tileProviderUrl,
@@ -324,12 +293,18 @@ class _GospelPageState extends State<GospelPageUi> {
         longitude: (southWestLng + northEastLng) / 2,
         zoomLevel: zoomLevel,
       );
-      await _mapBox.add(mapInfo);
+      await _database.insertMapInfo(mapInfo); // Use Drift insert method
 
       if (mounted && Navigator.of(dialogContext).canPop()) {
         Navigator.of(dialogContext).pop();
       }
-      await _loadMap(mapInfo);
+      // Load the newly downloaded map using the entry from the database
+      final downloadedMapEntry = await _database.getMapInfoByName(mapName);
+      if (downloadedMapEntry != null) {
+         await _loadMap(downloadedMapEntry);
+      }
+
+
     } catch (error) {
       if (completer.isCompleted) {
         final dialogContext = await completer.future;
@@ -346,7 +321,7 @@ class _GospelPageState extends State<GospelPageUi> {
   }
 
   void _showOfflineMaps() {
-    if (!_isHiveInitialized || _isDisposed || !mounted) return;
+    if (!_isDatabaseInitialized || _isDisposed || !mounted) return;
     Navigator.pop(context);
     Navigator.push(
       context,
@@ -356,7 +331,7 @@ class _GospelPageState extends State<GospelPageUi> {
           onLoadMap: (mapInfo) {
             _loadMap(mapInfo);
           },
-          mapBox: _mapBox,
+          database: _database, // Pass the database instance
           onDownloadMap: _downloadMap,
           onUploadMap: (String mapFilePath, String mapName, bool isTemporary) {},
         ),
@@ -365,23 +340,23 @@ class _GospelPageState extends State<GospelPageUi> {
   }
 
   void _showContacts() {
-    if (!_isHiveInitialized || _isDisposed || !mounted) return;
+    if (!_isDatabaseInitialized || _isDisposed || !mounted) return;
     Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => gospel_contacts_ui.ContactsPage(contactBox: _contactBox),
+        builder: (context) => gospel_contacts_ui.ContactsPage(database: _database), // Pass the database instance
       ),
     );
   }
 
   void _showProfile() {
-    if (!_isHiveInitialized || _isDisposed || !mounted) return;
+    if (!_isDatabaseInitialized || _isDisposed || !mounted) return;
     Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => gospel_profile_ui.GospelProfileUi(),
+        builder: (context) => gospel_profile_ui.GospelProfileUi(), // Assuming profile doesn't directly use the database instance here
       ),
     );
   }
@@ -391,9 +366,11 @@ class _GospelPageState extends State<GospelPageUi> {
     setState(() {
       _isAddingMarker = true;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Tap on map to place a marker')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tap on map to place a marker')),
+      );
+    }
   }
 
   void addMarker(LatLng latLng) {
@@ -402,7 +379,7 @@ class _GospelPageState extends State<GospelPageUi> {
       context,
       MaterialPageRoute(
         builder: (context) => gospel_contacts_ui.AddEditContactPage(
-          contactBox: _contactBox,
+          database: _database, // Pass the database instance
           latitude: latLng.latitude,
           longitude: latLng.longitude,
           onContactAdded: (contact) {
@@ -438,7 +415,6 @@ class _GospelPageState extends State<GospelPageUi> {
   @override
   void dispose() {
     _isDisposed = true;
-    _contactBox.listenable().removeListener(_onContactBoxChanged);
     _mapController.dispose();
     super.dispose();
   }
@@ -452,9 +428,9 @@ class _GospelPageState extends State<GospelPageUi> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+               color: Theme.of(context).colorScheme.onSurface,
+               fontWeight: FontWeight.bold,
+             ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -476,9 +452,9 @@ class _GospelPageState extends State<GospelPageUi> {
               child: Text(
                 'Menu',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
+                       color: Theme.of(context).colorScheme.onPrimaryContainer,
+                       fontWeight: FontWeight.bold,
+                     ),
               ),
             ),
             ListTile(
@@ -499,123 +475,122 @@ class _GospelPageState extends State<GospelPageUi> {
           ],
         ),
       ),
-      body: _isLoadingMaps || !_isHiveInitialized
+      body: _isLoadingMaps
           ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                fm.FlutterMap(
-                  key: ValueKey(_markerUpdateKey),
-                  mapController: _mapController,
-                  options: fm.MapOptions(
-                    initialCenter: _currentCenter,
-                    initialZoom: _currentZoom,
-                    minZoom: 2.0,
-                    maxZoom: 18.0,
-                    onTap: (tapPosition, point) {
-                      if (_isAddingMarker) addMarker(point);
-                    },
-                    onPositionChanged: (position, hasGesture) {
-                      if (mounted && position.center != null && position.zoom != null) {
-                        setState(() {
-                          _currentCenter = position.center!;
-                          _currentZoom = position.zoom!;
-                        });
-                      }
-                    },
-                  ),
-                  children: [
-                    fm.TileLayer(
-                      urlTemplate: _tileProviderUrl,
-                      tileProvider: _tileProvider ?? fm.NetworkTileProvider(),
-                      userAgentPackageName: 'com.example.app',
+          : StreamBuilder<List<ContactEntry>>( // Use StreamBuilder for contacts
+              stream: _database.watchAllContacts(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error loading contacts: ${snapshot.error}'));
+                } else if (snapshot.data != null && snapshot.data!.isNotEmpty) {
+                  _markers = snapshot.data!.map((contact) => _createMarker(contact)).toList();
+                  return fm.FlutterMap(
+                    mapController: _mapController,
+                    options: fm.MapOptions(
+                      initialCenter: _currentCenter,
+                      initialZoom: _currentZoom,
+                      onTap: (tapPosition, latLng) {
+                        if (_isAddingMarker) {
+                          addMarker(latLng);
+                        }
+                      },
+                      onMapReady: () async {
+                        if (_isDisposed || !mounted) return;
+                        await _restoreLastMap();
+                        if (mounted) {
+                          setState(() {
+                            _isLoadingMaps = false; // Set to false when map is ready
+                          });
+                        }
+                      },
                     ),
-                    fm.MarkerLayer(markers: _markers),
-                    fm.RichAttributionWidget(
-                      attributions: [
-                        fm.TextSourceAttribution(
-                          'OpenStreetMap contributors',
-                          onTap: () => {},
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: Column(
                     children: [
-                      FloatingActionButton(
-                        heroTag: "zoom_in_fab",
-                        mini: true,
-                        onPressed: zoomIn,
-                        child: const Icon(Icons.add),
+                      fm.TileLayer(
+                        urlTemplate: _tileProviderUrl,
+                        tileProvider: _tileProvider,
                       ),
-                      const SizedBox(height: 8),
-                      FloatingActionButton(
-                        heroTag: "zoom_out_fab",
-                        mini: true,
-                        onPressed: zoomOut,
-                        child: const Icon(Icons.remove),
-                      ),
-                      const SizedBox(height: 8),
-                      FloatingActionButton(
-                        heroTag: "add_marker_fab",
-                        onPressed: _startAddingMarker,
-                        child: const Icon(Icons.add_location_alt_outlined),
+                      fm.MarkerLayer(
+                        markers: _markers,
+                        key: ValueKey<int>(_markerUpdateKey),
                       ),
                     ],
-                  ),
-                ),
-              ],
+                  );
+                } else {
+                  return const Center(child: Text('No contacts found.'));
+                }
+              },
             ),
-    );
+          );
   }
 }
 
 class _DownloadProgressDialog extends StatefulWidget {
+  const _DownloadProgressDialog({
+    required this.mapName,
+    required this.url,
+    required this.storeName,
+    required this.downloadStream,
+  });
+
   final String mapName;
   final String url;
   final String storeName;
   final Stream<fmtc.DownloadProgress> downloadStream;
-
-  const _DownloadProgressDialog({required this.mapName, required this.url, required this.storeName, required this.downloadStream});
 
   @override
   _DownloadProgressDialogState createState() => _DownloadProgressDialogState();
 }
 
 class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
+  double _progress = 0.0;
+  String _status = 'Starting download...';
+  StreamSubscription? _downloadSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _downloadSubscription = widget.downloadStream.listen((progress) {
+      if (mounted) {
+        setState(() {
+          _progress = progress.percentageProgress / 100;
+          _status =
+              'Downloaded ${progress.successfulTilesCount} of ${progress.maxTilesCount} tiles (${(progress.percentageProgress).toStringAsFixed(1)}%)';
+        });
+      }
+    }, onError: (error) {
+      if (mounted) {
+        setState(() {
+          _status = 'Download failed: $error';
+        });
+      }
+    }, onDone: () {
+      if (mounted) {
+        setState(() {
+          _status = 'Download complete!';
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _downloadSubscription?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Downloading ${widget.mapName}'),
-      content: StreamBuilder<fmtc.DownloadProgress>(
-        stream: widget.downloadStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          }
-          if (!snapshot.hasData) {
-            return const Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Initializing download...'),
-                SizedBox(height: 16),
-                LinearProgressIndicator(),
-              ],
-            );
-          }
-          final progress = snapshot.data!;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LinearProgressIndicator(value: progress.percentageProgress / 100),
-              const SizedBox(height: 16),
-              Text('Progress: ${progress.percentageProgress.toStringAsFixed(1)}%'),
-            ],
-          );
-        },
+      content: Column( // Explicitly use Flutter's Column
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LinearProgressIndicator(value: _progress),
+          const SizedBox(height: 16),
+          Text(_status),
+        ],
       ),
     );
   }

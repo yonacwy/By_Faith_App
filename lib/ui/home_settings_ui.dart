@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive_io.dart';
 import '../providers/theme_notifier.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../database/database.dart'; // Import your Drift database
+import 'package:drift/drift.dart' hide Column; // Import drift and hide Column to avoid conflict with flutter
+
 Future<bool> _requestStoragePermission() async {
   if (Platform.isAndroid || Platform.isIOS) {
     var status = await Permission.storage.request();
@@ -39,23 +40,14 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
   late double currentFontSize;
   String? _selectedExportData = 'all';
   bool _isProcessing = false; // For progress indicator
+  late AppDatabase _database; // Use Drift database instance
 
-  @override
   @override
   void initState() {
     super.initState();
     currentFont = widget.initialFont;
     currentFontSize = widget.initialFontSize;
-    _openHiveBoxes();
-  }
-
-  Future<void> _openHiveBoxes() async {
-    await Hive.openBox('gospel_contacts');
-    await Hive.openBox('gospel_map_info');
-    await Hive.openBox('gospel_profile');
-    await Hive.openBox('pray_data');
-    await Hive.openBox('read_data');
-    await Hive.openBox('study_data');
+    _database = AppDatabase(AppDatabase.openConnection()); // Initialize Drift database
   }
 
   Future<void> _exportData() async {
@@ -74,25 +66,40 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
     }
 
     try {
-      // Get all relevant Hive boxes
-      final boxes = {
-        'gospel_contacts': Hive.box('gospel_contacts'),
-        'gospel_map_info': Hive.box('gospel_map_info'),
-        'gospel_profile': Hive.box('gospel_profile'),
-        'pray_data': Hive.box('pray_data'),
-        'read_data': Hive.box('read_data'),
-        'study_data': Hive.box('study_data'),
-      };
-
-      // Create export data based on selection
+      // Fetch data from Drift tables
       Map<String, dynamic> exportData = {};
-      if (_selectedExportData == 'all') {
-        for (var entry in boxes.entries) {
-          exportData[entry.key] = entry.value.toMap();
-        }
-      } else {
-        exportData[_selectedExportData!] = boxes[_selectedExportData]!.toMap();
+
+      if (_selectedExportData == 'all' || _selectedExportData == 'gospel_contacts') {
+        final contacts = await _database.select(_database.contacts).get();
+        exportData['gospel_contacts'] = contacts.map((c) => c.toJson()).toList();
       }
+      if (_selectedExportData == 'all' || _selectedExportData == 'gospel_map_info') {
+        final mapInfo = await _database.select(_database.mapInfoEntries).get();
+        exportData['gospel_map_info'] = mapInfo.map((m) => m.toJson()).toList();
+      }
+      if (_selectedExportData == 'all' || _selectedExportData == 'gospel_profile') {
+        final profiles = await _database.select(_database.gospelProfiles).get();
+        exportData['gospel_profile'] = profiles.map((p) => p.toJson()).toList();
+      }
+      if (_selectedExportData == 'all' || _selectedExportData == 'pray_data') {
+        final prayers = await _database.select(_database.prayers).get();
+        exportData['pray_data'] = prayers.map((p) => p.toJson()).toList();
+      }
+      if (_selectedExportData == 'all' || _selectedExportData == 'read_data') {
+        final verseData = await _database.select(_database.verseDataEntries).get();
+        final bookmarks = await _database.select(_database.bookmarks).get();
+        final favorites = await _database.select(_database.favorites).get();
+        exportData['read_data'] = {
+          'verseData': verseData.map((v) => v.toJson()).toList(),
+          'bookmarks': bookmarks.map((b) => b.toJson()).toList(),
+          'favorites': favorites.map((f) => f.toJson()).toList(),
+        };
+      }
+      if (_selectedExportData == 'all' || _selectedExportData == 'study_data') {
+         final settings = await _database.select(_database.settings).get();
+         exportData['study_data'] = settings.map((s) => s.toJson()).toList();
+      }
+
 
       // Convert to JSON
       final jsonString = json.encode(exportData);
@@ -160,25 +167,40 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
     }
 
     try {
-      // Get all relevant Hive boxes
-      final boxes = {
-        'gospel_contacts': Hive.box('gospel_contacts'),
-        'gospel_map_info': Hive.box('gospel_map_info'),
-        'gospel_profile': Hive.box('gospel_profile'),
-        'pray_data': Hive.box('pray_data'),
-        'read_data': Hive.box('read_data'),
-        'study_data': Hive.box('study_data'),
-      };
-
-      // Create export data based on selection
+      // Fetch data from Drift tables
       Map<String, dynamic> exportData = {};
-      if (_selectedExportData == 'all') {
-        for (var entry in boxes.entries) {
-          exportData[entry.key] = entry.value.toMap();
-        }
-      } else {
-        exportData[_selectedExportData!] = boxes[_selectedExportData]!.toMap();
+
+      if (_selectedExportData == 'all' || _selectedExportData == 'gospel_contacts') {
+        final contacts = await _database.select(_database.contacts).get();
+        exportData['gospel_contacts'] = contacts.map((c) => c.toJson()).toList();
       }
+      if (_selectedExportData == 'all' || _selectedExportData == 'gospel_map_info') {
+        final mapInfo = await _database.select(_database.mapInfoEntries).get();
+        exportData['gospel_map_info'] = mapInfo.map((m) => m.toJson()).toList();
+      }
+      if (_selectedExportData == 'all' || _selectedExportData == 'gospel_profile') {
+        final profiles = await _database.select(_database.gospelProfiles).get();
+        exportData['gospel_profile'] = profiles.map((p) => p.toJson()).toList();
+      }
+      if (_selectedExportData == 'all' || _selectedExportData == 'pray_data') {
+        final prayers = await _database.select(_database.prayers).get();
+        exportData['pray_data'] = prayers.map((p) => p.toJson()).toList();
+      }
+      if (_selectedExportData == 'all' || _selectedExportData == 'read_data') {
+        final verseData = await _database.select(_database.verseDataEntries).get();
+        final bookmarks = await _database.select(_database.bookmarks).get();
+        final favorites = await _database.select(_database.favorites).get();
+        exportData['read_data'] = {
+          'verseData': verseData.map((v) => v.toJson()).toList(),
+          'bookmarks': bookmarks.map((b) => b.toJson()).toList(),
+          'favorites': favorites.map((f) => f.toJson()).toList(),
+        };
+      }
+       if (_selectedExportData == 'all' || _selectedExportData == 'study_data') {
+         final settings = await _database.select(_database.settings).get();
+         exportData['study_data'] = settings.map((s) => s.toJson()).toList();
+      }
+
 
       // Convert to JSON
       final jsonString = json.encode(exportData);
@@ -263,7 +285,7 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
         final importData = json.decode(jsonString) as Map<String, dynamic>;
 
         // Validate JSON structure
-        final validBoxes = [
+        final validTables = [
           'gospel_contacts',
           'gospel_map_info',
           'gospel_profile',
@@ -272,8 +294,8 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
           'study_data'
         ];
         for (var key in importData.keys) {
-          if (!validBoxes.contains(key)) {
-            throw Exception('Invalid box name in backup: $key');
+          if (!validTables.contains(key)) {
+            throw Exception('Invalid table name in backup: $key');
           }
         }
 
@@ -301,12 +323,57 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
           throw Exception('Import cancelled by user');
         }
 
-        // Restore data to Hive boxes
-        for (var entry in importData.entries) {
-          final box = Hive.box(entry.key);
-          await box.clear();
-          await box.putAll(entry.value);
+        // Restore data to Drift tables
+        if (importData.containsKey('gospel_contacts')) {
+          await _database.delete(_database.contacts).go();
+          final contacts = (importData['gospel_contacts'] as List).map((json) => ContactEntry.fromJson(json)).toList();
+          await _database.batch((batch) {
+            batch.insertAll(_database.contacts, contacts);
+          });
         }
+         if (importData.containsKey('gospel_map_info')) {
+          await _database.delete(_database.mapInfoEntries).go();
+          final mapInfo = (importData['gospel_map_info'] as List).map((json) => MapInfoEntry.fromJson(json)).toList();
+          await _database.batch((batch) {
+            batch.insertAll(_database.mapInfoEntries, mapInfo);
+          });
+        }
+         if (importData.containsKey('gospel_profile')) {
+          await _database.delete(_database.gospelProfiles).go();
+          final profiles = (importData['gospel_profile'] as List).map((json) => GospelProfileEntry.fromJson(json)).toList();
+          await _database.batch((batch) {
+            batch.insertAll(_database.gospelProfiles, profiles);
+          });
+        }
+         if (importData.containsKey('pray_data')) {
+          await _database.delete(_database.prayers).go();
+          final prayers = (importData['pray_data'] as List).map((json) => PrayerEntry.fromJson(json)).toList();
+          await _database.batch((batch) {
+            batch.insertAll(_database.prayers, prayers);
+          });
+        }
+         if (importData.containsKey('read_data')) {
+          await _database.delete(_database.verseDataEntries).go();
+          await _database.delete(_database.bookmarks).go();
+          await _database.delete(_database.favorites).go();
+          final readData = importData['read_data'] as Map<String, dynamic>;
+          final verseData = (readData['verseData'] as List).map((json) => VerseDataEntry.fromJson(json)).toList();
+          final bookmarks = (readData['bookmarks'] as List).map((json) => BookmarkEntry.fromJson(json)).toList();
+          final favorites = (readData['favorites'] as List).map((json) => FavoriteEntry.fromJson(json)).toList();
+           await _database.batch((batch) {
+            batch.insertAll(_database.verseDataEntries, verseData);
+            batch.insertAll(_database.bookmarks, bookmarks);
+            batch.insertAll(_database.favorites, favorites);
+          });
+        }
+         if (importData.containsKey('study_data')) {
+          await _database.delete(_database.settings).go();
+          final settings = (importData['study_data'] as List).map((json) => SettingsEntry.fromJson(json)).toList();
+          await _database.batch((batch) {
+            batch.insertAll(_database.settings, settings);
+          });
+        }
+
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

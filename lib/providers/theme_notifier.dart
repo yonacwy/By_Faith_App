@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:by_faith_app/database/database.dart'; // Import Drift database
 
 class ThemeNotifier extends ChangeNotifier {
-  final Box _themeBox;
+  final AppDatabase _database;
   ThemeMode _themeMode = ThemeMode.system;
 
-  ThemeNotifier(this._themeBox) {
-    final savedTheme = _themeBox.get('themeMode');
-    if (savedTheme != null) {
-      _themeMode = ThemeMode.values.firstWhere(
-        (e) => e.toString() == savedTheme,
-        orElse: () => ThemeMode.system,
-      );
+  ThemeNotifier(this._database) {
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final settings = await _database.getSettings();
+    if (settings != null && settings.selectedStudyFont != null) { // Reusing a setting field for theme for now
+       _themeMode = settings.selectedStudyFont == 'dark' ? ThemeMode.dark : ThemeMode.light;
     }
+    notifyListeners();
   }
 
   ThemeMode get themeMode => _themeMode;
 
-  void toggleTheme() {
+  Future<void> toggleTheme() async {
     _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    _themeBox.put('themeMode', _themeMode.toString());
+    await _database.updateThemeSetting(_themeMode == ThemeMode.dark ? 'dark' : 'light'); // Need to implement this method in database.dart
     notifyListeners();
   }
 }

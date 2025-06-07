@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:by_faith_app/ui/gospel_profile_ui.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-// import 'package:by_faith_app/models/gospel_profile_model.dart'; // Not used in this snippet
+import 'package:flutter/material.dart';
+import 'package:onboarding/onboarding.dart';
+import 'package:by_faith_app/ui/gospel_profile_ui.dart';
+import 'package:by_faith_app/database/database.dart'; // Import Drift database
+import 'package:provider/provider.dart'; // Import provider
+import 'package:drift/drift.dart' hide Column; // Import drift and hide Column to avoid conflict with flutter material
 
 class GospelOnboardingUI extends StatefulWidget {
   const GospelOnboardingUI({super.key});
@@ -14,6 +18,7 @@ class GospelOnboardingUI extends StatefulWidget {
 class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
   late int index;
   late List<Widget> onboardingPagesList;
+  late AppDatabase _database; // Declare database instance
 
   @override
   void initState() {
@@ -73,6 +78,12 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
         builder: (context) => _buildDecisionPage(context),
       ),
     ];
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _database = Provider.of<AppDatabase>(context); // Get database instance
   }
 
   Widget _buildPage(BuildContext context, {required String title, String? subtitle, required String content}) {
@@ -202,126 +213,126 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
       body: onboardingPagesList.isEmpty
           ? const Center(child: Text('No onboarding pages available'))
           : Column(
-              children: [
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(onboardingPagesList.length, (i) {
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                          width: i == index ? 12.0 : 8.0,
-                          height: 8.0,
-                          decoration: BoxDecoration(
-                            color: i == index ? Theme.of(context).primaryColor : Colors.grey.shade400,
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Onboarding(
-                    swipeableBody: onboardingPagesList,
-                    onPageChanges: (
-                      double netDragDistance,
-                      int pagesLength,
-                      int currentIndex,
-                      SlideDirection slideDirection,
-                    ) {
-                      setState(() {
-                        index = currentIndex;
-                      });
-                    },
-                    startIndex: safeIndex,
-                    buildFooter: (context, dragDistance, pagesLength, currentIndex, setIndex, slideDirection) {
-                      return DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8.0,
-                              offset: const Offset(0, -2),
-                            ),
-                          ],
-                        ),
-                        child: SafeArea(
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final isSmallScreen = constraints.maxWidth < 400;
-                                    List<Widget> footerButtons = [];
-                                    
-                                    bool isFirstPage = currentIndex == 0;
-                                    bool isLastPage = currentIndex == pagesLength - 1;
-                                    bool isOnlyPage = pagesLength == 1; // True if first and last page are the same
-
-                              Widget? leftButton;
-                              Widget? rightButton;
-                              MainAxisAlignment rowMainAxisAlignment = MainAxisAlignment.center;
-
-                              if (isOnlyPage) {
-                                  leftButton = _buildSkipButton(context);
-                                  rightButton = _buildProfileButton(context);
-                                  rowMainAxisAlignment = MainAxisAlignment.spaceBetween;
-                              } else if (isFirstPage) {
-                                  leftButton = _buildSkipButton(context);
-                                  rightButton = _buildNextButton(setIndex);
-                                  rowMainAxisAlignment = MainAxisAlignment.spaceBetween;
-                              } else if (isLastPage) {
-                                  leftButton = _buildPreviousButton(setIndex);
-                                  rightButton = _buildProfileButton(context);
-                                  // rowMainAxisAlignment remains MainAxisAlignment.center
-                              } else { // Intermediate pages
-                                  leftButton = _buildPreviousButton(setIndex);
-                                  rightButton = _buildNextButton(setIndex);
-                                  // rowMainAxisAlignment remains MainAxisAlignment.center
-                              }
-
-                              // Always use a Row for buttons, adjusting spacing based on screen size and button presence
-                              return Row(
-                                mainAxisAlignment: rowMainAxisAlignment,
-                                children: [
-                                  if (leftButton != null)
-                                    Expanded(child: leftButton),
-                                  if (leftButton != null && rightButton != null) ...[
-                                    if (isFirstPage || isOnlyPage)
-                                      const Spacer()
-                                    else
-                                      const SizedBox(width: 16.0),
-                                  ],
-                                  if (rightButton != null)
-                                    Expanded(child: rightButton),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ), // Closing Onboarding
-          ), // Closing Expanded
-        ], // Closing children list of outer Column
-      ), // Closing outer Column
+               children: [
+                 SafeArea(
+                   child: Padding(
+                     padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
+                     child: Row(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                       children: List.generate(onboardingPagesList.length, (i) {
+                         return AnimatedContainer(
+                           duration: const Duration(milliseconds: 300),
+                           margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                           width: i == index ? 12.0 : 8.0,
+                           height: 8.0,
+                           decoration: BoxDecoration(
+                             color: i == index ? Theme.of(context).primaryColor : Colors.grey.shade400,
+                             borderRadius: BorderRadius.circular(4.0),
+                           ),
+                         );
+                       }),
+                     ),
+                   ),
+                 ),
+                 Expanded(
+                   child: Onboarding(
+                     swipeableBody: onboardingPagesList,
+                     onPageChanges: (
+                       double netDragDistance,
+                       int pagesLength,
+                       int currentIndex,
+                       SlideDirection slideDirection,
+                     ) {
+                       setState(() {
+                         index = currentIndex;
+                       });
+                     },
+                     startIndex: safeIndex,
+                     buildFooter: (context, dragDistance, pagesLength, currentIndex, setIndex, slideDirection) {
+                       return DecoratedBox(
+                         decoration: BoxDecoration(
+                           color: Colors.white,
+                           boxShadow: [
+                             BoxShadow(
+                               color: Colors.black.withOpacity(0.1),
+                               blurRadius: 8.0,
+                               offset: const Offset(0, -2),
+                             ),
+                           ],
+                         ),
+                         child: SafeArea(
+                           child: Padding(
+                             padding: const EdgeInsets.all(12.0),
+                             child: Column(
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               crossAxisAlignment: CrossAxisAlignment.center,
+                               children: [
+                                 LayoutBuilder(
+                                   builder: (context, constraints) {
+                                     final isSmallScreen = constraints.maxWidth < 400;
+                                     List<Widget> footerButtons = [];
+                                     
+                                     bool isFirstPage = currentIndex == 0;
+                                     bool isLastPage = currentIndex == pagesLength - 1;
+                                     bool isOnlyPage = pagesLength == 1; // True if first and last page are the same
+ 
+                               Widget? leftButton;
+                               Widget? rightButton;
+                               MainAxisAlignment rowMainAxisAlignment = MainAxisAlignment.center;
+ 
+                               if (isOnlyPage) {
+                                   leftButton = _buildSkipButton(context);
+                                   rightButton = _buildProfileButton(context);
+                                   rowMainAxisAlignment = MainAxisAlignment.spaceBetween;
+                               } else if (isFirstPage) {
+                                   leftButton = _buildSkipButton(context);
+                                   rightButton = _buildNextButton(setIndex);
+                                   rowMainAxisAlignment = MainAxisAlignment.spaceBetween;
+                               } else if (isLastPage) {
+                                   leftButton = _buildPreviousButton(setIndex);
+                                   rightButton = _buildProfileButton(context);
+                                   // rowMainAxisAlignment remains MainAxisAlignment.center
+                               } else { // Intermediate pages
+                                   leftButton = _buildPreviousButton(setIndex);
+                                   rightButton = _buildNextButton(setIndex);
+                                   // rowMainAxisAlignment remains MainAxisAlignment.center
+                               }
+ 
+                               // Always use a Row for buttons, adjusting spacing based on screen size and button presence
+                               return Row(
+                                 mainAxisAlignment: rowMainAxisAlignment,
+                                 children: [
+                                   if (leftButton != null)
+                                     Expanded(child: leftButton),
+                                   if (leftButton != null && rightButton != null) ...[
+                                     if (isFirstPage || isOnlyPage)
+                                       const Spacer()
+                                     else
+                                       const SizedBox(width: 16.0),
+                                   ],
+                                   if (rightButton != null)
+                                     Expanded(child: rightButton),
+                                 ],
+                               );
+                                   },
+                                 ),
+                               ],
+                             ),
+                           ),
+                         ),
+                       );
+                     },
+                   ), // Closing Onboarding
+                 ), // Closing Expanded
+               ], // Closing children list of outer Column
+             ), // Closing outer Column
     ); // Closing Scaffold
   }
 
   Widget _buildSkipButton(BuildContext context) {
     return TextButton(
       onPressed: () {
-        _markOnboardingComplete();
+        _markOnboardingComplete(context); // Pass context
         _navigateToHome(context);
       },
       style: TextButton.styleFrom(
@@ -336,7 +347,7 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
   Widget _buildProfileButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
-        _markOnboardingComplete(); // Mark onboarding complete when proceeding to profile
+        _markOnboardingComplete(context); // Pass context
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const GospelProfileUi(isNewProfile: true),
@@ -411,9 +422,9 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
     );
   }
 
-  void _markOnboardingComplete() async {
-    var settingsBox = await Hive.openBox<bool>('appSettings');
-    await settingsBox.put('onboardingComplete', true);
+  void _markOnboardingComplete(BuildContext context) async { // Added context parameter
+    final database = Provider.of<AppDatabase>(context, listen: false);
+    await database.updateOnboardingComplete(true); // Implement updateOnboardingComplete in database.dart
   }
 
   void _navigateToHome(BuildContext context) {

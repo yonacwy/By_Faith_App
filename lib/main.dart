@@ -14,43 +14,30 @@ import 'package:by_faith_app/ui/study_page_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:by_faith_app/models/gospel_profile_model.dart';
 import 'package:by_faith_app/ui/gospel_onboarding_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:by_faith_app/database/database.dart'; // Import Drift database
+import 'package:drift/native.dart'; // Import for NativeDatabase
+
+late AppDatabase database; // Declare database globally or pass it down
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FMTCObjectBoxBackend().initialise();
-  await Hive.initFlutter();
 
-  // Register Hive adapters
-  Hive.registerAdapter(ContactAdapter());
-  Hive.registerAdapter(PrayerAdapter());
-  Hive.registerAdapter(MapInfoAdapter());
-  Hive.registerAdapter(GospelProfileAdapter());
-  Hive.registerAdapter(VerseDataAdapter());
-  Hive.registerAdapter(BookmarkAdapter());
-  Hive.registerAdapter(FavoriteAdapter());
-
-  // Open Hive boxes
-  final themeBox = await Hive.openBox('themeBox'); // For theme persistence
-  await Hive.openBox<Prayer>('prayers'); // For Prayer model
-  await Hive.openBox('userPreferences'); // For ReadPage book and chapter
-  await Hive.openBox<MapInfo>('maps'); // For maps
-  await Hive.openBox<GospelProfile>('userProfileBox');
-  await Hive.openBox<Bookmark>('bookmarks');
-  await Hive.openBox<Favorite>('favorites');
-  // Contacts box is opened in GospelPageUi._initHive
+  // Initialize Drift database
+  database = AppDatabase(NativeDatabase.memory()); // Use NativeDatabase.memory() for in-memory database
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeNotifier(themeBox)),
+        ChangeNotifierProvider(create: (_) => ThemeNotifier(database)), // ThemeNotifier might need adjustment if it used Hive box directly
         ChangeNotifierProvider(create: (_) => PageNotifier()),
+        Provider<AppDatabase>(create: (_) => database), // Provide the database instance
       ],
       child: const MyApp(),
     ),
@@ -63,32 +50,41 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
-    final userProfileBox = Hive.box<GospelProfile>('userProfileBox');
-    final bool profileExists = userProfileBox.get('currentProfile') != null;
+    final database = Provider.of<AppDatabase>(context);
 
-    return MaterialApp(
-      title: 'By Faith App',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        FlutterQuillLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-      ],
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
-      ),
-      themeMode: themeNotifier.themeMode,
-      home: profileExists ? const RootPage() : const GospelOnboardingUI(), // Corrected class name
-      routes: {
-        '/home': (context) => const RootPage(),
-      },
+    return FutureBuilder<bool>(
+      future: database.getGospelProfile().then((profile) => profile != null),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator(); // Or a splash screen
+        }
+        final bool profileExists = snapshot.data ?? false;
+
+        return MaterialApp(
+          title: 'By Faith App',
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+            ),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              FlutterQuillLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en', 'US'),
+            ],
+            darkTheme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
+            ),
+            themeMode: themeNotifier.themeMode,
+            home: profileExists ? const RootPage() : const GospelOnboardingUI(), // Corrected class name
+            routes: {
+              '/home': (context) => const RootPage(),
+            },
+          );
+        },
     );
   }
 }
