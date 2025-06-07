@@ -26,17 +26,12 @@ class OfflineMapsPage extends StatefulWidget {
 }
 
 class _OfflineMapsPageState extends State<OfflineMapsPage> {
-  late SharedPreferences _userPrefs;
+  late UserPreference _userPreference;
 
   @override
   void initState() {
     super.initState();
-    _openUserPrefsBox();
-  }
-
-  Future<void> _openUserPrefsBox() async {
-    _userPrefs = await SharedPreferences.getInstance();
-    if (mounted) setState(() {});
+    _userPreference = objectbox.userPreferenceBox.get(1) ?? UserPreference();
   }
 
   void _showMapSelection() {
@@ -196,7 +191,8 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
                             onSelected: (value) async {
                               if (value == 'view') {
                                 widget.onLoadMap(mapInfo);
-                                await _userPrefs.setString('currentMap', mapInfo.name);
+                                _userPreference.currentMap = mapInfo.name;
+                                objectbox.userPreferenceBox.put(_userPreference);
                                 Navigator.pop(context);
                               } else if (value == 'update') {
                                 await _updateMap(mapInfo);
@@ -215,7 +211,8 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
                           ),
                           onTap: () {
                             widget.onLoadMap(mapInfo);
-                            _userPrefs.setString('currentMap', mapInfo.name);
+                            _userPreference.currentMap = mapInfo.name;
+                            objectbox.userPreferenceBox.put(_userPreference);
                             Navigator.pop(context);
                           },
                         );

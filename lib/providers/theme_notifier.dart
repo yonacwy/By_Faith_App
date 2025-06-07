@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/models/user_preference_model.dart';
 
 class ThemeNotifier extends ChangeNotifier {
-  final Box _themeBox;
-  ThemeMode _themeMode = ThemeMode.system;
+  final ObjectBox _objectbox;
+  late UserPreference _userPreference;
 
-  ThemeNotifier(this._themeBox) {
-    final savedTheme = _themeBox.get('themeMode');
-    if (savedTheme != null) {
-      _themeMode = ThemeMode.values.firstWhere(
-        (e) => e.toString() == savedTheme,
-        orElse: () => ThemeMode.system,
-      );
-    }
+  ThemeNotifier(this._objectbox) {
+    _userPreference = _objectbox.userPreferenceBox.get(1) ?? UserPreference();
+    _themeMode = ThemeMode.values.firstWhere(
+      (e) => e.toString().split('.').last == _userPreference.themeMode,
+      orElse: () => ThemeMode.system,
+    );
   }
+
+  ThemeMode _themeMode = ThemeMode.system;
 
   ThemeMode get themeMode => _themeMode;
 
   void toggleTheme() {
     _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    _themeBox.put('themeMode', _themeMode.toString());
+    _userPreference.themeMode = _themeMode.toString().split('.').last;
+    _objectbox.userPreferenceBox.put(_userPreference);
     notifyListeners();
   }
 }

@@ -20,6 +20,7 @@ import 'models/gospel_onboarding_model.dart';
 import 'models/gospel_profile_model.dart';
 import 'models/pray_model.dart';
 import 'models/read_data_model.dart';
+import 'models/user_preference_model.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -483,7 +484,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(13, 7575709876387753993),
       name: 'UserPreference',
-      lastPropertyId: const obx_int.IdUid(35, 8321246365657091964),
+      lastPropertyId: const obx_int.IdUid(83, 8933026844669946565),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -492,13 +493,28 @@ final _entities = <obx_int.ModelEntity>[
             type: 6,
             flags: 1),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(34, 7703881680418334943),
-            name: 'key',
+            id: const obx_int.IdUid(79, 6277387255517834459),
+            name: 'themeMode',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(35, 8321246365657091964),
-            name: 'value',
+            id: const obx_int.IdUid(80, 1422154708991338165),
+            name: 'fontSize',
+            type: 8,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(81, 2420875857439811412),
+            name: 'lastReadChapter',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(82, 878165774454576089),
+            name: 'lastPageIndex',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(83, 8933026844669946565),
+            name: 'currentMap',
             type: 9,
             flags: 0)
       ],
@@ -673,7 +689,52 @@ obx_int.ModelDefinition getObjectBoxModel() {
         8385854327588967277,
         4019495834045068998,
         659480161912730318,
-        4157817510339571906
+        4157817510339571906,
+        7703881680418334943,
+        8321246365657091964,
+        1334134745683981760,
+        2844510945467284106,
+        5614536644599680020,
+        5324126724372145114,
+        4746433473555187693,
+        2731422035753394957,
+        8392909963803976942,
+        5797123622375023273,
+        3616963952268537401,
+        825318191082228739,
+        1213254940915408484,
+        7375576451122148385,
+        4532719067716720172,
+        1286894997621371605,
+        3480446040961426986,
+        423824659210641102,
+        1546206332095149224,
+        8387822256702171045,
+        3684417161626820611,
+        761524108859123227,
+        5476620760726032472,
+        3511145537186095627,
+        1322040248875479203,
+        2561697765908133038,
+        5908897291057666986,
+        5131353265689453607,
+        3015097267571987106,
+        2480768464161008150,
+        6029989802520451911,
+        4100328125964881087,
+        622052141496231960,
+        3209990825684905562,
+        2988127265275935843,
+        8053669845240536222,
+        1996683560029542617,
+        2980750789506768139,
+        7805759333902824559,
+        6513912389953371220,
+        6434640139227302800,
+        3442138376070848478,
+        7826571097454909037,
+        5910517559680267387,
+        6378280807118562128
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -1252,12 +1313,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
           object.id = id;
         },
         objectToFB: (UserPreference object, fb.Builder fbb) {
-          final keyOffset = fbb.writeString(object.key);
-          final valueOffset = fbb.writeString(object.value);
-          fbb.startTable(36);
+          final themeModeOffset = fbb.writeString(object.themeMode);
+          final lastReadChapterOffset = fbb.writeString(object.lastReadChapter);
+          final currentMapOffset = fbb.writeString(object.currentMap);
+          fbb.startTable(84);
           fbb.addInt64(0, object.id);
-          fbb.addOffset(33, keyOffset);
-          fbb.addOffset(34, valueOffset);
+          fbb.addOffset(78, themeModeOffset);
+          fbb.addFloat64(79, object.fontSize);
+          fbb.addOffset(80, lastReadChapterOffset);
+          fbb.addInt64(81, object.lastPageIndex);
+          fbb.addOffset(82, currentMapOffset);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1266,12 +1331,24 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final rootOffset = buffer.derefObject(0);
           final idParam =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final keyParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 70, '');
-          final valueParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 72, '');
-          final object =
-              UserPreference(id: idParam, key: keyParam, value: valueParam);
+          final themeModeParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 160, '');
+          final fontSizeParam =
+              const fb.Float64Reader().vTableGet(buffer, rootOffset, 162, 0);
+          final lastReadChapterParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 164, '');
+          final lastPageIndexParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 166, 0);
+          final currentMapParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 168, '');
+          final object = UserPreference(
+              id: idParam,
+              themeMode: themeModeParam,
+              fontSize: fontSizeParam,
+              lastReadChapter: lastReadChapterParam,
+              lastPageIndex: lastPageIndexParam,
+              currentMap: currentMapParam);
 
           return object;
         }),
@@ -1701,13 +1778,25 @@ class UserPreference_ {
   static final id =
       obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[0]);
 
-  /// See [UserPreference.key].
-  static final key =
+  /// See [UserPreference.themeMode].
+  static final themeMode =
       obx.QueryStringProperty<UserPreference>(_entities[10].properties[1]);
 
-  /// See [UserPreference.value].
-  static final value =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[2]);
+  /// See [UserPreference.fontSize].
+  static final fontSize =
+      obx.QueryDoubleProperty<UserPreference>(_entities[10].properties[2]);
+
+  /// See [UserPreference.lastReadChapter].
+  static final lastReadChapter =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[3]);
+
+  /// See [UserPreference.lastPageIndex].
+  static final lastPageIndex =
+      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[4]);
+
+  /// See [UserPreference.currentMap].
+  static final currentMap =
+      obx.QueryStringProperty<UserPreference>(_entities[10].properties[5]);
 }
 
 /// [Contact] entity fields to define ObjectBox queries.

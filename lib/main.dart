@@ -31,8 +31,8 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
-        ChangeNotifierProvider(create: (_) => PageNotifier()),
+        ChangeNotifierProvider(create: (_) => ThemeNotifier(objectbox)),
+        ChangeNotifierProvider(create: (_) => PageNotifier(objectbox)),
       ],
       child: const MyApp(),
     ),
