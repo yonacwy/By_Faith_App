@@ -1,7 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class Prayer {
+class PrayPageModel {
   @Id()
   int id = 0;
   @Unique(onConflict: ConflictStrategy.replace)
@@ -11,7 +11,7 @@ class Prayer {
   @Property(type: PropertyType.date)
   DateTime timestamp;
 
-  Prayer({
+  PrayPageModel({
     this.id = 0,
     String? prayerId,
     required this.richTextJson,
@@ -20,6 +20,26 @@ class Prayer {
   }) : prayerId = prayerId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'prayerId': prayerId,
+      'richTextJson': richTextJson,
+      'status': status,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+
+  factory PrayPageModel.fromJson(Map<String, dynamic> json) {
+    return PrayPageModel(
+      id: json['id'] as int,
+      prayerId: json['prayerId'] as String,
+      richTextJson: json['richTextJson'] as String,
+      status: json['status'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'prayerId': prayerId,

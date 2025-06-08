@@ -10,6 +10,8 @@ import 'package:archive/archive_io.dart';
 import '../providers/theme_notifier.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/models/read_page_model.dart';
+import 'package:by_faith_app/models/read_page_model.dart';
 Future<bool> _requestStoragePermission() async {
   if (Platform.isAndroid || Platform.isIOS) {
     var status = await Permission.storage.request();
@@ -65,11 +67,11 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
     try {
       // Get all relevant ObjectBox data
       final data = {
-        'gospel_contacts': objectbox.contactBox.getAll().map((e) => e.toMap()).toList(),
-        'gospel_map_info': objectbox.mapInfoBox.getAll().map((e) => e.toMap()).toList(),
-        'gospel_profile': objectbox.gospelProfileBox.getAll().map((e) => e.toMap()).toList(),
-        'pray_data': objectbox.prayerBox.getAll().map((e) => e.toMap()).toList(),
-        'read_data': objectbox.verseDataBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_contacts': objectbox.gospelContactsModelBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_map_info': objectbox.gospelOfflineMapsModelBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_profile': objectbox.gospelProfileModelBox.getAll().map((e) => e.toMap()).toList(),
+        'pray_data': objectbox.prayPageModelBox.getAll().map((e) => e.toMap()).toList(),
+        'read_data': objectbox.readPageModelBox.getAll().map((e) => e.toMap()).toList(),
         'study_data': [], // No study data in ObjectBox
       };
 
@@ -151,11 +153,11 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
     try {
       // Get all relevant ObjectBox data
       final data = {
-        'gospel_contacts': objectbox.contactBox.getAll().map((e) => e.toMap()).toList(),
-        'gospel_map_info': objectbox.mapInfoBox.getAll().map((e) => e.toMap()).toList(),
-        'gospel_profile': objectbox.gospelProfileBox.getAll().map((e) => e.toMap()).toList(),
-        'pray_data': objectbox.prayerBox.getAll().map((e) => e.toMap()).toList(),
-        'read_data': objectbox.verseDataBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_contacts': objectbox.gospelContactsModelBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_map_info': objectbox.gospelOfflineMapsModelBox.getAll().map((e) => e.toMap()).toList(),
+        'gospel_profile': objectbox.gospelProfileModelBox.getAll().map((e) => e.toMap()).toList(),
+        'pray_data': objectbox.prayPageModelBox.getAll().map((e) => e.toMap()).toList(),
+        'read_data': objectbox.readPageModelBox.getAll().map((e) => e.toMap()).toList(),
         'study_data': [], // No study data in ObjectBox
       };
 
@@ -293,39 +295,39 @@ class _HomeSettingsUiState extends State<HomeSettingsUi> {
         // Restore data to ObjectBox
         final store = objectbox.store;
         if (importData.containsKey('gospel_contacts')) {
-          objectbox.contactBox.removeAll();
-          objectbox.contactBox.putMany(
+          objectbox.gospelContactsModelBox.removeAll();
+          objectbox.gospelContactsModelBox.putMany(
               (importData['gospel_contacts'] as List)
-                  .map((e) => GospelContact.fromMap(e))
+                  .map((e) => GospelContactsModel.fromMap(e))
                   .toList());
         }
         if (importData.containsKey('gospel_map_info')) {
-          objectbox.mapInfoBox.removeAll();
-          objectbox.mapInfoBox.putMany(
+          objectbox.gospelOfflineMapsModelBox.removeAll();
+          objectbox.gospelOfflineMapsModelBox.putMany(
               (importData['gospel_map_info'] as List)
-                  .map((e) => MapInfo.fromMap(e))
+                  .map((e) => GospelOfflineMapsModel.fromMap(e))
                   .toList());
         }
         if (importData.containsKey('gospel_profile')) {
-          objectbox.gospelProfileBox.removeAll();
-          objectbox.gospelProfileBox.putMany(
+          objectbox.gospelProfileModelBox.removeAll();
+          objectbox.gospelProfileModelBox.putMany(
               (importData['gospel_profile'] as List)
-                  .map((e) => GospelProfile.fromMap(e))
+                  .map((e) => GospelProfileModel.fromMap(e))
                   .toList());
         }
         if (importData.containsKey('pray_data')) {
-          objectbox.prayerBox.removeAll();
-          objectbox.prayerBox.putMany(
+          objectbox.prayPageModelBox.removeAll();
+          objectbox.prayPageModelBox.putMany(
               (importData['pray_data'] as List)
-                  .map((e) => Prayer.fromMap(e))
+                  .map((e) => PrayPageModel.fromJson(e))
                   .toList());
         }
         if (importData.containsKey('read_data')) {
-          objectbox.verseDataBox.removeAll();
-          objectbox.verseDataBox.putMany(
+          objectbox.readPageModelBox.removeAll();
+          objectbox.readPageModelBox.putMany(
               (importData['read_data'] as List)
-                  .map((e) => VerseData.fromMap(e))
-                  .toList());
+                 .map((e) => ReadPageModel.fromMap(e))
+                   .toList());
         }
         // Note: 'study_data' is empty in export, so no import logic needed unless it changes.
 

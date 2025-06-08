@@ -1,7 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class GospelProfile {
+class GospelProfileModel {
   @Id()
   int id = 0;
   String? firstName;
@@ -14,7 +14,7 @@ class GospelProfile {
   @Property(type: PropertyType.date)
   DateTime? spiritualBirthday;
 
-  GospelProfile({
+  GospelProfileModel({
     this.firstName,
     this.lastName,
     this.address,

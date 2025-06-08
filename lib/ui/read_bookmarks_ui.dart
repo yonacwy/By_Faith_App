@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/read_data_model.dart'; // Import your data model
+import '../models/read_page_model.dart'; // Import your data model\nimport '../models/read_bookmarks_model.dart';
 import 'read_page_ui.dart'; // Import ReadPageUi
-import '../objectbox.dart'; // Import objectbox
+import '../objectbox.dart'; // Import objectbox\nimport '../objectbox.g.dart'; // Import objectbox.g.dart for Box types
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 class ReadBookmarksUi extends StatefulWidget {
@@ -19,7 +19,7 @@ class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
   }
 
   Future<void> _deleteBookmark(int id) async {
-    objectbox.bookmarkBox.remove(id);
+    objectbox.readBookmarksModelBox.remove(id);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Bookmark removed!')),
     );
@@ -37,8 +37,8 @@ class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
             ),
         centerTitle: true,
       ),
-      body: StreamBuilder<List<Bookmark>>(
-        stream: objectbox.bookmarkBox.query().watch(triggerImmediately: true).map((query) => query.find()),
+      body: StreamBuilder<List<ReadBookmarksModel>>(
+        stream: objectbox.readBookmarksModelBox.query().watch(triggerImmediately: true).map((query) => query.find()),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -63,14 +63,14 @@ class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
                 child: ListTile(
                   title: Text(
-                    '${bookmark.verseData.book} ${bookmark.verseData.chapter}:${bookmark.verseData.verse}',
+                    '${bookmark.book} ${bookmark.chapter}:${bookmark.verse}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   subtitle: Text(
-                    bookmark.verseData.text,
+                    bookmark.text,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -86,9 +86,9 @@ class _ReadBookmarksUiState extends State<ReadBookmarksUi> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ReadPageUi(
-                          initialBook: bookmark.verseData.book,
-                          initialChapter: bookmark.verseData.chapter,
-                          initialVerse: bookmark.verseData.verse,
+                          initialBook: bookmark.book,
+                          initialChapter: bookmark.chapter,
+                          initialVerse: bookmark.verse,
                         ),
                       ),
                     );

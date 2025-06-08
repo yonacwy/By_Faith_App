@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:by_faith_app/models/gospel_profile_model.dart';
 import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/objectbox.g.dart'; // Import objectbox.g.dart for Box types
 import 'package:by_faith_app/ui/home_page_ui.dart'; // Assuming this is your main home page
 
 class GospelProfileUi extends StatefulWidget {
@@ -31,8 +32,8 @@ class _GospelProfileUiState extends State<GospelProfileUi> {
 
   Future<void> _loadProfile() async {
     final store = objectbox.store;
-    final profileBox = store.box<GospelProfile>();
-    var profile = profileBox.get(1); // Assuming ID 1 for the single profile
+    final profileBox = objectbox.gospelProfileModelBox;
+    GospelProfileModel? profile = profileBox.get(1); // Assuming ID 1 for the single profile
     if (profile != null) {
       _firstNameController.text = profile.firstName ?? '';
       _lastNameController.text = profile.lastName ?? '';
@@ -53,11 +54,11 @@ class _GospelProfileUiState extends State<GospelProfileUi> {
   Future<void> _saveProfileChanges() async {
     if (_formKey.currentState!.validate()) {
       final store = objectbox.store;
-      final profileBox = store.box<GospelProfile>();
-      GospelProfile? profile = profileBox.get(1); // Try to get existing profile
+      final profileBox = objectbox.gospelProfileModelBox;
+      GospelProfileModel? profile = profileBox.get(1); // Try to get existing profile
       if (profile == null) {
         // Create new profile if it doesn't exist
-        profile = GospelProfile(
+        profile = GospelProfileModel(
           id: 1, // Assign ID 1 for the single profile
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
@@ -77,7 +78,7 @@ class _GospelProfileUiState extends State<GospelProfileUi> {
         profile.email = _emailController.text;
         profile.spiritualBirthday = _spiritualBirthday;
       }
-      profileBox.put(profile);
+      objectbox.gospelProfileModelBox.put(profile);
 
       if (widget.isNewProfile) {
         Navigator.of(context).pushReplacementNamed('/home');
@@ -94,8 +95,8 @@ class _GospelProfileUiState extends State<GospelProfileUi> {
 
   Future<void> _deleteProfile() async {
     final store = objectbox.store;
-    final profileBox = store.box<GospelProfile>();
-    profileBox.remove(1); // Remove the profile with ID 1
+    final profileBox = objectbox.gospelProfileModelBox;
+    objectbox.gospelProfileModelBox.remove(1); // Remove the profile with ID 1
     // Clear text controllers and state
     _firstNameController.clear();
     _lastNameController.clear();

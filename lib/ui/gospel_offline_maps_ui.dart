@@ -1,15 +1,16 @@
-import 'package:by_faith_app/models/gospel_map_info_model.dart';
 import 'package:flutter/material.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:by_faith_app/objectbox.dart';
-import 'package:by_faith_app/models/user_preference_model.dart'; // Added import
+import 'package:by_faith_app/objectbox.g.dart'; // Import objectbox.g.dart for Box types
+import 'package:by_faith_app/models/user_preferences.dart'; // Added import
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart' as fmtc;
+import 'package:by_faith_app/models/gospel_offline_maps_model.dart';
 import 'gospel_map_selection_ui.dart'; // New file for map selection screen
 
 class OfflineMapsPage extends StatefulWidget {
   final String? currentMapName;
-  final Function(MapInfo) onLoadMap;
-  final Box<MapInfo> mapInfoBox;
+  final Function(GospelOfflineMapsModel) onLoadMap;
+  final Box<GospelOfflineMapsModel> mapInfoBox;
   final Function(String, double, double, double, double, int) onDownloadMap; // Updated signature
   final Function(String, String, bool) onUploadMap;
 
@@ -50,10 +51,10 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
 
   Future<void> _deleteMap(String mapName) async {
     try {
-      final mapInfo = widget.mapInfoBox.query(MapInfo_.name.eq(mapName)).build().findFirst();
+      final mapInfo = objectbox.gospelOfflineMapsModelBox.query(GospelOfflineMapsModel_.mapName.equals(mapName)).build().findFirst();
       if (mapInfo != null) {
         await fmtc.FMTCStore(mapInfo.name).manage.delete();
-        widget.mapInfoBox.remove(mapInfo.id);
+        objectbox.gospelOfflineMapsModelBox.remove(mapInfo.id);
       }
       if (mounted) setState(() {});
     } catch (error) {
@@ -65,7 +66,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
     }
   }
 
-  Future<void> _renameMap(MapInfo mapInfo) async {
+  Future<void> _renameMap(GospelOfflineMapsModel mapInfo) async {
     TextEditingController controller = TextEditingController(text: mapInfo.name);
     String? newName = await showDialog<String>(
       context: context,
@@ -90,7 +91,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
 
     if (newName != null && newName.isNotEmpty && newName != mapInfo.name) {
       try {
-        final updatedMapInfo = MapInfo(
+        final updatedMapInfo = GospelOfflineMapsModel(
           name: newName,
           filePath: mapInfo.filePath,
           downloadUrl: mapInfo.downloadUrl,
@@ -99,7 +100,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
           longitude: mapInfo.longitude,
           zoomLevel: mapInfo.zoomLevel,
         );
-        widget.mapInfoBox.put(updatedMapInfo);
+        objectbox.gospelOfflineMapsModelBox.put(updatedMapInfo);
         // Update store name in FMTC
         final store = fmtc.FMTCStore(mapInfo.name);
         await store.manage.rename(newName);
@@ -114,7 +115,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
     }
   }
 
-  Future<void> _updateMap(MapInfo mapInfo) async {
+  Future<void> _updateMap(GospelOfflineMapsModel mapInfo) async {
     // Re-download the map with the same parameters
     try {
       await widget.onDownloadMap(
@@ -156,7 +157,7 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
         child: Column(
           children: [
             ListTile(
-              leading: const Icon(Icons.map), // Added map icon
+              leading: const Icon(Icons.map),
               title: Text(
                 'Select your own map',
                 style: Theme.of(context).textTheme.titleMedium,
@@ -170,16 +171,21 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
               ),
               initiallyExpanded: true,
               children: [
-                StreamBuilder<List<MapInfo>>(
-                  stream: objectbox.mapInfoBox.query().watch(triggerImmediately: true).map((query) => query.find()),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                StreamBuilder<List<GospelOfflineMapsModel>>(
+                  stream: objectbox.gospelOfflineMapsModelBox
+                      .query()
+                      .watch(triggerImmediately: true)
+                      .map((query) => query.find()),
+                  builder: (context, mapInfoSnapshot) {
+                    if (mapInfoSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    if (!mapInfoSnapshot.hasData ||
+                        mapInfoSnapshot.data!.isEmpty) {
                       return const Center(child: Text('No maps downloaded yet.'));
                     }
-                    final maps = snapshot.data!;
+                    final maps = mapInfoSnapshot.data!;
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -187,7 +193,8 @@ class _OfflineMapsPageState extends State<OfflineMapsPage> {
                       itemBuilder: (context, index) {
                         final mapInfo = maps[index];
                         return ListTile(
-                          title: Text(mapInfo.name),
+                          title: Text(
+                              '${mapInfo.name} - ${mapInfo.description ?? 'No description'}'),
                           trailing: PopupMenuButton<String>(
                             onSelected: (value) async {
                               if (value == 'view') {

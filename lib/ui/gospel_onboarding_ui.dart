@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:by_faith_app/ui/gospel_profile_ui.dart';
 import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/objectbox.g.dart'; // Import objectbox.g.dart for Box types
 import 'package:by_faith_app/models/gospel_onboarding_model.dart';
 
 class GospelOnboardingUI extends StatefulWidget {
@@ -417,10 +418,10 @@ class _GospelOnboardingUIState extends State<GospelOnboardingUI> {
     GospelOnboardingModel? onboarding = onboardingBox.get(1); // Assuming ID 1 for the single onboarding setting
     if (onboarding == null) {
       onboarding = GospelOnboardingModel(id: 1, onboardingComplete: true);
-      onboardingBox.put(onboarding);
+      objectbox.gospelOnboardingModelBox.put(onboarding);
     } else {
       onboarding.onboardingComplete = true;
-      onboardingBox.put(onboarding);
+      objectbox.gospelOnboardingModelBox.put(onboarding);
     }
   }
 

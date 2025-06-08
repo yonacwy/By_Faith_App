@@ -9,8 +9,7 @@ import 'study_notes_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill; // Added for Quill notes
 import '../objectbox.dart';
 import '../objectbox.g.dart';
-import '../models/user_preference_model.dart'; // Changed from read_data_model.dart
-import 'package:by_faith_app/models/bible_note_model.dart';
+import '../models/read_page_model.dart'; // For UserPreference, BibleNote, ReadBookmarksModel, ReadFavoritesModel
 
 class StudyPageUi extends StatefulWidget {
   final String? initialBook;
@@ -49,7 +48,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
     objectbox = await ObjectBox.create();
     userPreferenceBox = objectbox.store.box<UserPreference>();
 
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1); // Ensure prefs is not null
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0); // Ensure prefs is not null
 
     setState(() {
       selectedBook = widget.initialBook ?? prefs.lastSelectedStudyBook ?? "Genesis";
@@ -61,11 +60,11 @@ class _StudyPageUiState extends State<StudyPageUi> {
   }
 
   Future<void> _saveSelection() async {
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
-    prefs.lastSelectedStudyBook = selectedBook;
-    prefs.lastSelectedStudyChapter = selectedChapter;
-    prefs.selectedStudyFont = selectedFont;
-    prefs.selectedStudyFontSize = selectedFontSize;
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
+    prefs.lastSelectedBook = selectedBook;
+    prefs.lastSelectedChapter = selectedChapter.toString();
+    prefs.selectedFont = selectedFont;
+    prefs.selectedFontSize = selectedFontSize;
     userPreferenceBox.put(prefs);
   }
 
@@ -306,7 +305,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
   }
 
   void _addVerseToBibleNotes(int verseNumber, String verseText) async {
-    bibleNotesBox = objectbox.store.box<BibleNote>();
+    bibleNotesBox = objectbox.bibleNotesModelBox;
     final cleanedVerseText = verseText.replaceAll(RegExp(r'\{[HG]\d+\}'), '').trim();
     final noteJson = jsonEncode(quill.Document.fromDelta(
       quill.Document().toDelta(), // Empty note to start
@@ -324,7 +323,7 @@ class _StudyPageUiState extends State<StudyPageUi> {
       const SnackBar(content: Text('Verse added to Bible Notes')),
     );
 
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
     prefs.lastBibleNote = '$selectedBook $selectedChapter:$verseNumber';
     userPreferenceBox.put(prefs);
 

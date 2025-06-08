@@ -22,10 +22,28 @@ class VerseData {
 
   @override
   int get hashCode => book.hashCode ^ chapter.hashCode ^ verse.hashCode;
+
+  factory VerseData.fromMap(Map<String, dynamic> map) {
+    return VerseData(
+      book: map['book'] as String,
+      chapter: map['chapter'] as int,
+      verse: map['verse'] as int,
+      text: map['text'] as String,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'book': book,
+      'chapter': chapter,
+      'verse': verse,
+      'text': text,
+    };
+  }
 }
 
 @Entity()
-class Bookmark {
+class ReadBookmarksModel {
   @Id()
   int id = 0;
   String book;
@@ -35,11 +53,11 @@ class Bookmark {
   @Property(type: PropertyType.date)
   DateTime timestamp;
 
-  Bookmark({required this.book, required this.chapter, required this.verse, required this.text, required this.timestamp});
+  ReadBookmarksModel({required this.book, required this.chapter, required this.verse, required this.text, required this.timestamp});
 }
 
 @Entity()
-class Favorite {
+class ReadFavoritesModel {
   @Id()
   int id = 0;
   String book;
@@ -49,7 +67,7 @@ class Favorite {
   @Property(type: PropertyType.date)
   DateTime timestamp;
 
-  Favorite({required this.book, required this.chapter, required this.verse, required this.text, required this.timestamp});
+  ReadFavoritesModel({required this.book, required this.chapter, required this.verse, required this.text, required this.timestamp});
 }
 
 @Entity()
@@ -95,5 +113,33 @@ class StudyNote {
   StudyNote({
     required this.note,
     required this.timestamp,
+  });
+}
+
+@Entity()
+class UserPreference {
+  @Id()
+  int id = 0;
+  double fontSize;
+  String? lastSelectedBook;
+  String? lastSelectedChapter;
+  String? selectedFont;
+  double? selectedFontSize;
+  bool? isAutoScrollingEnabled;
+  String? autoScrollMode;
+  String? lastBookmark;
+  String? lastFavorite;
+
+  UserPreference({
+    this.id = 1,
+    required this.fontSize,
+    this.lastSelectedBook,
+    this.lastSelectedChapter,
+    this.selectedFont,
+    this.selectedFontSize,
+    this.isAutoScrollingEnabled,
+    this.autoScrollMode,
+    this.lastBookmark,
+    this.lastFavorite,
   });
 }

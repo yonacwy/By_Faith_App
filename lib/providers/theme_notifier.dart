@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:by_faith_app/objectbox.dart';
-import 'package:by_faith_app/models/user_preference_model.dart';
+import 'package:by_faith_app/models/user_preferences.dart';
 
 class ThemeNotifier extends ChangeNotifier {
   final ObjectBox _objectbox;

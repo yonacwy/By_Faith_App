@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../objectbox.dart';
 import '../objectbox.g.dart';
-import '../models/read_data_model.dart';
+import '../models/read_page_model.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 
@@ -198,7 +198,7 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                               setState(() {
                                 currentFont = value;
                                 widget.onFontChanged(currentFont!, currentFontSize!);
-                                UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+                                UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
                                 prefs.selectedFont = value;
                                 userPreferenceBox.put(prefs);
                               });
@@ -240,7 +240,7 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                             setState(() {
                               currentFontSize = value;
                               widget.onFontChanged(currentFont!, currentFontSize!);
-                              UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+                              UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
                               prefs.selectedFontSize = value;
                               userPreferenceBox.put(prefs);
                             });
@@ -304,7 +304,7 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                             setState(() {
                               _isAutoScrollingEnabled = value;
                               widget.onAutoScrollChanged(value);
-                              UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+                              UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
                               prefs.isAutoScrollingEnabled = value;
                               userPreferenceBox.put(prefs);
                             });
@@ -328,7 +328,7 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                               setState(() {
                                 _autoScrollMode = value;
                                 widget.onAutoScrollModeChanged(value);
-                                UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+                                UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
                                 prefs.autoScrollMode = value;
                                 userPreferenceBox.put(prefs);
                               });
@@ -344,7 +344,7 @@ class _ReadSettingsUiState extends State<ReadSettingsUi> {
                               setState(() {
                                 _autoScrollMode = value;
                                 widget.onAutoScrollModeChanged(value);
-                                UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+                                UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
                                 prefs.autoScrollMode = value;
                                 userPreferenceBox.put(prefs);
                               });

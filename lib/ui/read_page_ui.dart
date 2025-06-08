@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import '../objectbox.dart';
-import '../objectbox.g.dart';
+import '../objectbox.g.dart'; // Import objectbox.g.dart for Box types
 import 'package:provider/provider.dart';
 import '../providers/theme_notifier.dart';
 import 'read_settings_ui.dart';
 import 'read_bookmarks_ui.dart';
 import 'read_favorites_ui.dart';
-import '../models/read_data_model.dart';
-import 'package:by_faith_app/models/user_preference_model.dart';
+import '../models/read_page_model.dart';
+import 'package:by_faith_app/models/read_page_model.dart'; // For UserPreference
 import 'package:objectbox/objectbox.dart';
 
 class ReadPageUi extends StatefulWidget {
@@ -71,23 +71,23 @@ class _ReadPageUiState extends State<ReadPageUi> {
 
     setState(() {
       selectedBook = widget.initialBook ?? prefs?.lastSelectedBook ?? "Genesis";
-      selectedChapter = widget.initialChapter ?? prefs?.lastSelectedChapter ?? 1;
+      selectedChapter = prefs?.lastSelectedChapter != null ? int.parse(prefs!.lastSelectedChapter!) : (widget.initialChapter ?? 1);
       selectedFont = prefs?.selectedFont ?? 'Roboto';
       selectedFontSize = prefs?.selectedFontSize ?? 16.0;
-      _isAutoScrollingEnabled = prefs?.onboardingComplete ?? false; // Assuming onboardingComplete is used for auto-scroll state
-      _autoScrollMode = prefs?.currentMap ?? 'Normal'; // Assuming currentMap is used for auto-scroll mode
+      _isAutoScrollingEnabled = prefs?.isAutoScrollingEnabled ?? false;
+      _autoScrollMode = prefs?.autoScrollMode ?? 'Normal';
     });
     loadData();
   }
 
   Future<void> _saveSelection() async {
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1); // Get existing or create new
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0); // Get existing or create new
     prefs.lastSelectedBook = selectedBook;
-    prefs.lastSelectedChapter = selectedChapter;
-    prefs.selectedStudyFont = selectedFont; // Corrected field name
-    prefs.selectedStudyFontSize = selectedFontSize; // Corrected field name
-    prefs.onboardingComplete = _isAutoScrollingEnabled; // Assuming onboardingComplete is used for auto-scroll state
-    prefs.currentMap = _autoScrollMode; // Assuming currentMap is used for auto-scroll mode
+    prefs.lastSelectedChapter = selectedChapter.toString();
+    prefs.selectedFont = selectedFont;
+    prefs.selectedFontSize = selectedFontSize;
+    prefs.isAutoScrollingEnabled = _isAutoScrollingEnabled;
+    prefs.autoScrollMode = _autoScrollMode;
     userPreferenceBox.put(prefs);
   }
 
@@ -355,8 +355,8 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _addVerseToBookmarks(VerseData verseData) async {
-    final bookmarkBox = objectbox.store.box<Bookmark>();
-    final newBookmark = Bookmark(
+    final bookmarkBox = objectbox.store.box<ReadBookmarksModel>();
+    final newBookmark = ReadBookmarksModel(
       book: verseData.book,
       chapter: verseData.chapter,
       verse: verseData.verse,
@@ -364,17 +364,17 @@ class _ReadPageUiState extends State<ReadPageUi> {
       timestamp: DateTime.now(),
     );
 
-    bool exists = bookmarkBox.query(Bookmark_.book.eq(verseData.book)
-        .and(Bookmark_.chapter.eq(verseData.chapter))
-        .and(Bookmark_.verse.eq(verseData.verse)))
+    bool exists = objectbox.readBookmarksModelBox.query(ReadBookmarksModel_.book.equals(verseData.book)
+        .and(ReadBookmarksModel_.chapter.equals(verseData.chapter))
+        .and(ReadBookmarksModel_.verse.equals(verseData.verse)))
         .build()
         .find()
         .isNotEmpty;
 
     if (!exists) {
-      bookmarkBox.put(newBookmark);
+      objectbox.readBookmarksModelBox.put(newBookmark);
       final lastBookmarkValue = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
-      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
+      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
       prefs.lastBookmark = lastBookmarkValue;
       userPreferenceBox.put(prefs);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -388,8 +388,8 @@ class _ReadPageUiState extends State<ReadPageUi> {
   }
 
   Future<void> _addVerseToFavorites(VerseData verseData) async {
-    final favoriteBox = objectbox.store.box<Favorite>();
-    final newFavorite = Favorite(
+    final favoriteBox = objectbox.store.box<ReadFavoritesModel>();
+    final newFavorite = ReadFavoritesModel(
       book: verseData.book,
       chapter: verseData.chapter,
       verse: verseData.verse,
@@ -397,16 +397,16 @@ class _ReadPageUiState extends State<ReadPageUi> {
       timestamp: DateTime.now(),
     );
 
-    bool exists = favoriteBox.query(Favorite_.book.eq(verseData.book)
-        .and(Favorite_.chapter.eq(verseData.chapter))
-        .and(Favorite_.verse.eq(verseData.verse)))
+    bool exists = objectbox.readFavoritesModelBox.query(ReadFavoritesModel_.book.equals(verseData.book)
+        .and(ReadFavoritesModel_.chapter.equals(verseData.chapter))
+        .and(ReadFavoritesModel_.verse.equals(verseData.verse)))
         .build()
         .find()
         .isNotEmpty;
 
     if (!exists) {
-      favoriteBox.put(newFavorite);
-      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(id: 1);
+      objectbox.readFavoritesModelBox.put(newFavorite);
+      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
       prefs.lastFavorite = '${verseData.book} ${verseData.chapter}:${verseData.verse}';
       userPreferenceBox.put(prefs);
       ScaffoldMessenger.of(context).showSnackBar(

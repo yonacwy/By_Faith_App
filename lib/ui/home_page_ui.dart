@@ -1,15 +1,16 @@
-import 'package:by_faith_app/models/gospel_map_info_model.dart';
+
 import '../providers/page_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:by_faith_app/objectbox.dart';
-import 'package:by_faith_app/models/pray_model.dart';
-import 'package:by_faith_app/models/gospel_map_info_model.dart';
-import 'package:by_faith_app/models/user_preference_model.dart'; // For user preferences
+import 'package:by_faith_app/models/pray_page_model.dart';
+
+import 'package:by_faith_app/models/read_page_model.dart'; // For UserPreference
 import 'package:objectbox/objectbox.dart'; // Added import for Box
-import '../models/pray_model.dart';
+import '../models/pray_page_model.dart'; // For PrayPageModel
 import 'package:by_faith_app/ui/gospel_page_ui.dart';
 import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart';
 import 'package:provider/provider.dart';
+import '../models/home_page_model.dart';
 import '../providers/theme_notifier.dart';
 import 'home_settings_ui.dart';
 import 'home_app_support_ui.dart';
@@ -27,9 +28,10 @@ class HomePageUi extends StatefulWidget {
 }
 
 class _HomePageUiState extends State<HomePageUi> {
-  late Box<Prayer> _prayerBox;
-  late Box<UserPreference> _userPrefsBox; // Using UserPreference for user preferences
-  late Box<MapInfo> _mapBox;
+  late Box<PrayPageModel> _prayerBox;
+  late Box<UserPreference> _userPrefsBox;
+  late Box<HomePageModel> _homePageBox;
+  late Box<GospelOfflineMapsModel> _mapBox;
   PageNotifier? _pageNotifier; // Nullable PageNotifier instance
 
   int _newPrayersCount = 0;
@@ -90,16 +92,31 @@ class _HomePageUiState extends State<HomePageUi> {
 
       final store = objectbox.store;
       _prayerBox = store.box<Prayer>();
-      _userPrefsBox = store.box<UserPreference>(); // Using UserPreference for user preferences
+      _userPrefsBox = store.box<UserPreference>();
+      _homePageBox = store.box<HomePageModel>();
       _mapBox = store.box<MapInfo>();
 
+      // Load HomePageModel or create a default one
+      HomePageModel? homePageData = _homePageBox.get(1);
+      if (homePageData == null) {
+        homePageData = HomePageModel(
+          readChaptersCount: 0,
+          bookmarkCount: 0,
+          favoriteCount: 0,
+          studiedChaptersCount: 0,
+          bibleNoteCount: 0,
+          personalNoteCount: 0,
+          studyNoteCount: 0,
+          searchCount: 0,
+          onboardingComplete: false,
+          lastReadChapter: 'N/A',
+        );
+        _homePageBox.put(homePageData);
+      }
+
       setState(() {
-        // For user preferences, we'll need to fetch a specific entity or manage a single settings entity
-        // For now, we'll assume a single settings entity with ID 1 for simplicity.
-        // This might need a dedicated AppSettings model if more preferences are stored.
-        UserPreference? settings = _userPrefsBox.get(1);
-        _selectedFont = settings?.homeSelectedFont ?? 'Roboto';
-        _selectedFontSize = settings?.homeSelectedFontSize ?? 16.0;
+        _selectedFont = homePageData!.homeSelectedFont ?? 'Roboto';
+        _selectedFontSize = homePageData.homeSelectedFontSize ?? 16.0;
         _isInitialized = true;
         _isLoading = false;
       });
@@ -127,31 +144,30 @@ class _HomePageUiState extends State<HomePageUi> {
 
       setState(() {
         _isLoading = true;
-        _newPrayersCount = _prayerBox.query(Prayer_.status.equals('new')).build().count().toInt();
-        _answeredPrayersCount = _prayerBox.query(Prayer_.status.equals('answered')).build().count().toInt();
-        _unansweredPrayersCount = _prayerBox.query(Prayer_.status.equals('unanswered')).build().count().toInt();
+        _newPrayersCount = _prayerBox.query(PrayPageModel_.status.equals('new')).build().count().toInt();
+        _answeredPrayersCount = _prayerBox.query(PrayPageModel_.status.equals('answered')).build().count().toInt();
+        _unansweredPrayersCount = _prayerBox.query(PrayPageModel_.status.equals('unanswered')).build().count().toInt();
 
-        // For user preferences, we'll need to fetch a specific entity or manage a single settings entity
-        UserPreference? settings = _userPrefsBox.get(1);
+        HomePageModel? homePageData = _homePageBox.get(1);
 
-        _lastRead = (settings?.lastSelectedBook != null && settings?.lastSelectedChapter != null)
-            ? '${settings!.lastSelectedBook} ${settings.lastSelectedChapter}'
+        _lastRead = (homePageData?.lastSelectedBook != null && homePageData?.lastSelectedChapter != null)
+            ? '${homePageData!.lastSelectedBook} ${homePageData.lastSelectedChapter}'
             : 'N/A';
 
-        _lastStudied = (settings?.lastSelectedStudyBook != null && settings?.lastSelectedStudyChapter != null)
-            ? '${settings!.lastSelectedStudyBook} ${settings.lastSelectedStudyChapter}'
+        _lastStudied = (homePageData?.lastSelectedStudyBook != null && homePageData?.lastSelectedStudyChapter != null)
+            ? '${homePageData!.lastSelectedStudyBook} ${homePageData.lastSelectedStudyChapter}'
             : 'N/A';
 
-        _lastBookmark = settings?.lastBookmark ?? 'N/A';
-        _lastFavorite = settings?.lastFavorite ?? 'N/A';
-        _lastBibleNote = settings?.lastBibleNote ?? 'N/A';
-        _lastPersonalNote = settings?.lastPersonalNote ?? 'N/A';
-        _lastStudyNote = settings?.lastStudyNote ?? 'N/A';
-        _lastSearch = settings?.lastSearch ?? 'N/A';
-        _lastContact = settings?.lastContact ?? 'N/A';
-        _currentMap = settings?.currentMap ?? 'N/A';
+        _lastBookmark = _userPrefsBox.get(1)?.lastBookmark ?? 'N/A';
+        _lastFavorite = _userPrefsBox.get(1)?.lastFavorite ?? 'N/A';
+        _lastBibleNote = homePageData?.lastBibleNote ?? 'N/A';
+        _lastPersonalNote = homePageData?.lastPersonalNote ?? 'N/A';
+        _lastStudyNote = homePageData?.lastStudyNote ?? 'N/A';
+        _lastSearch = homePageData?.lastSearch ?? 'N/A';
+        _lastContact = homePageData?.lastContact ?? 'N/A';
+        _currentMap = _userPrefsBox.get(1)?.currentMap ?? 'N/A';
 
-        _downloadedMapsCount = _mapBox.query(MapInfo_.isTemporary.equals(false)).build().count().toInt();
+        _downloadedMapsCount = _mapBox.query(GospelOfflineMapsModel_.isTemporary.equals(false)).build().count().toInt();
         _isLoading = false;
       });
     });
@@ -160,46 +176,46 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates reading progress (example: based on Bible chapters)
   double _calculateReadingProgress() {
     const totalChapters = 1189; // Total Bible chapters
-    UserPreference? settings = _userPrefsBox.get(1);
-    final readChapters = settings?.readChaptersCount ?? 0;
+    HomePageModel? homePageData = _homePageBox.get(1);
+    final readChapters = homePageData?.readChaptersCount ?? 0;
     return readChapters / totalChapters;
   }
 
   /// Calculates bookmark progress (example: based on bookmarks count)
   double _calculateBookmarkProgress() {
     const maxBookmarks = 100; // Hypothetical max
-    UserPreference? settings = _userPrefsBox.get(1);
-    final bookmarkCount = settings?.bookmarkCount ?? 0;
+    HomePageModel? homePageData = _homePageBox.get(1);
+    final bookmarkCount = homePageData?.bookmarkCount ?? 0;
     return bookmarkCount / maxBookmarks;
   }
 
   /// Calculates favorite progress (example: based on favorites count)
   double _calculateFavoriteProgress() {
     const maxFavorites = 50; // Hypothetical max
-    UserPreference? settings = _userPrefsBox.get(1);
-    final favoriteCount = settings?.favoriteCount ?? 0;
+    HomePageModel? homePageData = _homePageBox.get(1);
+    final favoriteCount = homePageData?.favoriteCount ?? 0;
     return favoriteCount / maxFavorites;
   }
 
   /// Calculates study progress (example: based on study chapters)
   double _calculateStudyProgress() {
     const totalStudyChapters = 1189; // Same as Bible chapters
-    UserPreference? settings = _userPrefsBox.get(1);
-    final studiedChapters = settings?.studiedChaptersCount ?? 0;
+    HomePageModel? homePageData = _homePageBox.get(1);
+    final studiedChapters = homePageData?.studiedChaptersCount ?? 0;
     return studiedChapters / totalStudyChapters;
   }
 
   /// Calculates note progress (example: based on note count)
   double _calculateNoteProgress(String noteType) {
     const maxNotes = 100; // Hypothetical max
-    UserPreference? settings = _userPrefsBox.get(1);
+    HomePageModel? homePageData = _homePageBox.get(1);
     int noteCount = 0;
     if (noteType == 'bibleNote') {
-      noteCount = settings?.bibleNoteCount ?? 0;
+      noteCount = homePageData?.bibleNoteCount ?? 0;
     } else if (noteType == 'personalNote') {
-      noteCount = settings?.personalNoteCount ?? 0;
+      noteCount = homePageData?.personalNoteCount ?? 0;
     } else if (noteType == 'studyNote') {
-      noteCount = settings?.studyNoteCount ?? 0;
+      noteCount = homePageData?.studyNoteCount ?? 0;
     }
     return noteCount / maxNotes;
   }
@@ -207,8 +223,8 @@ class _HomePageUiState extends State<HomePageUi> {
   /// Calculates search progress (example: based on search history)
   double _calculateSearchProgress() {
     const maxSearches = 50; // Hypothetical max
-    UserPreference? settings = _userPrefsBox.get(1);
-    final searchCount = settings?.searchCount ?? 0;
+    HomePageModel? homePageData = _homePageBox.get(1);
+    final searchCount = homePageData?.searchCount ?? 0;
     return searchCount / maxSearches;
   }
 
@@ -218,13 +234,24 @@ class _HomePageUiState extends State<HomePageUi> {
       _selectedFont = font;
       _selectedFontSize = fontSize;
     });
-    UserPreference? settings = _userPrefsBox.get(1);
-    if (settings == null) {
-      settings = UserPreference(id: 1, onboardingComplete: false); // Assuming onboarding is false initially
+    HomePageModel? homePageData = _homePageBox.get(1);
+    if (homePageData == null) {
+      homePageData = HomePageModel(
+        readChaptersCount: 0,
+        bookmarkCount: 0,
+        favoriteCount: 0,
+        studiedChaptersCount: 0,
+        bibleNoteCount: 0,
+        personalNoteCount: 0,
+        studyNoteCount: 0,
+        searchCount: 0,
+        onboardingComplete: false,
+        lastReadChapter: 'N/A',
+      );
     }
-    settings.homeSelectedFont = font;
-    settings.homeSelectedFontSize = fontSize;
-    _userPrefsBox.put(settings);
+    homePageData.homeSelectedFont = font;
+    homePageData.homeSelectedFontSize = fontSize;
+    _homePageBox.put(homePageData);
   }
 
   /// Opens the settings page

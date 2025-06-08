@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../objectbox.dart';
 import '../objectbox.g.dart';
-import '../models/read_data_model.dart';
+import '../models/read_page_model.dart'; // For VerseData
 import 'study_page_ui.dart';
 
 class BibleSearchDelegate extends SearchDelegate {
@@ -99,7 +99,7 @@ class BibleSearchDelegate extends SearchDelegate {
 
     // Save the last search query to user preferences for the dashboard
     final userPreferenceBox = (await ObjectBox.create()).store.box<UserPreference>();
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
     prefs.lastSearch = query;
     userPreferenceBox.put(prefs);
 

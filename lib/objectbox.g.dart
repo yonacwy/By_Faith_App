@@ -15,691 +15,1038 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'models/gospel_contacts_model.dart';
-import 'models/gospel_map_info_model.dart';
+import 'models/gospel_offline_maps_model.dart';
 import 'models/gospel_onboarding_model.dart';
 import 'models/gospel_profile_model.dart';
-import 'models/pray_model.dart';
-import 'models/read_data_model.dart';
-import 'models/user_preference_model.dart';
+import 'models/home_page_model.dart';
+import 'models/home_settings_model.dart';
+import 'models/pray_page_model.dart';
+import 'models/pray_search_model.dart';
+import 'models/pray_settings_model.dart';
+import 'models/read_bookmarks_model.dart';
+import 'models/read_favorites_model.dart';
+import 'models/read_page_model.dart';
+import 'models/read_settings_model.dart';
+import 'models/study_notes_model.dart';
+import 'models/study_page_model.dart';
+import 'models/study_search_model.dart';
+import 'models/study_settings_model.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(2, 1564221959796653090),
-      name: 'Bookmark',
-      lastPropertyId: const obx_int.IdUid(7, 3461504713274414794),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 4915813457193165755),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 1707220957310439508),
-            name: 'timestamp',
-            type: 10,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 1224087394471124274),
-            name: 'book',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 1397637348677427392),
-            name: 'chapter',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 8684879738310499732),
-            name: 'verse',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 3461504713274414794),
-            name: 'text',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(1, 2421348922329304029),
+    name: 'BibleNote',
+    lastPropertyId: const obx_int.IdUid(5, 4025414387435763466),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 1765435341658112655),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 4170296206299912851),
+        name: 'verse',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2223886749465866058),
+        name: 'verseText',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 9003515520027499364),
+        name: 'note',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4025414387435763466),
+        name: 'timestamp',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(3, 6533227380126726742),
-      name: 'Favorite',
-      lastPropertyId: const obx_int.IdUid(7, 6412078794772483524),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 1691490097731468709),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 5801590477981359735),
-            name: 'timestamp',
-            type: 10,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 4641527470536424589),
-            name: 'book',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 6747660567777066027),
-            name: 'chapter',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 6519476254107087068),
-            name: 'verse',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 6412078794772483524),
-            name: 'text',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(2, 45083496443923534),
+    name: 'GospelContactsModel',
+    lastPropertyId: const obx_int.IdUid(12, 352210444327796253),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3736610061701799160),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5596017828103653070),
+        name: 'contactId',
+        type: 6,
+        flags: 40,
+        indexId: const obx_int.IdUid(1, 3145704182128836564),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6169037453432776570),
+        name: 'firstName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 3828917974545459706),
+        name: 'lastName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 7673195189714862884),
+        name: 'address',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 4744979604203466005),
+        name: 'birthday',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 5602192377147691929),
+        name: 'latitude',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 5786112144509484359),
+        name: 'longitude',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 7152467287568299991),
+        name: 'phone',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 8093201113093422595),
+        name: 'email',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 1447765963338618260),
+        name: 'picturePath',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 352210444327796253),
+        name: 'notes',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(4, 7180550933572743612),
-      name: 'GospelProfile',
-      lastPropertyId: const obx_int.IdUid(8, 6096790601858846356),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 1364242396660614975),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 2302095508794830353),
-            name: 'firstName',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 8743705866401658922),
-            name: 'lastName',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 2714564161457641165),
-            name: 'address',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 7502466368167119551),
-            name: 'naturalBirthday',
-            type: 10,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 7307278761368581009),
-            name: 'phone',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 5915162108014622039),
-            name: 'email',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 6096790601858846356),
-            name: 'spiritualBirthday',
-            type: 10,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(3, 4446298117362500799),
+    name: 'GospelContactsPreference',
+    lastPropertyId: const obx_int.IdUid(2, 1911020097780902573),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 6012480332779855791),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1911020097780902573),
+        name: 'lastContact',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(5, 5880660969620993844),
-      name: 'MapInfo',
-      lastPropertyId: const obx_int.IdUid(8, 9180129616829342655),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 8650291611212797815),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 5769131099805835547),
-            name: 'name',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 7426385645124971727),
-            name: 'filePath',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 9003090834098243929),
-            name: 'downloadUrl',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 6215078388360593125),
-            name: 'isTemporary',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 8808659974124029571),
-            name: 'latitude',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 1724995603526487338),
-            name: 'longitude',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 9180129616829342655),
-            name: 'zoomLevel',
-            type: 6,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(4, 2458741529151114777),
+    name: 'GospelOfflineMapsModel',
+    lastPropertyId: const obx_int.IdUid(8, 6674515563246794618),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7628924303044590444),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7234668667411417604),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3917408890225309892),
+        name: 'filePath',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2676888976878867459),
+        name: 'downloadUrl',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 9021037155751275920),
+        name: 'isTemporary',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 9215670915663344565),
+        name: 'latitude',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 2450525385603050722),
+        name: 'longitude',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 6674515563246794618),
+        name: 'zoomLevel',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(6, 2017899559392564116),
-      name: 'Prayer',
-      lastPropertyId: const obx_int.IdUid(5, 4141169794387324215),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 7787554909253663766),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 6300373132178397088),
-            name: 'prayerId',
-            type: 9,
-            flags: 34848,
-            indexId: const obx_int.IdUid(5, 437635874454906621)),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 9200933325436161546),
-            name: 'richTextJson',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 4293879363398942463),
-            name: 'status',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 4141169794387324215),
-            name: 'timestamp',
-            type: 10,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(5, 8718607856896114349),
+    name: 'GospelOfflineMapsPreference',
+    lastPropertyId: const obx_int.IdUid(2, 8076638432764271395),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7894785531691340982),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8076638432764271395),
+        name: 'currentMap',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(7, 6844445452173387416),
-      name: 'VerseData',
-      lastPropertyId: const obx_int.IdUid(5, 8384470677215506640),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3497229043027209986),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 408164767380791373),
-            name: 'book',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 3119496207804078908),
-            name: 'chapter',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 2878511913252678567),
-            name: 'verse',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 8384470677215506640),
-            name: 'text',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(6, 6174914228569223775),
+    name: 'GospelOnboardingModel',
+    lastPropertyId: const obx_int.IdUid(2, 956316073888921022),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 4531059975453385711),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 956316073888921022),
+        name: 'onboardingComplete',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(9, 5770339252948091790),
-      name: 'BibleNote',
-      lastPropertyId: const obx_int.IdUid(5, 3972436692830592425),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 8989325486268605801),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 451693063197959271),
-            name: 'verse',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 7075094048813648914),
-            name: 'verseText',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 2316969086444700822),
-            name: 'note',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 3972436692830592425),
-            name: 'timestamp',
-            type: 10,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(7, 4840183224685780825),
+    name: 'GospelProfileModel',
+    lastPropertyId: const obx_int.IdUid(8, 2229149698992531822),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7951626481193548409),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 18471553831117335),
+        name: 'firstName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5044504058409970867),
+        name: 'lastName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 796705448895312705),
+        name: 'address',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 2031320121768548249),
+        name: 'naturalBirthday',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 9035987889513941574),
+        name: 'phone',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 7508274129640944775),
+        name: 'email',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 2229149698992531822),
+        name: 'spiritualBirthday',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(10, 3389449951895006168),
-      name: 'GospelOnboardingModel',
-      lastPropertyId: const obx_int.IdUid(24, 414391667364825106),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 5399148177399167994),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 2526756639688547041),
-            name: 'onboardingComplete',
-            type: 1,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 6329711673173354958),
-            name: 'homeSelectedFont',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 8792795203669504177),
-            name: 'homeSelectedFontSize',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 7294187251247087196),
-            name: 'lastSelectedBook',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 4020544409876086105),
-            name: 'lastSelectedChapter',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 3679007128647077019),
-            name: 'lastSelectedStudyBook',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 8167744845215030539),
-            name: 'lastSelectedStudyChapter',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 3010279209188300364),
-            name: 'lastBookmark',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 9024730214513322111),
-            name: 'lastFavorite',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 1726662430058713887),
-            name: 'lastBibleNote',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(12, 4861470943670323685),
-            name: 'lastPersonalNote',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(13, 4754148132242193147),
-            name: 'lastStudyNote',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(14, 2483148096831897720),
-            name: 'lastSearch',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(15, 4154865064028788069),
-            name: 'lastContact',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(16, 4359268578910176184),
-            name: 'currentMap',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(17, 8461594347426692131),
-            name: 'readChaptersCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(18, 1584142596132862545),
-            name: 'bookmarkCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(19, 5771938534725319112),
-            name: 'favoriteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(20, 8423365914842005533),
-            name: 'studiedChaptersCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(21, 6808189711454242161),
-            name: 'bibleNoteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(22, 2093864949507262913),
-            name: 'personalNoteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(23, 6330153233407918998),
-            name: 'studyNoteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(24, 414391667364825106),
-            name: 'searchCount',
-            type: 6,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(8, 1203468706424912197),
+    name: 'HomePageModel',
+    lastPropertyId: const obx_int.IdUid(22, 1846312620596289478),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 359609922376153744),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1949120506676621482),
+        name: 'lastBibleNote',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6738169425630387536),
+        name: 'lastPersonalNote',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 323377141089508186),
+        name: 'lastStudyNote',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8849924013140385058),
+        name: 'lastSearch',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 2932053101449696097),
+        name: 'lastContact',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 5495061335906328615),
+        name: 'readChaptersCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 5861176855292233411),
+        name: 'bookmarkCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 8079834039459787965),
+        name: 'favoriteCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 359432182903674515),
+        name: 'bibleNoteCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 7443138526850128841),
+        name: 'personalNoteCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 3791122456375382272),
+        name: 'studyNoteCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 9138953007642183984),
+        name: 'searchCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 7311338592327626537),
+        name: 'homeSelectedFont',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 777064769940939237),
+        name: 'homeSelectedFontSize',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 3945457774294863366),
+        name: 'onboardingComplete',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 8128653559403932029),
+        name: 'lastPageIndex',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 6477940917090629043),
+        name: 'lastReadChapter',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 3971240908615133694),
+        name: 'lastSelectedStudyBook',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 7224871789010089379),
+        name: 'lastSelectedStudyChapter',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(21, 1610008036527297697),
+        name: 'currentMap',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(22, 1846312620596289478),
+        name: 'studiedChaptersCount',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(11, 8850626731805914718),
-      name: 'PersonalNote',
-      lastPropertyId: const obx_int.IdUid(3, 4935745342447936035),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3735328665101799348),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 9150367029031674693),
-            name: 'note',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 4935745342447936035),
-            name: 'timestamp',
-            type: 10,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(9, 6297660890192518717),
+    name: 'HomeSettingsModel',
+    lastPropertyId: const obx_int.IdUid(2, 8575445960795178301),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7779198601458537236),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8575445960795178301),
+        name: 'themeMode',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(12, 7372177810010134879),
-      name: 'StudyNote',
-      lastPropertyId: const obx_int.IdUid(3, 2056594304209781223),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 3942024250186812622),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 5393830320684794412),
-            name: 'note',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 2056594304209781223),
-            name: 'timestamp',
-            type: 10,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(10, 3768195122192105662),
+    name: 'PersonalNote',
+    lastPropertyId: const obx_int.IdUid(3, 4179351556877685471),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 4281331965581597483),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7229908669730296765),
+        name: 'note',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 4179351556877685471),
+        name: 'timestamp',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(13, 7575709876387753993),
-      name: 'UserPreference',
-      lastPropertyId: const obx_int.IdUid(105, 8274179153599952749),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 140110587427926184),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(79, 6277387255517834459),
-            name: 'themeMode',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(80, 1422154708991338165),
-            name: 'fontSize',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(81, 2420875857439811412),
-            name: 'lastReadChapter',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(82, 878165774454576089),
-            name: 'lastPageIndex',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(83, 8933026844669946565),
-            name: 'currentMap',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(84, 257423518712751450),
-            name: 'lastSelectedStudyBook',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(85, 981189357313835951),
-            name: 'lastSelectedStudyChapter',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(86, 5040823402785109436),
-            name: 'selectedStudyFont',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(87, 4896993662775859550),
-            name: 'selectedStudyFontSize',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(88, 2330285302000765545),
-            name: 'lastBookmark',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(89, 9103017050552188278),
-            name: 'lastFavorite',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(90, 4938170290838364920),
-            name: 'lastBibleNote',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(91, 2527546751777538576),
-            name: 'lastPersonalNote',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(92, 3739038119292572867),
-            name: 'lastStudyNote',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(93, 5589883922522306542),
-            name: 'lastSearch',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(94, 7131798287625428262),
-            name: 'lastContact',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(95, 188957741095396842),
-            name: 'readChaptersCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(96, 6081944901646795609),
-            name: 'bookmarkCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(97, 3886468718624978195),
-            name: 'favoriteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(98, 5460021559142538250),
-            name: 'studiedChaptersCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(99, 8711505158276281099),
-            name: 'bibleNoteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(100, 6415993113056809782),
-            name: 'personalNoteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(101, 4975152408498419658),
-            name: 'studyNoteCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(102, 8796346350609619179),
-            name: 'searchCount',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(103, 952161304950970725),
-            name: 'homeSelectedFont',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(104, 5731923316426049864),
-            name: 'homeSelectedFontSize',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(105, 8274179153599952749),
-            name: 'onboardingComplete',
-            type: 1,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[]),
+    id: const obx_int.IdUid(11, 5397317541311052190),
+    name: 'PrayPageModel',
+    lastPropertyId: const obx_int.IdUid(5, 2175442218885645045),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 4913341829252772583),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2880242709768680752),
+        name: 'prayerId',
+        type: 9,
+        flags: 34848,
+        indexId: const obx_int.IdUid(2, 8638897958601573743),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3395617151200053390),
+        name: 'richTextJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7230798908276537915),
+        name: 'status',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 2175442218885645045),
+        name: 'timestamp',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
   obx_int.ModelEntity(
-      id: const obx_int.IdUid(14, 924073218463042741),
-      name: 'Contact',
-      lastPropertyId: const obx_int.IdUid(12, 7433356272096871408),
-      flags: 0,
-      properties: <obx_int.ModelProperty>[
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(1, 4867584557059048970),
-            name: 'id',
-            type: 6,
-            flags: 1),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(2, 235166160723851839),
-            name: 'contactId',
-            type: 6,
-            flags: 40,
-            indexId: const obx_int.IdUid(6, 4822508587456391542)),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(3, 7032511538641159679),
-            name: 'firstName',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(4, 3329343111773065274),
-            name: 'lastName',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(5, 1820701401752523955),
-            name: 'address',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(6, 1126696105862625751),
-            name: 'birthday',
-            type: 10,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(7, 2091532291424392655),
-            name: 'latitude',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(8, 6436227468500722705),
-            name: 'longitude',
-            type: 8,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(9, 2815769865206209035),
-            name: 'phone',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(10, 552988315970912758),
-            name: 'email',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(11, 5209334292829028749),
-            name: 'picturePath',
-            type: 9,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(12, 7433356272096871408),
-            name: 'notes',
-            type: 9,
-            flags: 0)
-      ],
-      relations: <obx_int.ModelRelation>[],
-      backlinks: <obx_int.ModelBacklink>[])
+    id: const obx_int.IdUid(12, 8110854207941530618),
+    name: 'PraySearchModel',
+    lastPropertyId: const obx_int.IdUid(3, 2252109004109110733),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2830822954574884977),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8410056612627778914),
+        name: 'lastSearch',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2252109004109110733),
+        name: 'searchCount',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(13, 2270069691694851783),
+    name: 'PraySettingsModel',
+    lastPropertyId: const obx_int.IdUid(3, 5624005418956818071),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3690791590700271828),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 4069789283114428028),
+        name: 'isAutoScrollingEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5624005418956818071),
+        name: 'autoScrollMode',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(14, 4684007661861564136),
+    name: 'ReadBookmarksModel',
+    lastPropertyId: const obx_int.IdUid(11, 7276312270961871431),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 4480784067564061124),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 4533880263826398715),
+        name: 'book',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 4025802256762173710),
+        name: 'chapter',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 498998796731371727),
+        name: 'verse',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 5539477989344085967),
+        name: 'text',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 2519856439570246619),
+        name: 'lastBookmark',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 7276312270961871431),
+        name: 'bookmarkCount',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(15, 602543294002621216),
+    name: 'ReadFavoritesModel',
+    lastPropertyId: const obx_int.IdUid(11, 6107477323281229609),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8065067375896990901),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1032481714787428854),
+        name: 'book',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2895198871203265851),
+        name: 'chapter',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 3656137580255081920),
+        name: 'verse',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1974119620023970627),
+        name: 'text',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 6107477323281229609),
+        name: 'timestamp',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(16, 6430020000636700228),
+    name: 'ReadSettingsModel',
+    lastPropertyId: const obx_int.IdUid(3, 6118465425719516554),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5453468152023689785),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 485811382900728002),
+        name: 'isAutoScrollingEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6118465425719516554),
+        name: 'autoScrollMode',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(17, 3811599972021950394),
+    name: 'StudyNote',
+    lastPropertyId: const obx_int.IdUid(3, 2706296931613662145),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8961931609613595831),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3449960121331718882),
+        name: 'note',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2706296931613662145),
+        name: 'timestamp',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(18, 6519729940800098742),
+    name: 'StudyNotesModel',
+    lastPropertyId: const obx_int.IdUid(7, 4247592730419787013),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 6608819926845410303),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5704133764465743986),
+        name: 'lastBibleNote',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6492327653676512976),
+        name: 'lastPersonalNote',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7465068854894252597),
+        name: 'lastStudyNote',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 5982980715417795438),
+        name: 'bibleNoteCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8278756399841887181),
+        name: 'personalNoteCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 4247592730419787013),
+        name: 'studyNoteCount',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(19, 309275429655706153),
+    name: 'StudyPageModel',
+    lastPropertyId: const obx_int.IdUid(6, 3477766118899396787),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8445833478744874214),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 9182513282449215616),
+        name: 'lastSelectedStudyBook',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6575495818053724852),
+        name: 'lastSelectedStudyChapter',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 6224746955898820850),
+        name: 'selectedStudyFont',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 3528949543696340127),
+        name: 'selectedStudyFontSize',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 3477766118899396787),
+        name: 'studiedChaptersCount',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(20, 5539465680854528307),
+    name: 'StudySearchModel',
+    lastPropertyId: const obx_int.IdUid(3, 8239512545029210372),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3581426661066807032),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2375640349955295262),
+        name: 'lastSearch',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 8239512545029210372),
+        name: 'searchCount',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(21, 2926459939915826046),
+    name: 'StudySettingsModel',
+    lastPropertyId: const obx_int.IdUid(3, 628775401628654969),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2903001563842781628),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3603794876817851366),
+        name: 'selectedStudyFont',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 628775401628654969),
+        name: 'selectedStudyFontSize',
+        type: 8,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(22, 7709713473992143532),
+    name: 'UserPreference',
+    lastPropertyId: const obx_int.IdUid(10, 7487371563331606370),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2863889044698565240),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 6596989028546552177),
+        name: 'fontSize',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 7541602410173634052),
+        name: 'lastSelectedBook',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 42103628681799723),
+        name: 'lastSelectedChapter',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 2654127392143512280),
+        name: 'selectedFont',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 5443847862947912794),
+        name: 'selectedFontSize',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1124828006428286570),
+        name: 'isAutoScrollingEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 2940186467978580246),
+        name: 'autoScrollMode',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 3526647617223120673),
+        name: 'lastBookmark',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 7487371563331606370),
+        name: 'lastFavorite',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(23, 125650775399468302),
+    name: 'VerseData',
+    lastPropertyId: const obx_int.IdUid(5, 2560530561503626487),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8320765364731266357),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 6125501866508290894),
+        name: 'book',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6224468935145739936),
+        name: 'chapter',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1673064641574463784),
+        name: 'verse',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 2560530561503626487),
+        name: 'text',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -713,1465 +1060,2101 @@ final _entities = <obx_int.ModelEntity>[
 /// For Flutter apps, also calls `loadObjectBoxLibraryAndroidCompat()` from
 /// the ObjectBox Flutter library to fix loading the native ObjectBox library
 /// on Android 6 and older.
-Future<obx.Store> openStore(
-    {String? directory,
-    int? maxDBSizeInKB,
-    int? maxDataSizeInKB,
-    int? fileMode,
-    int? maxReaders,
-    bool queriesCaseSensitiveDefault = true,
-    String? macosApplicationGroup}) async {
+Future<obx.Store> openStore({
+  String? directory,
+  int? maxDBSizeInKB,
+  int? maxDataSizeInKB,
+  int? fileMode,
+  int? maxReaders,
+  bool queriesCaseSensitiveDefault = true,
+  String? macosApplicationGroup,
+}) async {
   await loadObjectBoxLibraryAndroidCompat();
-  return obx.Store(getObjectBoxModel(),
-      directory: directory ?? (await defaultStoreDirectory()).path,
-      maxDBSizeInKB: maxDBSizeInKB,
-      maxDataSizeInKB: maxDataSizeInKB,
-      fileMode: fileMode,
-      maxReaders: maxReaders,
-      queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
-      macosApplicationGroup: macosApplicationGroup);
+  return obx.Store(
+    getObjectBoxModel(),
+    directory: directory ?? (await defaultStoreDirectory()).path,
+    maxDBSizeInKB: maxDBSizeInKB,
+    maxDataSizeInKB: maxDataSizeInKB,
+    fileMode: fileMode,
+    maxReaders: maxReaders,
+    queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
+    macosApplicationGroup: macosApplicationGroup,
+  );
 }
 
 /// Returns the ObjectBox model definition for this project for use with
 /// [obx.Store.new].
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
-      entities: _entities,
-      lastEntityId: const obx_int.IdUid(14, 924073218463042741),
-      lastIndexId: const obx_int.IdUid(6, 4822508587456391542),
-      lastRelationId: const obx_int.IdUid(0, 0),
-      lastSequenceId: const obx_int.IdUid(0, 0),
-      retiredEntityUids: const [7347740440957002375, 912852536589970541],
-      retiredIndexUids: const [2854475223296293918, 1054823213086138289],
-      retiredPropertyUids: const [
-        8904482984477880097,
-        4124871993102925197,
-        5551884292044601712,
-        7865976328823303765,
-        951054843269717882,
-        8049501932357739808,
-        5023574416062896784,
-        4363939216835710488,
-        1075318370689979386,
-        2364456044833275653,
-        7075911904011204483,
-        5724955142714838808,
-        2743135914098810544,
-        485655053513211999,
-        3255395804575318386,
-        5424241127109884032,
-        7612447900199187029,
-        6128587973440749473,
-        6348119708638421474,
-        5256551813793772312,
-        803739059686484036,
-        8385635290102181575,
-        8696039751030500734,
-        4120758035873038600,
-        3503296258194356606,
-        4955963972701976425,
-        5030094612081641392,
-        1846649295714602332,
-        6965658796334171842,
-        6838195710791870316,
-        5776230101967901210,
-        7462132937659548464,
-        3516105617668731951,
-        3101525249037883754,
-        7282203015725314671,
-        6213839433809340496,
-        6735528501277913648,
-        3494840230127631421,
-        6668306291139215579,
-        4213928305564964351,
-        1723703522330436879,
-        8839836728419781865,
-        2841784714291512681,
-        3885343616269700224,
-        7902996283135367592,
-        4669299506805892699,
-        608763754128537773,
-        5612520008368514075,
-        8571612082746762372,
-        6614831770898115345,
-        782477427192423907,
-        4844656773679633854,
-        8385854327588967277,
-        4019495834045068998,
-        659480161912730318,
-        4157817510339571906,
-        7703881680418334943,
-        8321246365657091964,
-        1334134745683981760,
-        2844510945467284106,
-        5614536644599680020,
-        5324126724372145114,
-        4746433473555187693,
-        2731422035753394957,
-        8392909963803976942,
-        5797123622375023273,
-        3616963952268537401,
-        825318191082228739,
-        1213254940915408484,
-        7375576451122148385,
-        4532719067716720172,
-        1286894997621371605,
-        3480446040961426986,
-        423824659210641102,
-        1546206332095149224,
-        8387822256702171045,
-        3684417161626820611,
-        761524108859123227,
-        5476620760726032472,
-        3511145537186095627,
-        1322040248875479203,
-        2561697765908133038,
-        5908897291057666986,
-        5131353265689453607,
-        3015097267571987106,
-        2480768464161008150,
-        6029989802520451911,
-        4100328125964881087,
-        622052141496231960,
-        3209990825684905562,
-        2988127265275935843,
-        8053669845240536222,
-        1996683560029542617,
-        2980750789506768139,
-        7805759333902824559,
-        6513912389953371220,
-        6434640139227302800,
-        3442138376070848478,
-        7826571097454909037,
-        5910517559680267387,
-        6378280807118562128
-      ],
-      retiredRelationUids: const [],
-      modelVersion: 5,
-      modelVersionParserMinimum: 5,
-      version: 1);
+    entities: _entities,
+    lastEntityId: const obx_int.IdUid(23, 125650775399468302),
+    lastIndexId: const obx_int.IdUid(2, 8638897958601573743),
+    lastRelationId: const obx_int.IdUid(0, 0),
+    lastSequenceId: const obx_int.IdUid(0, 0),
+    retiredEntityUids: const [],
+    retiredIndexUids: const [],
+    retiredPropertyUids: const [
+      5217008789498040589,
+      3733709505511812924,
+      879964704639068375,
+      3189990324564953738,
+      7219401904827617449,
+      266377637232172969,
+      2610549996337270883,
+      9159756366849692138,
+      1316796708699348956,
+    ],
+    retiredRelationUids: const [],
+    modelVersion: 5,
+    modelVersionParserMinimum: 5,
+    version: 1,
+  );
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    Bookmark: obx_int.EntityDefinition<Bookmark>(
-        model: _entities[0],
-        toOneRelations: (Bookmark object) => [],
-        toManyRelations: (Bookmark object) => {},
-        getId: (Bookmark object) => object.id,
-        setId: (Bookmark object, int id) {
-          object.id = id;
-        },
-        objectToFB: (Bookmark object, fb.Builder fbb) {
-          final bookOffset = fbb.writeString(object.book);
-          final textOffset = fbb.writeString(object.text);
-          fbb.startTable(8);
-          fbb.addInt64(0, object.id);
-          fbb.addInt64(1, object.timestamp.millisecondsSinceEpoch);
-          fbb.addOffset(3, bookOffset);
-          fbb.addInt64(4, object.chapter);
-          fbb.addInt64(5, object.verse);
-          fbb.addOffset(6, textOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final bookParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final chapterParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
-          final verseParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
-          final textParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 16, '');
-          final timestampParam = DateTime.fromMillisecondsSinceEpoch(
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0));
-          final object = Bookmark(
-              book: bookParam,
-              chapter: chapterParam,
-              verse: verseParam,
-              text: textParam,
-              timestamp: timestampParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-          return object;
-        }),
-    Favorite: obx_int.EntityDefinition<Favorite>(
-        model: _entities[1],
-        toOneRelations: (Favorite object) => [],
-        toManyRelations: (Favorite object) => {},
-        getId: (Favorite object) => object.id,
-        setId: (Favorite object, int id) {
-          object.id = id;
-        },
-        objectToFB: (Favorite object, fb.Builder fbb) {
-          final bookOffset = fbb.writeString(object.book);
-          final textOffset = fbb.writeString(object.text);
-          fbb.startTable(8);
-          fbb.addInt64(0, object.id);
-          fbb.addInt64(1, object.timestamp.millisecondsSinceEpoch);
-          fbb.addOffset(3, bookOffset);
-          fbb.addInt64(4, object.chapter);
-          fbb.addInt64(5, object.verse);
-          fbb.addOffset(6, textOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final bookParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final chapterParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
-          final verseParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0);
-          final textParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 16, '');
-          final timestampParam = DateTime.fromMillisecondsSinceEpoch(
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0));
-          final object = Favorite(
-              book: bookParam,
-              chapter: chapterParam,
-              verse: verseParam,
-              text: textParam,
-              timestamp: timestampParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-          return object;
-        }),
-    GospelProfile: obx_int.EntityDefinition<GospelProfile>(
-        model: _entities[2],
-        toOneRelations: (GospelProfile object) => [],
-        toManyRelations: (GospelProfile object) => {},
-        getId: (GospelProfile object) => object.id,
-        setId: (GospelProfile object, int id) {
-          object.id = id;
-        },
-        objectToFB: (GospelProfile object, fb.Builder fbb) {
-          final firstNameOffset = object.firstName == null
-              ? null
-              : fbb.writeString(object.firstName!);
-          final lastNameOffset = object.lastName == null
-              ? null
-              : fbb.writeString(object.lastName!);
-          final addressOffset =
-              object.address == null ? null : fbb.writeString(object.address!);
-          final phoneOffset =
-              object.phone == null ? null : fbb.writeString(object.phone!);
-          final emailOffset =
-              object.email == null ? null : fbb.writeString(object.email!);
-          fbb.startTable(9);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, firstNameOffset);
-          fbb.addOffset(2, lastNameOffset);
-          fbb.addOffset(3, addressOffset);
-          fbb.addInt64(4, object.naturalBirthday?.millisecondsSinceEpoch);
-          fbb.addOffset(5, phoneOffset);
-          fbb.addOffset(6, emailOffset);
-          fbb.addInt64(7, object.spiritualBirthday?.millisecondsSinceEpoch);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final naturalBirthdayValue =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 12);
-          final spiritualBirthdayValue =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 18);
-          final firstNameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 6);
-          final lastNameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 8);
-          final addressParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 10);
-          final naturalBirthdayParam = naturalBirthdayValue == null
-              ? null
-              : DateTime.fromMillisecondsSinceEpoch(naturalBirthdayValue);
-          final phoneParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 14);
-          final emailParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 16);
-          final spiritualBirthdayParam = spiritualBirthdayValue == null
-              ? null
-              : DateTime.fromMillisecondsSinceEpoch(spiritualBirthdayValue);
-          final object = GospelProfile(
-              firstName: firstNameParam,
-              lastName: lastNameParam,
-              address: addressParam,
-              naturalBirthday: naturalBirthdayParam,
-              phone: phoneParam,
-              email: emailParam,
-              spiritualBirthday: spiritualBirthdayParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-          return object;
-        }),
-    MapInfo: obx_int.EntityDefinition<MapInfo>(
-        model: _entities[3],
-        toOneRelations: (MapInfo object) => [],
-        toManyRelations: (MapInfo object) => {},
-        getId: (MapInfo object) => object.id,
-        setId: (MapInfo object, int id) {
-          object.id = id;
-        },
-        objectToFB: (MapInfo object, fb.Builder fbb) {
-          final nameOffset = fbb.writeString(object.name);
-          final filePathOffset = fbb.writeString(object.filePath);
-          final downloadUrlOffset = fbb.writeString(object.downloadUrl);
-          fbb.startTable(9);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, nameOffset);
-          fbb.addOffset(2, filePathOffset);
-          fbb.addOffset(3, downloadUrlOffset);
-          fbb.addBool(4, object.isTemporary);
-          fbb.addFloat64(5, object.latitude);
-          fbb.addFloat64(6, object.longitude);
-          fbb.addInt64(7, object.zoomLevel);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final nameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final filePathParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final downloadUrlParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 10, '');
-          final isTemporaryParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 12, false);
-          final latitudeParam =
-              const fb.Float64Reader().vTableGet(buffer, rootOffset, 14, 0);
-          final longitudeParam =
-              const fb.Float64Reader().vTableGet(buffer, rootOffset, 16, 0);
-          final zoomLevelParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0);
-          final object = MapInfo(
-              name: nameParam,
-              filePath: filePathParam,
-              downloadUrl: downloadUrlParam,
-              isTemporary: isTemporaryParam,
-              latitude: latitudeParam,
-              longitude: longitudeParam,
-              zoomLevel: zoomLevelParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-          return object;
-        }),
-    Prayer: obx_int.EntityDefinition<Prayer>(
-        model: _entities[4],
-        toOneRelations: (Prayer object) => [],
-        toManyRelations: (Prayer object) => {},
-        getId: (Prayer object) => object.id,
-        setId: (Prayer object, int id) {
-          object.id = id;
-        },
-        objectToFB: (Prayer object, fb.Builder fbb) {
-          final prayerIdOffset = fbb.writeString(object.prayerId);
-          final richTextJsonOffset = fbb.writeString(object.richTextJson);
-          final statusOffset = fbb.writeString(object.status);
-          fbb.startTable(6);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, prayerIdOffset);
-          fbb.addOffset(2, richTextJsonOffset);
-          fbb.addOffset(3, statusOffset);
-          fbb.addInt64(4, object.timestamp.millisecondsSinceEpoch);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final prayerIdParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final richTextJsonParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 8, '');
-          final statusParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final timestampParam = DateTime.fromMillisecondsSinceEpoch(
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0));
-          final object = Prayer(
-              id: idParam,
-              prayerId: prayerIdParam,
-              richTextJson: richTextJsonParam,
-              status: statusParam,
-              timestamp: timestampParam);
-
-          return object;
-        }),
-    VerseData: obx_int.EntityDefinition<VerseData>(
-        model: _entities[5],
-        toOneRelations: (VerseData object) => [],
-        toManyRelations: (VerseData object) => {},
-        getId: (VerseData object) => object.id,
-        setId: (VerseData object, int id) {
-          object.id = id;
-        },
-        objectToFB: (VerseData object, fb.Builder fbb) {
-          final bookOffset = fbb.writeString(object.book);
-          final textOffset = fbb.writeString(object.text);
-          fbb.startTable(6);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, bookOffset);
-          fbb.addInt64(2, object.chapter);
-          fbb.addInt64(3, object.verse);
-          fbb.addOffset(4, textOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final bookParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final chapterParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0);
-          final verseParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0);
-          final textParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 12, '');
-          final object = VerseData(
-              book: bookParam,
-              chapter: chapterParam,
-              verse: verseParam,
-              text: textParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-          return object;
-        }),
     BibleNote: obx_int.EntityDefinition<BibleNote>(
-        model: _entities[6],
-        toOneRelations: (BibleNote object) => [],
-        toManyRelations: (BibleNote object) => {},
-        getId: (BibleNote object) => object.id,
-        setId: (BibleNote object, int id) {
-          object.id = id;
-        },
-        objectToFB: (BibleNote object, fb.Builder fbb) {
-          final verseOffset = fbb.writeString(object.verse);
-          final verseTextOffset = fbb.writeString(object.verseText);
-          final noteOffset = fbb.writeString(object.note);
-          fbb.startTable(6);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, verseOffset);
-          fbb.addOffset(2, verseTextOffset);
-          fbb.addOffset(3, noteOffset);
-          fbb.addInt64(4, object.timestamp.millisecondsSinceEpoch);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final verseParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final verseTextParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final noteParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final timestampParam = DateTime.fromMillisecondsSinceEpoch(
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0));
-          final object = BibleNote(
-              verse: verseParam,
-              verseText: verseTextParam,
-              note: noteParam,
-              timestamp: timestampParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+      model: _entities[0],
+      toOneRelations: (BibleNote object) => [],
+      toManyRelations: (BibleNote object) => {},
+      getId: (BibleNote object) => object.id,
+      setId: (BibleNote object, int id) {
+        object.id = id;
+      },
+      objectToFB: (BibleNote object, fb.Builder fbb) {
+        final verseOffset = fbb.writeString(object.verse);
+        final verseTextOffset = fbb.writeString(object.verseText);
+        final noteOffset = fbb.writeString(object.note);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, verseOffset);
+        fbb.addOffset(2, verseTextOffset);
+        fbb.addOffset(3, noteOffset);
+        fbb.addInt64(4, object.timestamp.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final verseParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final verseTextParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final noteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final timestampParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final object = BibleNote(
+          verse: verseParam,
+          verseText: verseTextParam,
+          note: noteParam,
+          timestamp: timestampParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
-          return object;
-        }),
+        return object;
+      },
+    ),
+    GospelContactsModel: obx_int.EntityDefinition<GospelContactsModel>(
+      model: _entities[1],
+      toOneRelations: (GospelContactsModel object) => [],
+      toManyRelations: (GospelContactsModel object) => {},
+      getId: (GospelContactsModel object) => object.id,
+      setId: (GospelContactsModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (GospelContactsModel object, fb.Builder fbb) {
+        final firstNameOffset = fbb.writeString(object.firstName);
+        final lastNameOffset = fbb.writeString(object.lastName);
+        final addressOffset = fbb.writeString(object.address);
+        final phoneOffset = object.phone == null
+            ? null
+            : fbb.writeString(object.phone!);
+        final emailOffset = object.email == null
+            ? null
+            : fbb.writeString(object.email!);
+        final picturePathOffset = object.picturePath == null
+            ? null
+            : fbb.writeString(object.picturePath!);
+        final notesOffset = object.notes == null
+            ? null
+            : fbb.writeString(object.notes!);
+        fbb.startTable(13);
+        fbb.addInt64(0, object.id);
+        fbb.addInt64(1, object.contactId);
+        fbb.addOffset(2, firstNameOffset);
+        fbb.addOffset(3, lastNameOffset);
+        fbb.addOffset(4, addressOffset);
+        fbb.addInt64(5, object.birthday?.millisecondsSinceEpoch);
+        fbb.addFloat64(6, object.latitude);
+        fbb.addFloat64(7, object.longitude);
+        fbb.addOffset(8, phoneOffset);
+        fbb.addOffset(9, emailOffset);
+        fbb.addOffset(10, picturePathOffset);
+        fbb.addOffset(11, notesOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final birthdayValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          14,
+        );
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final contactIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final firstNameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final lastNameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final addressParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final birthdayParam = birthdayValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(birthdayValue);
+        final latitudeParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          0,
+        );
+        final longitudeParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final phoneParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 20);
+        final emailParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 22);
+        final picturePathParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 24);
+        final notesParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 26);
+        final object = GospelContactsModel(
+          id: idParam,
+          contactId: contactIdParam,
+          firstName: firstNameParam,
+          lastName: lastNameParam,
+          address: addressParam,
+          birthday: birthdayParam,
+          latitude: latitudeParam,
+          longitude: longitudeParam,
+          phone: phoneParam,
+          email: emailParam,
+          picturePath: picturePathParam,
+          notes: notesParam,
+        );
+
+        return object;
+      },
+    ),
+    GospelContactsPreference:
+        obx_int.EntityDefinition<GospelContactsPreference>(
+          model: _entities[2],
+          toOneRelations: (GospelContactsPreference object) => [],
+          toManyRelations: (GospelContactsPreference object) => {},
+          getId: (GospelContactsPreference object) => object.id,
+          setId: (GospelContactsPreference object, int id) {
+            object.id = id;
+          },
+          objectToFB: (GospelContactsPreference object, fb.Builder fbb) {
+            final lastContactOffset = object.lastContact == null
+                ? null
+                : fbb.writeString(object.lastContact!);
+            fbb.startTable(3);
+            fbb.addInt64(0, object.id);
+            fbb.addOffset(1, lastContactOffset);
+            fbb.finish(fbb.endTable());
+            return object.id;
+          },
+          objectFromFB: (obx.Store store, ByteData fbData) {
+            final buffer = fb.BufferContext(fbData);
+            final rootOffset = buffer.derefObject(0);
+            final lastContactParam = const fb.StringReader(
+              asciiOptimization: true,
+            ).vTableGetNullable(buffer, rootOffset, 6);
+            final object = GospelContactsPreference(
+              lastContact: lastContactParam,
+            )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+            return object;
+          },
+        ),
+    GospelOfflineMapsModel: obx_int.EntityDefinition<GospelOfflineMapsModel>(
+      model: _entities[3],
+      toOneRelations: (GospelOfflineMapsModel object) => [],
+      toManyRelations: (GospelOfflineMapsModel object) => {},
+      getId: (GospelOfflineMapsModel object) => object.id,
+      setId: (GospelOfflineMapsModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (GospelOfflineMapsModel object, fb.Builder fbb) {
+        final nameOffset = fbb.writeString(object.name);
+        final filePathOffset = fbb.writeString(object.filePath);
+        final downloadUrlOffset = fbb.writeString(object.downloadUrl);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, nameOffset);
+        fbb.addOffset(2, filePathOffset);
+        fbb.addOffset(3, downloadUrlOffset);
+        fbb.addBool(4, object.isTemporary);
+        fbb.addFloat64(5, object.latitude);
+        fbb.addFloat64(6, object.longitude);
+        fbb.addInt64(7, object.zoomLevel);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final filePathParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final downloadUrlParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final isTemporaryParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          false,
+        );
+        final latitudeParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          0,
+        );
+        final longitudeParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          0,
+        );
+        final zoomLevelParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final object = GospelOfflineMapsModel(
+          name: nameParam,
+          filePath: filePathParam,
+          downloadUrl: downloadUrlParam,
+          isTemporary: isTemporaryParam,
+          latitude: latitudeParam,
+          longitude: longitudeParam,
+          zoomLevel: zoomLevelParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    GospelOfflineMapsPreference:
+        obx_int.EntityDefinition<GospelOfflineMapsPreference>(
+          model: _entities[4],
+          toOneRelations: (GospelOfflineMapsPreference object) => [],
+          toManyRelations: (GospelOfflineMapsPreference object) => {},
+          getId: (GospelOfflineMapsPreference object) => object.id,
+          setId: (GospelOfflineMapsPreference object, int id) {
+            object.id = id;
+          },
+          objectToFB: (GospelOfflineMapsPreference object, fb.Builder fbb) {
+            final currentMapOffset = fbb.writeString(object.currentMap);
+            fbb.startTable(3);
+            fbb.addInt64(0, object.id);
+            fbb.addOffset(1, currentMapOffset);
+            fbb.finish(fbb.endTable());
+            return object.id;
+          },
+          objectFromFB: (obx.Store store, ByteData fbData) {
+            final buffer = fb.BufferContext(fbData);
+            final rootOffset = buffer.derefObject(0);
+            final currentMapParam = const fb.StringReader(
+              asciiOptimization: true,
+            ).vTableGet(buffer, rootOffset, 6, '');
+            final object = GospelOfflineMapsPreference(
+              currentMap: currentMapParam,
+            )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+            return object;
+          },
+        ),
     GospelOnboardingModel: obx_int.EntityDefinition<GospelOnboardingModel>(
-        model: _entities[7],
-        toOneRelations: (GospelOnboardingModel object) => [],
-        toManyRelations: (GospelOnboardingModel object) => {},
-        getId: (GospelOnboardingModel object) => object.id,
-        setId: (GospelOnboardingModel object, int id) {
-          object.id = id;
-        },
-        objectToFB: (GospelOnboardingModel object, fb.Builder fbb) {
-          final homeSelectedFontOffset = object.homeSelectedFont == null
-              ? null
-              : fbb.writeString(object.homeSelectedFont!);
-          final lastSelectedBookOffset = object.lastSelectedBook == null
-              ? null
-              : fbb.writeString(object.lastSelectedBook!);
-          final lastSelectedChapterOffset = object.lastSelectedChapter == null
-              ? null
-              : fbb.writeString(object.lastSelectedChapter!);
-          final lastSelectedStudyBookOffset =
-              object.lastSelectedStudyBook == null
-                  ? null
-                  : fbb.writeString(object.lastSelectedStudyBook!);
-          final lastSelectedStudyChapterOffset =
-              object.lastSelectedStudyChapter == null
-                  ? null
-                  : fbb.writeString(object.lastSelectedStudyChapter!);
-          final lastBookmarkOffset = object.lastBookmark == null
-              ? null
-              : fbb.writeString(object.lastBookmark!);
-          final lastFavoriteOffset = object.lastFavorite == null
-              ? null
-              : fbb.writeString(object.lastFavorite!);
-          final lastBibleNoteOffset = object.lastBibleNote == null
-              ? null
-              : fbb.writeString(object.lastBibleNote!);
-          final lastPersonalNoteOffset = object.lastPersonalNote == null
-              ? null
-              : fbb.writeString(object.lastPersonalNote!);
-          final lastStudyNoteOffset = object.lastStudyNote == null
-              ? null
-              : fbb.writeString(object.lastStudyNote!);
-          final lastSearchOffset = object.lastSearch == null
-              ? null
-              : fbb.writeString(object.lastSearch!);
-          final lastContactOffset = object.lastContact == null
-              ? null
-              : fbb.writeString(object.lastContact!);
-          final currentMapOffset = object.currentMap == null
-              ? null
-              : fbb.writeString(object.currentMap!);
-          fbb.startTable(25);
-          fbb.addInt64(0, object.id);
-          fbb.addBool(1, object.onboardingComplete);
-          fbb.addOffset(2, homeSelectedFontOffset);
-          fbb.addFloat64(3, object.homeSelectedFontSize);
-          fbb.addOffset(4, lastSelectedBookOffset);
-          fbb.addOffset(5, lastSelectedChapterOffset);
-          fbb.addOffset(6, lastSelectedStudyBookOffset);
-          fbb.addOffset(7, lastSelectedStudyChapterOffset);
-          fbb.addOffset(8, lastBookmarkOffset);
-          fbb.addOffset(9, lastFavoriteOffset);
-          fbb.addOffset(10, lastBibleNoteOffset);
-          fbb.addOffset(11, lastPersonalNoteOffset);
-          fbb.addOffset(12, lastStudyNoteOffset);
-          fbb.addOffset(13, lastSearchOffset);
-          fbb.addOffset(14, lastContactOffset);
-          fbb.addOffset(15, currentMapOffset);
-          fbb.addInt64(16, object.readChaptersCount);
-          fbb.addInt64(17, object.bookmarkCount);
-          fbb.addInt64(18, object.favoriteCount);
-          fbb.addInt64(19, object.studiedChaptersCount);
-          fbb.addInt64(20, object.bibleNoteCount);
-          fbb.addInt64(21, object.personalNoteCount);
-          fbb.addInt64(22, object.studyNoteCount);
-          fbb.addInt64(23, object.searchCount);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final onboardingCompleteParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false);
-          final homeSelectedFontParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 8);
-          final homeSelectedFontSizeParam = const fb.Float64Reader()
-              .vTableGetNullable(buffer, rootOffset, 10);
-          final lastSelectedBookParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 12);
-          final lastSelectedChapterParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 14);
-          final lastSelectedStudyBookParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 16);
-          final lastSelectedStudyChapterParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 18);
-          final lastBookmarkParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 20);
-          final lastFavoriteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 22);
-          final lastBibleNoteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 24);
-          final lastPersonalNoteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 26);
-          final lastStudyNoteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 28);
-          final lastSearchParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 30);
-          final lastContactParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 32);
-          final currentMapParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 34);
-          final readChaptersCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 36);
-          final bookmarkCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 38);
-          final favoriteCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 40);
-          final studiedChaptersCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 42);
-          final bibleNoteCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 44);
-          final personalNoteCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 46);
-          final studyNoteCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 48);
-          final searchCountParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 50);
-          final object = GospelOnboardingModel(
-              id: idParam,
-              onboardingComplete: onboardingCompleteParam,
-              homeSelectedFont: homeSelectedFontParam,
-              homeSelectedFontSize: homeSelectedFontSizeParam,
-              lastSelectedBook: lastSelectedBookParam,
-              lastSelectedChapter: lastSelectedChapterParam,
-              lastSelectedStudyBook: lastSelectedStudyBookParam,
-              lastSelectedStudyChapter: lastSelectedStudyChapterParam,
-              lastBookmark: lastBookmarkParam,
-              lastFavorite: lastFavoriteParam,
-              lastBibleNote: lastBibleNoteParam,
-              lastPersonalNote: lastPersonalNoteParam,
-              lastStudyNote: lastStudyNoteParam,
-              lastSearch: lastSearchParam,
-              lastContact: lastContactParam,
-              currentMap: currentMapParam,
-              readChaptersCount: readChaptersCountParam,
-              bookmarkCount: bookmarkCountParam,
-              favoriteCount: favoriteCountParam,
-              studiedChaptersCount: studiedChaptersCountParam,
-              bibleNoteCount: bibleNoteCountParam,
-              personalNoteCount: personalNoteCountParam,
-              studyNoteCount: studyNoteCountParam,
-              searchCount: searchCountParam);
+      model: _entities[5],
+      toOneRelations: (GospelOnboardingModel object) => [],
+      toManyRelations: (GospelOnboardingModel object) => {},
+      getId: (GospelOnboardingModel object) => object.id,
+      setId: (GospelOnboardingModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (GospelOnboardingModel object, fb.Builder fbb) {
+        fbb.startTable(3);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(1, object.onboardingComplete);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final onboardingCompleteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          false,
+        );
+        final object = GospelOnboardingModel(
+          id: idParam,
+          onboardingComplete: onboardingCompleteParam,
+        );
 
-          return object;
-        }),
+        return object;
+      },
+    ),
+    GospelProfileModel: obx_int.EntityDefinition<GospelProfileModel>(
+      model: _entities[6],
+      toOneRelations: (GospelProfileModel object) => [],
+      toManyRelations: (GospelProfileModel object) => {},
+      getId: (GospelProfileModel object) => object.id,
+      setId: (GospelProfileModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (GospelProfileModel object, fb.Builder fbb) {
+        final firstNameOffset = object.firstName == null
+            ? null
+            : fbb.writeString(object.firstName!);
+        final lastNameOffset = object.lastName == null
+            ? null
+            : fbb.writeString(object.lastName!);
+        final addressOffset = object.address == null
+            ? null
+            : fbb.writeString(object.address!);
+        final phoneOffset = object.phone == null
+            ? null
+            : fbb.writeString(object.phone!);
+        final emailOffset = object.email == null
+            ? null
+            : fbb.writeString(object.email!);
+        fbb.startTable(9);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, firstNameOffset);
+        fbb.addOffset(2, lastNameOffset);
+        fbb.addOffset(3, addressOffset);
+        fbb.addInt64(4, object.naturalBirthday?.millisecondsSinceEpoch);
+        fbb.addOffset(5, phoneOffset);
+        fbb.addOffset(6, emailOffset);
+        fbb.addInt64(7, object.spiritualBirthday?.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final naturalBirthdayValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          12,
+        );
+        final spiritualBirthdayValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          18,
+        );
+        final firstNameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final lastNameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 8);
+        final addressParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 10);
+        final naturalBirthdayParam = naturalBirthdayValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(naturalBirthdayValue);
+        final phoneParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 14);
+        final emailParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 16);
+        final spiritualBirthdayParam = spiritualBirthdayValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(spiritualBirthdayValue);
+        final object = GospelProfileModel(
+          firstName: firstNameParam,
+          lastName: lastNameParam,
+          address: addressParam,
+          naturalBirthday: naturalBirthdayParam,
+          phone: phoneParam,
+          email: emailParam,
+          spiritualBirthday: spiritualBirthdayParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    HomePageModel: obx_int.EntityDefinition<HomePageModel>(
+      model: _entities[7],
+      toOneRelations: (HomePageModel object) => [],
+      toManyRelations: (HomePageModel object) => {},
+      getId: (HomePageModel object) => object.id,
+      setId: (HomePageModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (HomePageModel object, fb.Builder fbb) {
+        final lastBibleNoteOffset = object.lastBibleNote == null
+            ? null
+            : fbb.writeString(object.lastBibleNote!);
+        final lastPersonalNoteOffset = object.lastPersonalNote == null
+            ? null
+            : fbb.writeString(object.lastPersonalNote!);
+        final lastStudyNoteOffset = object.lastStudyNote == null
+            ? null
+            : fbb.writeString(object.lastStudyNote!);
+        final lastSearchOffset = object.lastSearch == null
+            ? null
+            : fbb.writeString(object.lastSearch!);
+        final lastContactOffset = object.lastContact == null
+            ? null
+            : fbb.writeString(object.lastContact!);
+        final homeSelectedFontOffset = object.homeSelectedFont == null
+            ? null
+            : fbb.writeString(object.homeSelectedFont!);
+        final lastReadChapterOffset = fbb.writeString(object.lastReadChapter);
+        final lastSelectedStudyBookOffset = object.lastSelectedStudyBook == null
+            ? null
+            : fbb.writeString(object.lastSelectedStudyBook!);
+        final lastSelectedStudyChapterOffset =
+            object.lastSelectedStudyChapter == null
+            ? null
+            : fbb.writeString(object.lastSelectedStudyChapter!);
+        final currentMapOffset = object.currentMap == null
+            ? null
+            : fbb.writeString(object.currentMap!);
+        fbb.startTable(23);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, lastBibleNoteOffset);
+        fbb.addOffset(2, lastPersonalNoteOffset);
+        fbb.addOffset(3, lastStudyNoteOffset);
+        fbb.addOffset(4, lastSearchOffset);
+        fbb.addOffset(5, lastContactOffset);
+        fbb.addInt64(6, object.readChaptersCount);
+        fbb.addInt64(7, object.bookmarkCount);
+        fbb.addInt64(8, object.favoriteCount);
+        fbb.addInt64(9, object.bibleNoteCount);
+        fbb.addInt64(10, object.personalNoteCount);
+        fbb.addInt64(11, object.studyNoteCount);
+        fbb.addInt64(12, object.searchCount);
+        fbb.addOffset(13, homeSelectedFontOffset);
+        fbb.addFloat64(14, object.homeSelectedFontSize);
+        fbb.addBool(15, object.onboardingComplete);
+        fbb.addInt64(16, object.lastPageIndex);
+        fbb.addOffset(17, lastReadChapterOffset);
+        fbb.addOffset(18, lastSelectedStudyBookOffset);
+        fbb.addOffset(19, lastSelectedStudyChapterOffset);
+        fbb.addOffset(20, currentMapOffset);
+        fbb.addInt64(21, object.studiedChaptersCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final lastBibleNoteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final lastPersonalNoteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 8);
+        final lastStudyNoteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 10);
+        final lastSearchParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 12);
+        final lastContactParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 14);
+        final readChaptersCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          0,
+        );
+        final bookmarkCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final favoriteCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          0,
+        );
+        final bibleNoteCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          22,
+          0,
+        );
+        final personalNoteCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          24,
+          0,
+        );
+        final studyNoteCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          26,
+          0,
+        );
+        final searchCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          28,
+          0,
+        );
+        final homeSelectedFontParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 30);
+        final homeSelectedFontSizeParam = const fb.Float64Reader()
+            .vTableGetNullable(buffer, rootOffset, 32);
+        final onboardingCompleteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          34,
+          false,
+        );
+        final lastPageIndexParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          36,
+          0,
+        );
+        final lastReadChapterParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 38, '');
+        final lastSelectedStudyBookParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 40);
+        final lastSelectedStudyChapterParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 42);
+        final currentMapParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 44);
+        final studiedChaptersCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          46,
+          0,
+        );
+        final object = HomePageModel(
+          lastBibleNote: lastBibleNoteParam,
+          lastPersonalNote: lastPersonalNoteParam,
+          lastStudyNote: lastStudyNoteParam,
+          lastSearch: lastSearchParam,
+          lastContact: lastContactParam,
+          readChaptersCount: readChaptersCountParam,
+          bookmarkCount: bookmarkCountParam,
+          favoriteCount: favoriteCountParam,
+          bibleNoteCount: bibleNoteCountParam,
+          personalNoteCount: personalNoteCountParam,
+          studyNoteCount: studyNoteCountParam,
+          searchCount: searchCountParam,
+          homeSelectedFont: homeSelectedFontParam,
+          homeSelectedFontSize: homeSelectedFontSizeParam,
+          onboardingComplete: onboardingCompleteParam,
+          lastPageIndex: lastPageIndexParam,
+          lastReadChapter: lastReadChapterParam,
+          lastSelectedStudyBook: lastSelectedStudyBookParam,
+          lastSelectedStudyChapter: lastSelectedStudyChapterParam,
+          currentMap: currentMapParam,
+          studiedChaptersCount: studiedChaptersCountParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    HomeSettingsModel: obx_int.EntityDefinition<HomeSettingsModel>(
+      model: _entities[8],
+      toOneRelations: (HomeSettingsModel object) => [],
+      toManyRelations: (HomeSettingsModel object) => {},
+      getId: (HomeSettingsModel object) => object.id,
+      setId: (HomeSettingsModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (HomeSettingsModel object, fb.Builder fbb) {
+        final themeModeOffset = fbb.writeString(object.themeMode);
+        fbb.startTable(3);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, themeModeOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final themeModeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final object = HomeSettingsModel(themeMode: themeModeParam)
+          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
     PersonalNote: obx_int.EntityDefinition<PersonalNote>(
-        model: _entities[8],
-        toOneRelations: (PersonalNote object) => [],
-        toManyRelations: (PersonalNote object) => {},
-        getId: (PersonalNote object) => object.id,
-        setId: (PersonalNote object, int id) {
-          object.id = id;
-        },
-        objectToFB: (PersonalNote object, fb.Builder fbb) {
-          final noteOffset = fbb.writeString(object.note);
-          fbb.startTable(4);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, noteOffset);
-          fbb.addInt64(2, object.timestamp.millisecondsSinceEpoch);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final noteParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final timestampParam = DateTime.fromMillisecondsSinceEpoch(
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0));
-          final object = PersonalNote(
-              note: noteParam, timestamp: timestampParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+      model: _entities[9],
+      toOneRelations: (PersonalNote object) => [],
+      toManyRelations: (PersonalNote object) => {},
+      getId: (PersonalNote object) => object.id,
+      setId: (PersonalNote object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PersonalNote object, fb.Builder fbb) {
+        final noteOffset = fbb.writeString(object.note);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, noteOffset);
+        fbb.addInt64(2, object.timestamp.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final noteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final timestampParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final object = PersonalNote(note: noteParam, timestamp: timestampParam)
+          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
-          return object;
-        }),
+        return object;
+      },
+    ),
+    PrayPageModel: obx_int.EntityDefinition<PrayPageModel>(
+      model: _entities[10],
+      toOneRelations: (PrayPageModel object) => [],
+      toManyRelations: (PrayPageModel object) => {},
+      getId: (PrayPageModel object) => object.id,
+      setId: (PrayPageModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PrayPageModel object, fb.Builder fbb) {
+        final prayerIdOffset = fbb.writeString(object.prayerId);
+        final richTextJsonOffset = fbb.writeString(object.richTextJson);
+        final statusOffset = fbb.writeString(object.status);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, prayerIdOffset);
+        fbb.addOffset(2, richTextJsonOffset);
+        fbb.addOffset(3, statusOffset);
+        fbb.addInt64(4, object.timestamp.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final prayerIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final richTextJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final statusParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final timestampParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final object = PrayPageModel(
+          id: idParam,
+          prayerId: prayerIdParam,
+          richTextJson: richTextJsonParam,
+          status: statusParam,
+          timestamp: timestampParam,
+        );
+
+        return object;
+      },
+    ),
+    PraySearchModel: obx_int.EntityDefinition<PraySearchModel>(
+      model: _entities[11],
+      toOneRelations: (PraySearchModel object) => [],
+      toManyRelations: (PraySearchModel object) => {},
+      getId: (PraySearchModel object) => object.id,
+      setId: (PraySearchModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PraySearchModel object, fb.Builder fbb) {
+        final lastSearchOffset = object.lastSearch == null
+            ? null
+            : fbb.writeString(object.lastSearch!);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, lastSearchOffset);
+        fbb.addInt64(2, object.searchCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final lastSearchParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final searchCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final object = PraySearchModel(
+          lastSearch: lastSearchParam,
+          searchCount: searchCountParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    PraySettingsModel: obx_int.EntityDefinition<PraySettingsModel>(
+      model: _entities[12],
+      toOneRelations: (PraySettingsModel object) => [],
+      toManyRelations: (PraySettingsModel object) => {},
+      getId: (PraySettingsModel object) => object.id,
+      setId: (PraySettingsModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PraySettingsModel object, fb.Builder fbb) {
+        final autoScrollModeOffset = fbb.writeString(object.autoScrollMode);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(1, object.isAutoScrollingEnabled);
+        fbb.addOffset(2, autoScrollModeOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final isAutoScrollingEnabledParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          false,
+        );
+        final autoScrollModeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final object = PraySettingsModel(
+          isAutoScrollingEnabled: isAutoScrollingEnabledParam,
+          autoScrollMode: autoScrollModeParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    ReadBookmarksModel: obx_int.EntityDefinition<ReadBookmarksModel>(
+      model: _entities[13],
+      toOneRelations: (ReadBookmarksModel object) => [],
+      toManyRelations: (ReadBookmarksModel object) => {},
+      getId: (ReadBookmarksModel object) => object.id,
+      setId: (ReadBookmarksModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ReadBookmarksModel object, fb.Builder fbb) {
+        final bookOffset = fbb.writeString(object.book);
+        final textOffset = fbb.writeString(object.text);
+        final lastBookmarkOffset = object.lastBookmark == null
+            ? null
+            : fbb.writeString(object.lastBookmark!);
+        fbb.startTable(12);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, bookOffset);
+        fbb.addInt64(2, object.chapter);
+        fbb.addInt64(3, object.verse);
+        fbb.addOffset(4, textOffset);
+        fbb.addOffset(9, lastBookmarkOffset);
+        fbb.addInt64(10, object.bookmarkCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final bookParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final chapterParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final verseParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final textParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final lastBookmarkParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 22);
+        final bookmarkCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          24,
+          0,
+        );
+        final object = ReadBookmarksModel(
+          book: bookParam,
+          chapter: chapterParam,
+          verse: verseParam,
+          text: textParam,
+          lastBookmark: lastBookmarkParam,
+          bookmarkCount: bookmarkCountParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    ReadFavoritesModel: obx_int.EntityDefinition<ReadFavoritesModel>(
+      model: _entities[14],
+      toOneRelations: (ReadFavoritesModel object) => [],
+      toManyRelations: (ReadFavoritesModel object) => {},
+      getId: (ReadFavoritesModel object) => object.id,
+      setId: (ReadFavoritesModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ReadFavoritesModel object, fb.Builder fbb) {
+        final bookOffset = fbb.writeString(object.book);
+        final textOffset = fbb.writeString(object.text);
+        fbb.startTable(12);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, bookOffset);
+        fbb.addInt64(2, object.chapter);
+        fbb.addInt64(3, object.verse);
+        fbb.addOffset(4, textOffset);
+        fbb.addInt64(10, object.timestamp.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final bookParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final chapterParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final verseParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final textParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final timestampParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0),
+        );
+        final object = ReadFavoritesModel(
+          book: bookParam,
+          chapter: chapterParam,
+          verse: verseParam,
+          text: textParam,
+          timestamp: timestampParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    ReadSettingsModel: obx_int.EntityDefinition<ReadSettingsModel>(
+      model: _entities[15],
+      toOneRelations: (ReadSettingsModel object) => [],
+      toManyRelations: (ReadSettingsModel object) => {},
+      getId: (ReadSettingsModel object) => object.id,
+      setId: (ReadSettingsModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ReadSettingsModel object, fb.Builder fbb) {
+        final autoScrollModeOffset = fbb.writeString(object.autoScrollMode);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(1, object.isAutoScrollingEnabled);
+        fbb.addOffset(2, autoScrollModeOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final isAutoScrollingEnabledParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          false,
+        );
+        final autoScrollModeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final object = ReadSettingsModel(
+          isAutoScrollingEnabled: isAutoScrollingEnabledParam,
+          autoScrollMode: autoScrollModeParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
     StudyNote: obx_int.EntityDefinition<StudyNote>(
-        model: _entities[9],
-        toOneRelations: (StudyNote object) => [],
-        toManyRelations: (StudyNote object) => {},
-        getId: (StudyNote object) => object.id,
-        setId: (StudyNote object, int id) {
-          object.id = id;
-        },
-        objectToFB: (StudyNote object, fb.Builder fbb) {
-          final noteOffset = fbb.writeString(object.note);
-          fbb.startTable(4);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(1, noteOffset);
-          fbb.addInt64(2, object.timestamp.millisecondsSinceEpoch);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final noteParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 6, '');
-          final timestampParam = DateTime.fromMillisecondsSinceEpoch(
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0));
-          final object = StudyNote(note: noteParam, timestamp: timestampParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+      model: _entities[16],
+      toOneRelations: (StudyNote object) => [],
+      toManyRelations: (StudyNote object) => {},
+      getId: (StudyNote object) => object.id,
+      setId: (StudyNote object, int id) {
+        object.id = id;
+      },
+      objectToFB: (StudyNote object, fb.Builder fbb) {
+        final noteOffset = fbb.writeString(object.note);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, noteOffset);
+        fbb.addInt64(2, object.timestamp.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final noteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final timestampParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+        );
+        final object = StudyNote(note: noteParam, timestamp: timestampParam)
+          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
-          return object;
-        }),
+        return object;
+      },
+    ),
+    StudyNotesModel: obx_int.EntityDefinition<StudyNotesModel>(
+      model: _entities[17],
+      toOneRelations: (StudyNotesModel object) => [],
+      toManyRelations: (StudyNotesModel object) => {},
+      getId: (StudyNotesModel object) => object.id,
+      setId: (StudyNotesModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (StudyNotesModel object, fb.Builder fbb) {
+        final lastBibleNoteOffset = object.lastBibleNote == null
+            ? null
+            : fbb.writeString(object.lastBibleNote!);
+        final lastPersonalNoteOffset = object.lastPersonalNote == null
+            ? null
+            : fbb.writeString(object.lastPersonalNote!);
+        final lastStudyNoteOffset = object.lastStudyNote == null
+            ? null
+            : fbb.writeString(object.lastStudyNote!);
+        fbb.startTable(8);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, lastBibleNoteOffset);
+        fbb.addOffset(2, lastPersonalNoteOffset);
+        fbb.addOffset(3, lastStudyNoteOffset);
+        fbb.addInt64(4, object.bibleNoteCount);
+        fbb.addInt64(5, object.personalNoteCount);
+        fbb.addInt64(6, object.studyNoteCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final lastBibleNoteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final lastPersonalNoteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 8);
+        final lastStudyNoteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 10);
+        final bibleNoteCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
+        final personalNoteCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          0,
+        );
+        final studyNoteCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          0,
+        );
+        final object = StudyNotesModel(
+          lastBibleNote: lastBibleNoteParam,
+          lastPersonalNote: lastPersonalNoteParam,
+          lastStudyNote: lastStudyNoteParam,
+          bibleNoteCount: bibleNoteCountParam,
+          personalNoteCount: personalNoteCountParam,
+          studyNoteCount: studyNoteCountParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    StudyPageModel: obx_int.EntityDefinition<StudyPageModel>(
+      model: _entities[18],
+      toOneRelations: (StudyPageModel object) => [],
+      toManyRelations: (StudyPageModel object) => {},
+      getId: (StudyPageModel object) => object.id,
+      setId: (StudyPageModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (StudyPageModel object, fb.Builder fbb) {
+        final lastSelectedStudyBookOffset = object.lastSelectedStudyBook == null
+            ? null
+            : fbb.writeString(object.lastSelectedStudyBook!);
+        final selectedStudyFontOffset = object.selectedStudyFont == null
+            ? null
+            : fbb.writeString(object.selectedStudyFont!);
+        fbb.startTable(7);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, lastSelectedStudyBookOffset);
+        fbb.addInt64(2, object.lastSelectedStudyChapter);
+        fbb.addOffset(3, selectedStudyFontOffset);
+        fbb.addFloat64(4, object.selectedStudyFontSize);
+        fbb.addInt64(5, object.studiedChaptersCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final lastSelectedStudyBookParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final lastSelectedStudyChapterParam = const fb.Int64Reader()
+            .vTableGetNullable(buffer, rootOffset, 8);
+        final selectedStudyFontParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 10);
+        final selectedStudyFontSizeParam = const fb.Float64Reader()
+            .vTableGetNullable(buffer, rootOffset, 12);
+        final studiedChaptersCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          0,
+        );
+        final object = StudyPageModel(
+          lastSelectedStudyBook: lastSelectedStudyBookParam,
+          lastSelectedStudyChapter: lastSelectedStudyChapterParam,
+          selectedStudyFont: selectedStudyFontParam,
+          selectedStudyFontSize: selectedStudyFontSizeParam,
+          studiedChaptersCount: studiedChaptersCountParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    StudySearchModel: obx_int.EntityDefinition<StudySearchModel>(
+      model: _entities[19],
+      toOneRelations: (StudySearchModel object) => [],
+      toManyRelations: (StudySearchModel object) => {},
+      getId: (StudySearchModel object) => object.id,
+      setId: (StudySearchModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (StudySearchModel object, fb.Builder fbb) {
+        final lastSearchOffset = object.lastSearch == null
+            ? null
+            : fbb.writeString(object.lastSearch!);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, lastSearchOffset);
+        fbb.addInt64(2, object.searchCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final lastSearchParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final searchCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final object = StudySearchModel(
+          lastSearch: lastSearchParam,
+          searchCount: searchCountParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
+    StudySettingsModel: obx_int.EntityDefinition<StudySettingsModel>(
+      model: _entities[20],
+      toOneRelations: (StudySettingsModel object) => [],
+      toManyRelations: (StudySettingsModel object) => {},
+      getId: (StudySettingsModel object) => object.id,
+      setId: (StudySettingsModel object, int id) {
+        object.id = id;
+      },
+      objectToFB: (StudySettingsModel object, fb.Builder fbb) {
+        final selectedStudyFontOffset = object.selectedStudyFont == null
+            ? null
+            : fbb.writeString(object.selectedStudyFont!);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, selectedStudyFontOffset);
+        fbb.addFloat64(2, object.selectedStudyFontSize);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final selectedStudyFontParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final selectedStudyFontSizeParam = const fb.Float64Reader()
+            .vTableGetNullable(buffer, rootOffset, 8);
+        final object = StudySettingsModel(
+          selectedStudyFont: selectedStudyFontParam,
+          selectedStudyFontSize: selectedStudyFontSizeParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+        return object;
+      },
+    ),
     UserPreference: obx_int.EntityDefinition<UserPreference>(
-        model: _entities[10],
-        toOneRelations: (UserPreference object) => [],
-        toManyRelations: (UserPreference object) => {},
-        getId: (UserPreference object) => object.id,
-        setId: (UserPreference object, int id) {
-          object.id = id;
-        },
-        objectToFB: (UserPreference object, fb.Builder fbb) {
-          final themeModeOffset = fbb.writeString(object.themeMode);
-          final lastReadChapterOffset = fbb.writeString(object.lastReadChapter);
-          final currentMapOffset = fbb.writeString(object.currentMap);
-          final lastSelectedStudyBookOffset =
-              object.lastSelectedStudyBook == null
-                  ? null
-                  : fbb.writeString(object.lastSelectedStudyBook!);
-          final selectedStudyFontOffset = object.selectedStudyFont == null
-              ? null
-              : fbb.writeString(object.selectedStudyFont!);
-          final lastBookmarkOffset = object.lastBookmark == null
-              ? null
-              : fbb.writeString(object.lastBookmark!);
-          final lastFavoriteOffset = object.lastFavorite == null
-              ? null
-              : fbb.writeString(object.lastFavorite!);
-          final lastBibleNoteOffset = object.lastBibleNote == null
-              ? null
-              : fbb.writeString(object.lastBibleNote!);
-          final lastPersonalNoteOffset = object.lastPersonalNote == null
-              ? null
-              : fbb.writeString(object.lastPersonalNote!);
-          final lastStudyNoteOffset = object.lastStudyNote == null
-              ? null
-              : fbb.writeString(object.lastStudyNote!);
-          final lastSearchOffset = object.lastSearch == null
-              ? null
-              : fbb.writeString(object.lastSearch!);
-          final lastContactOffset = object.lastContact == null
-              ? null
-              : fbb.writeString(object.lastContact!);
-          final homeSelectedFontOffset = object.homeSelectedFont == null
-              ? null
-              : fbb.writeString(object.homeSelectedFont!);
-          fbb.startTable(106);
-          fbb.addInt64(0, object.id);
-          fbb.addOffset(78, themeModeOffset);
-          fbb.addFloat64(79, object.fontSize);
-          fbb.addOffset(80, lastReadChapterOffset);
-          fbb.addInt64(81, object.lastPageIndex);
-          fbb.addOffset(82, currentMapOffset);
-          fbb.addOffset(83, lastSelectedStudyBookOffset);
-          fbb.addInt64(84, object.lastSelectedStudyChapter);
-          fbb.addOffset(85, selectedStudyFontOffset);
-          fbb.addFloat64(86, object.selectedStudyFontSize);
-          fbb.addOffset(87, lastBookmarkOffset);
-          fbb.addOffset(88, lastFavoriteOffset);
-          fbb.addOffset(89, lastBibleNoteOffset);
-          fbb.addOffset(90, lastPersonalNoteOffset);
-          fbb.addOffset(91, lastStudyNoteOffset);
-          fbb.addOffset(92, lastSearchOffset);
-          fbb.addOffset(93, lastContactOffset);
-          fbb.addInt64(94, object.readChaptersCount);
-          fbb.addInt64(95, object.bookmarkCount);
-          fbb.addInt64(96, object.favoriteCount);
-          fbb.addInt64(97, object.studiedChaptersCount);
-          fbb.addInt64(98, object.bibleNoteCount);
-          fbb.addInt64(99, object.personalNoteCount);
-          fbb.addInt64(100, object.studyNoteCount);
-          fbb.addInt64(101, object.searchCount);
-          fbb.addOffset(102, homeSelectedFontOffset);
-          fbb.addFloat64(103, object.homeSelectedFontSize);
-          fbb.addBool(104, object.onboardingComplete);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final idParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-          final themeModeParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 160, '');
-          final fontSizeParam =
-              const fb.Float64Reader().vTableGet(buffer, rootOffset, 162, 0);
-          final lastReadChapterParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGet(buffer, rootOffset, 164, '');
-          final lastPageIndexParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 166, 0);
-          final currentMapParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 168, '');
-          final lastSelectedStudyBookParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 170);
-          final lastSelectedStudyChapterParam =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 172);
-          final selectedStudyFontParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 174);
-          final selectedStudyFontSizeParam = const fb.Float64Reader()
-              .vTableGetNullable(buffer, rootOffset, 176);
-          final lastBookmarkParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 178);
-          final lastFavoriteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 180);
-          final lastBibleNoteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 182);
-          final lastPersonalNoteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 184);
-          final lastStudyNoteParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 186);
-          final lastSearchParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 188);
-          final lastContactParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 190);
-          final readChaptersCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 192, 0);
-          final bookmarkCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 194, 0);
-          final favoriteCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 196, 0);
-          final studiedChaptersCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 198, 0);
-          final bibleNoteCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 200, 0);
-          final personalNoteCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 202, 0);
-          final studyNoteCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 204, 0);
-          final searchCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 206, 0);
-          final homeSelectedFontParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 208);
-          final homeSelectedFontSizeParam = const fb.Float64Reader()
-              .vTableGetNullable(buffer, rootOffset, 210);
-          final onboardingCompleteParam =
-              const fb.BoolReader().vTableGet(buffer, rootOffset, 212, false);
-          final object = UserPreference(
-              id: idParam,
-              themeMode: themeModeParam,
-              fontSize: fontSizeParam,
-              lastReadChapter: lastReadChapterParam,
-              lastPageIndex: lastPageIndexParam,
-              currentMap: currentMapParam,
-              lastSelectedStudyBook: lastSelectedStudyBookParam,
-              lastSelectedStudyChapter: lastSelectedStudyChapterParam,
-              selectedStudyFont: selectedStudyFontParam,
-              selectedStudyFontSize: selectedStudyFontSizeParam,
-              lastBookmark: lastBookmarkParam,
-              lastFavorite: lastFavoriteParam,
-              lastBibleNote: lastBibleNoteParam,
-              lastPersonalNote: lastPersonalNoteParam,
-              lastStudyNote: lastStudyNoteParam,
-              lastSearch: lastSearchParam,
-              lastContact: lastContactParam,
-              readChaptersCount: readChaptersCountParam,
-              bookmarkCount: bookmarkCountParam,
-              favoriteCount: favoriteCountParam,
-              studiedChaptersCount: studiedChaptersCountParam,
-              bibleNoteCount: bibleNoteCountParam,
-              personalNoteCount: personalNoteCountParam,
-              studyNoteCount: studyNoteCountParam,
-              searchCount: searchCountParam,
-              homeSelectedFont: homeSelectedFontParam,
-              homeSelectedFontSize: homeSelectedFontSizeParam,
-              onboardingComplete: onboardingCompleteParam);
+      model: _entities[21],
+      toOneRelations: (UserPreference object) => [],
+      toManyRelations: (UserPreference object) => {},
+      getId: (UserPreference object) => object.id,
+      setId: (UserPreference object, int id) {
+        object.id = id;
+      },
+      objectToFB: (UserPreference object, fb.Builder fbb) {
+        final lastSelectedBookOffset = object.lastSelectedBook == null
+            ? null
+            : fbb.writeString(object.lastSelectedBook!);
+        final lastSelectedChapterOffset = object.lastSelectedChapter == null
+            ? null
+            : fbb.writeString(object.lastSelectedChapter!);
+        final selectedFontOffset = object.selectedFont == null
+            ? null
+            : fbb.writeString(object.selectedFont!);
+        final autoScrollModeOffset = object.autoScrollMode == null
+            ? null
+            : fbb.writeString(object.autoScrollMode!);
+        final lastBookmarkOffset = object.lastBookmark == null
+            ? null
+            : fbb.writeString(object.lastBookmark!);
+        final lastFavoriteOffset = object.lastFavorite == null
+            ? null
+            : fbb.writeString(object.lastFavorite!);
+        fbb.startTable(11);
+        fbb.addInt64(0, object.id);
+        fbb.addFloat64(1, object.fontSize);
+        fbb.addOffset(2, lastSelectedBookOffset);
+        fbb.addOffset(3, lastSelectedChapterOffset);
+        fbb.addOffset(4, selectedFontOffset);
+        fbb.addFloat64(5, object.selectedFontSize);
+        fbb.addBool(6, object.isAutoScrollingEnabled);
+        fbb.addOffset(7, autoScrollModeOffset);
+        fbb.addOffset(8, lastBookmarkOffset);
+        fbb.addOffset(9, lastFavoriteOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final fontSizeParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final lastSelectedBookParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 8);
+        final lastSelectedChapterParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 10);
+        final selectedFontParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 12);
+        final selectedFontSizeParam = const fb.Float64Reader()
+            .vTableGetNullable(buffer, rootOffset, 14);
+        final isAutoScrollingEnabledParam = const fb.BoolReader()
+            .vTableGetNullable(buffer, rootOffset, 16);
+        final autoScrollModeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 18);
+        final lastBookmarkParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 20);
+        final lastFavoriteParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 22);
+        final object = UserPreference(
+          id: idParam,
+          fontSize: fontSizeParam,
+          lastSelectedBook: lastSelectedBookParam,
+          lastSelectedChapter: lastSelectedChapterParam,
+          selectedFont: selectedFontParam,
+          selectedFontSize: selectedFontSizeParam,
+          isAutoScrollingEnabled: isAutoScrollingEnabledParam,
+          autoScrollMode: autoScrollModeParam,
+          lastBookmark: lastBookmarkParam,
+          lastFavorite: lastFavoriteParam,
+        );
 
-          return object;
-        }),
-    Contact: obx_int.EntityDefinition<Contact>(
-        model: _entities[11],
-        toOneRelations: (Contact object) => [],
-        toManyRelations: (Contact object) => {},
-        getId: (Contact object) => object.id,
-        setId: (Contact object, int id) {
-          object.id = id;
-        },
-        objectToFB: (Contact object, fb.Builder fbb) {
-          final firstNameOffset = fbb.writeString(object.firstName);
-          final lastNameOffset = fbb.writeString(object.lastName);
-          final addressOffset = fbb.writeString(object.address);
-          final phoneOffset =
-              object.phone == null ? null : fbb.writeString(object.phone!);
-          final emailOffset =
-              object.email == null ? null : fbb.writeString(object.email!);
-          final picturePathOffset = object.picturePath == null
-              ? null
-              : fbb.writeString(object.picturePath!);
-          final notesOffset =
-              object.notes == null ? null : fbb.writeString(object.notes!);
-          fbb.startTable(13);
-          fbb.addInt64(0, object.id);
-          fbb.addInt64(1, object.contactId);
-          fbb.addOffset(2, firstNameOffset);
-          fbb.addOffset(3, lastNameOffset);
-          fbb.addOffset(4, addressOffset);
-          fbb.addInt64(5, object.birthday?.millisecondsSinceEpoch);
-          fbb.addFloat64(6, object.latitude);
-          fbb.addFloat64(7, object.longitude);
-          fbb.addOffset(8, phoneOffset);
-          fbb.addOffset(9, emailOffset);
-          fbb.addOffset(10, picturePathOffset);
-          fbb.addOffset(11, notesOffset);
-          fbb.finish(fbb.endTable());
-          return object.id;
-        },
-        objectFromFB: (obx.Store store, ByteData fbData) {
-          final buffer = fb.BufferContext(fbData);
-          final rootOffset = buffer.derefObject(0);
-          final birthdayValue =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 14);
-          final contactIdParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
-          final firstNameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 8, '');
-          final lastNameParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 10, '');
-          final addressParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 12, '');
-          final birthdayParam = birthdayValue == null
-              ? null
-              : DateTime.fromMillisecondsSinceEpoch(birthdayValue);
-          final latitudeParam =
-              const fb.Float64Reader().vTableGet(buffer, rootOffset, 16, 0);
-          final longitudeParam =
-              const fb.Float64Reader().vTableGet(buffer, rootOffset, 18, 0);
-          final phoneParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 20);
-          final emailParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 22);
-          final picturePathParam =
-              const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 24);
-          final notesParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGetNullable(buffer, rootOffset, 26);
-          final object = Contact(
-              contactId: contactIdParam,
-              firstName: firstNameParam,
-              lastName: lastNameParam,
-              address: addressParam,
-              birthday: birthdayParam,
-              latitude: latitudeParam,
-              longitude: longitudeParam,
-              phone: phoneParam,
-              email: emailParam,
-              picturePath: picturePathParam,
-              notes: notesParam)
-            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+        return object;
+      },
+    ),
+    VerseData: obx_int.EntityDefinition<VerseData>(
+      model: _entities[22],
+      toOneRelations: (VerseData object) => [],
+      toManyRelations: (VerseData object) => {},
+      getId: (VerseData object) => object.id,
+      setId: (VerseData object, int id) {
+        object.id = id;
+      },
+      objectToFB: (VerseData object, fb.Builder fbb) {
+        final bookOffset = fbb.writeString(object.book);
+        final textOffset = fbb.writeString(object.text);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, bookOffset);
+        fbb.addInt64(2, object.chapter);
+        fbb.addInt64(3, object.verse);
+        fbb.addOffset(4, textOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final bookParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final chapterParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final verseParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final textParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final object = VerseData(
+          book: bookParam,
+          chapter: chapterParam,
+          verse: verseParam,
+          text: textParam,
+        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
-          return object;
-        })
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
 }
 
-/// [Bookmark] entity fields to define ObjectBox queries.
-class Bookmark_ {
-  /// See [Bookmark.id].
-  static final id =
-      obx.QueryIntegerProperty<Bookmark>(_entities[0].properties[0]);
-
-  /// See [Bookmark.timestamp].
-  static final timestamp =
-      obx.QueryDateProperty<Bookmark>(_entities[0].properties[1]);
-
-  /// See [Bookmark.book].
-  static final book =
-      obx.QueryStringProperty<Bookmark>(_entities[0].properties[2]);
-
-  /// See [Bookmark.chapter].
-  static final chapter =
-      obx.QueryIntegerProperty<Bookmark>(_entities[0].properties[3]);
-
-  /// See [Bookmark.verse].
-  static final verse =
-      obx.QueryIntegerProperty<Bookmark>(_entities[0].properties[4]);
-
-  /// See [Bookmark.text].
-  static final text =
-      obx.QueryStringProperty<Bookmark>(_entities[0].properties[5]);
-}
-
-/// [Favorite] entity fields to define ObjectBox queries.
-class Favorite_ {
-  /// See [Favorite.id].
-  static final id =
-      obx.QueryIntegerProperty<Favorite>(_entities[1].properties[0]);
-
-  /// See [Favorite.timestamp].
-  static final timestamp =
-      obx.QueryDateProperty<Favorite>(_entities[1].properties[1]);
-
-  /// See [Favorite.book].
-  static final book =
-      obx.QueryStringProperty<Favorite>(_entities[1].properties[2]);
-
-  /// See [Favorite.chapter].
-  static final chapter =
-      obx.QueryIntegerProperty<Favorite>(_entities[1].properties[3]);
-
-  /// See [Favorite.verse].
-  static final verse =
-      obx.QueryIntegerProperty<Favorite>(_entities[1].properties[4]);
-
-  /// See [Favorite.text].
-  static final text =
-      obx.QueryStringProperty<Favorite>(_entities[1].properties[5]);
-}
-
-/// [GospelProfile] entity fields to define ObjectBox queries.
-class GospelProfile_ {
-  /// See [GospelProfile.id].
-  static final id =
-      obx.QueryIntegerProperty<GospelProfile>(_entities[2].properties[0]);
-
-  /// See [GospelProfile.firstName].
-  static final firstName =
-      obx.QueryStringProperty<GospelProfile>(_entities[2].properties[1]);
-
-  /// See [GospelProfile.lastName].
-  static final lastName =
-      obx.QueryStringProperty<GospelProfile>(_entities[2].properties[2]);
-
-  /// See [GospelProfile.address].
-  static final address =
-      obx.QueryStringProperty<GospelProfile>(_entities[2].properties[3]);
-
-  /// See [GospelProfile.naturalBirthday].
-  static final naturalBirthday =
-      obx.QueryDateProperty<GospelProfile>(_entities[2].properties[4]);
-
-  /// See [GospelProfile.phone].
-  static final phone =
-      obx.QueryStringProperty<GospelProfile>(_entities[2].properties[5]);
-
-  /// See [GospelProfile.email].
-  static final email =
-      obx.QueryStringProperty<GospelProfile>(_entities[2].properties[6]);
-
-  /// See [GospelProfile.spiritualBirthday].
-  static final spiritualBirthday =
-      obx.QueryDateProperty<GospelProfile>(_entities[2].properties[7]);
-}
-
-/// [MapInfo] entity fields to define ObjectBox queries.
-class MapInfo_ {
-  /// See [MapInfo.id].
-  static final id =
-      obx.QueryIntegerProperty<MapInfo>(_entities[3].properties[0]);
-
-  /// See [MapInfo.name].
-  static final name =
-      obx.QueryStringProperty<MapInfo>(_entities[3].properties[1]);
-
-  /// See [MapInfo.filePath].
-  static final filePath =
-      obx.QueryStringProperty<MapInfo>(_entities[3].properties[2]);
-
-  /// See [MapInfo.downloadUrl].
-  static final downloadUrl =
-      obx.QueryStringProperty<MapInfo>(_entities[3].properties[3]);
-
-  /// See [MapInfo.isTemporary].
-  static final isTemporary =
-      obx.QueryBooleanProperty<MapInfo>(_entities[3].properties[4]);
-
-  /// See [MapInfo.latitude].
-  static final latitude =
-      obx.QueryDoubleProperty<MapInfo>(_entities[3].properties[5]);
-
-  /// See [MapInfo.longitude].
-  static final longitude =
-      obx.QueryDoubleProperty<MapInfo>(_entities[3].properties[6]);
-
-  /// See [MapInfo.zoomLevel].
-  static final zoomLevel =
-      obx.QueryIntegerProperty<MapInfo>(_entities[3].properties[7]);
-}
-
-/// [Prayer] entity fields to define ObjectBox queries.
-class Prayer_ {
-  /// See [Prayer.id].
-  static final id =
-      obx.QueryIntegerProperty<Prayer>(_entities[4].properties[0]);
-
-  /// See [Prayer.prayerId].
-  static final prayerId =
-      obx.QueryStringProperty<Prayer>(_entities[4].properties[1]);
-
-  /// See [Prayer.richTextJson].
-  static final richTextJson =
-      obx.QueryStringProperty<Prayer>(_entities[4].properties[2]);
-
-  /// See [Prayer.status].
-  static final status =
-      obx.QueryStringProperty<Prayer>(_entities[4].properties[3]);
-
-  /// See [Prayer.timestamp].
-  static final timestamp =
-      obx.QueryDateProperty<Prayer>(_entities[4].properties[4]);
-}
-
-/// [VerseData] entity fields to define ObjectBox queries.
-class VerseData_ {
-  /// See [VerseData.id].
-  static final id =
-      obx.QueryIntegerProperty<VerseData>(_entities[5].properties[0]);
-
-  /// See [VerseData.book].
-  static final book =
-      obx.QueryStringProperty<VerseData>(_entities[5].properties[1]);
-
-  /// See [VerseData.chapter].
-  static final chapter =
-      obx.QueryIntegerProperty<VerseData>(_entities[5].properties[2]);
-
-  /// See [VerseData.verse].
-  static final verse =
-      obx.QueryIntegerProperty<VerseData>(_entities[5].properties[3]);
-
-  /// See [VerseData.text].
-  static final text =
-      obx.QueryStringProperty<VerseData>(_entities[5].properties[4]);
-}
-
 /// [BibleNote] entity fields to define ObjectBox queries.
 class BibleNote_ {
   /// See [BibleNote.id].
-  static final id =
-      obx.QueryIntegerProperty<BibleNote>(_entities[6].properties[0]);
+  static final id = obx.QueryIntegerProperty<BibleNote>(
+    _entities[0].properties[0],
+  );
 
   /// See [BibleNote.verse].
-  static final verse =
-      obx.QueryStringProperty<BibleNote>(_entities[6].properties[1]);
+  static final verse = obx.QueryStringProperty<BibleNote>(
+    _entities[0].properties[1],
+  );
 
   /// See [BibleNote.verseText].
-  static final verseText =
-      obx.QueryStringProperty<BibleNote>(_entities[6].properties[2]);
+  static final verseText = obx.QueryStringProperty<BibleNote>(
+    _entities[0].properties[2],
+  );
 
   /// See [BibleNote.note].
-  static final note =
-      obx.QueryStringProperty<BibleNote>(_entities[6].properties[3]);
+  static final note = obx.QueryStringProperty<BibleNote>(
+    _entities[0].properties[3],
+  );
 
   /// See [BibleNote.timestamp].
-  static final timestamp =
-      obx.QueryDateProperty<BibleNote>(_entities[6].properties[4]);
+  static final timestamp = obx.QueryDateProperty<BibleNote>(
+    _entities[0].properties[4],
+  );
+}
+
+/// [GospelContactsModel] entity fields to define ObjectBox queries.
+class GospelContactsModel_ {
+  /// See [GospelContactsModel.id].
+  static final id = obx.QueryIntegerProperty<GospelContactsModel>(
+    _entities[1].properties[0],
+  );
+
+  /// See [GospelContactsModel.contactId].
+  static final contactId = obx.QueryIntegerProperty<GospelContactsModel>(
+    _entities[1].properties[1],
+  );
+
+  /// See [GospelContactsModel.firstName].
+  static final firstName = obx.QueryStringProperty<GospelContactsModel>(
+    _entities[1].properties[2],
+  );
+
+  /// See [GospelContactsModel.lastName].
+  static final lastName = obx.QueryStringProperty<GospelContactsModel>(
+    _entities[1].properties[3],
+  );
+
+  /// See [GospelContactsModel.address].
+  static final address = obx.QueryStringProperty<GospelContactsModel>(
+    _entities[1].properties[4],
+  );
+
+  /// See [GospelContactsModel.birthday].
+  static final birthday = obx.QueryDateProperty<GospelContactsModel>(
+    _entities[1].properties[5],
+  );
+
+  /// See [GospelContactsModel.latitude].
+  static final latitude = obx.QueryDoubleProperty<GospelContactsModel>(
+    _entities[1].properties[6],
+  );
+
+  /// See [GospelContactsModel.longitude].
+  static final longitude = obx.QueryDoubleProperty<GospelContactsModel>(
+    _entities[1].properties[7],
+  );
+
+  /// See [GospelContactsModel.phone].
+  static final phone = obx.QueryStringProperty<GospelContactsModel>(
+    _entities[1].properties[8],
+  );
+
+  /// See [GospelContactsModel.email].
+  static final email = obx.QueryStringProperty<GospelContactsModel>(
+    _entities[1].properties[9],
+  );
+
+  /// See [GospelContactsModel.picturePath].
+  static final picturePath = obx.QueryStringProperty<GospelContactsModel>(
+    _entities[1].properties[10],
+  );
+
+  /// See [GospelContactsModel.notes].
+  static final notes = obx.QueryStringProperty<GospelContactsModel>(
+    _entities[1].properties[11],
+  );
+}
+
+/// [GospelContactsPreference] entity fields to define ObjectBox queries.
+class GospelContactsPreference_ {
+  /// See [GospelContactsPreference.id].
+  static final id = obx.QueryIntegerProperty<GospelContactsPreference>(
+    _entities[2].properties[0],
+  );
+
+  /// See [GospelContactsPreference.lastContact].
+  static final lastContact = obx.QueryStringProperty<GospelContactsPreference>(
+    _entities[2].properties[1],
+  );
+}
+
+/// [GospelOfflineMapsModel] entity fields to define ObjectBox queries.
+class GospelOfflineMapsModel_ {
+  /// See [GospelOfflineMapsModel.id].
+  static final id = obx.QueryIntegerProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[0],
+  );
+
+  /// See [GospelOfflineMapsModel.name].
+  static final name = obx.QueryStringProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[1],
+  );
+
+  /// See [GospelOfflineMapsModel.filePath].
+  static final filePath = obx.QueryStringProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[2],
+  );
+
+  /// See [GospelOfflineMapsModel.downloadUrl].
+  static final downloadUrl = obx.QueryStringProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[3],
+  );
+
+  /// See [GospelOfflineMapsModel.isTemporary].
+  static final isTemporary = obx.QueryBooleanProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[4],
+  );
+
+  /// See [GospelOfflineMapsModel.latitude].
+  static final latitude = obx.QueryDoubleProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[5],
+  );
+
+  /// See [GospelOfflineMapsModel.longitude].
+  static final longitude = obx.QueryDoubleProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[6],
+  );
+
+  /// See [GospelOfflineMapsModel.zoomLevel].
+  static final zoomLevel = obx.QueryIntegerProperty<GospelOfflineMapsModel>(
+    _entities[3].properties[7],
+  );
+}
+
+/// [GospelOfflineMapsPreference] entity fields to define ObjectBox queries.
+class GospelOfflineMapsPreference_ {
+  /// See [GospelOfflineMapsPreference.id].
+  static final id = obx.QueryIntegerProperty<GospelOfflineMapsPreference>(
+    _entities[4].properties[0],
+  );
+
+  /// See [GospelOfflineMapsPreference.currentMap].
+  static final currentMap =
+      obx.QueryStringProperty<GospelOfflineMapsPreference>(
+        _entities[4].properties[1],
+      );
 }
 
 /// [GospelOnboardingModel] entity fields to define ObjectBox queries.
 class GospelOnboardingModel_ {
   /// See [GospelOnboardingModel.id].
   static final id = obx.QueryIntegerProperty<GospelOnboardingModel>(
-      _entities[7].properties[0]);
+    _entities[5].properties[0],
+  );
 
   /// See [GospelOnboardingModel.onboardingComplete].
   static final onboardingComplete =
       obx.QueryBooleanProperty<GospelOnboardingModel>(
-          _entities[7].properties[1]);
+        _entities[5].properties[1],
+      );
+}
 
-  /// See [GospelOnboardingModel.homeSelectedFont].
-  static final homeSelectedFont =
-      obx.QueryStringProperty<GospelOnboardingModel>(
-          _entities[7].properties[2]);
+/// [GospelProfileModel] entity fields to define ObjectBox queries.
+class GospelProfileModel_ {
+  /// See [GospelProfileModel.id].
+  static final id = obx.QueryIntegerProperty<GospelProfileModel>(
+    _entities[6].properties[0],
+  );
 
-  /// See [GospelOnboardingModel.homeSelectedFontSize].
-  static final homeSelectedFontSize =
-      obx.QueryDoubleProperty<GospelOnboardingModel>(
-          _entities[7].properties[3]);
+  /// See [GospelProfileModel.firstName].
+  static final firstName = obx.QueryStringProperty<GospelProfileModel>(
+    _entities[6].properties[1],
+  );
 
-  /// See [GospelOnboardingModel.lastSelectedBook].
-  static final lastSelectedBook =
-      obx.QueryStringProperty<GospelOnboardingModel>(
-          _entities[7].properties[4]);
+  /// See [GospelProfileModel.lastName].
+  static final lastName = obx.QueryStringProperty<GospelProfileModel>(
+    _entities[6].properties[2],
+  );
 
-  /// See [GospelOnboardingModel.lastSelectedChapter].
-  static final lastSelectedChapter =
-      obx.QueryStringProperty<GospelOnboardingModel>(
-          _entities[7].properties[5]);
+  /// See [GospelProfileModel.address].
+  static final address = obx.QueryStringProperty<GospelProfileModel>(
+    _entities[6].properties[3],
+  );
 
-  /// See [GospelOnboardingModel.lastSelectedStudyBook].
-  static final lastSelectedStudyBook =
-      obx.QueryStringProperty<GospelOnboardingModel>(
-          _entities[7].properties[6]);
+  /// See [GospelProfileModel.naturalBirthday].
+  static final naturalBirthday = obx.QueryDateProperty<GospelProfileModel>(
+    _entities[6].properties[4],
+  );
 
-  /// See [GospelOnboardingModel.lastSelectedStudyChapter].
+  /// See [GospelProfileModel.phone].
+  static final phone = obx.QueryStringProperty<GospelProfileModel>(
+    _entities[6].properties[5],
+  );
+
+  /// See [GospelProfileModel.email].
+  static final email = obx.QueryStringProperty<GospelProfileModel>(
+    _entities[6].properties[6],
+  );
+
+  /// See [GospelProfileModel.spiritualBirthday].
+  static final spiritualBirthday = obx.QueryDateProperty<GospelProfileModel>(
+    _entities[6].properties[7],
+  );
+}
+
+/// [HomePageModel] entity fields to define ObjectBox queries.
+class HomePageModel_ {
+  /// See [HomePageModel.id].
+  static final id = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[0],
+  );
+
+  /// See [HomePageModel.lastBibleNote].
+  static final lastBibleNote = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[1],
+  );
+
+  /// See [HomePageModel.lastPersonalNote].
+  static final lastPersonalNote = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[2],
+  );
+
+  /// See [HomePageModel.lastStudyNote].
+  static final lastStudyNote = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[3],
+  );
+
+  /// See [HomePageModel.lastSearch].
+  static final lastSearch = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[4],
+  );
+
+  /// See [HomePageModel.lastContact].
+  static final lastContact = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[5],
+  );
+
+  /// See [HomePageModel.readChaptersCount].
+  static final readChaptersCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[6],
+  );
+
+  /// See [HomePageModel.bookmarkCount].
+  static final bookmarkCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[7],
+  );
+
+  /// See [HomePageModel.favoriteCount].
+  static final favoriteCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[8],
+  );
+
+  /// See [HomePageModel.bibleNoteCount].
+  static final bibleNoteCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[9],
+  );
+
+  /// See [HomePageModel.personalNoteCount].
+  static final personalNoteCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[10],
+  );
+
+  /// See [HomePageModel.studyNoteCount].
+  static final studyNoteCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[11],
+  );
+
+  /// See [HomePageModel.searchCount].
+  static final searchCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[12],
+  );
+
+  /// See [HomePageModel.homeSelectedFont].
+  static final homeSelectedFont = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[13],
+  );
+
+  /// See [HomePageModel.homeSelectedFontSize].
+  static final homeSelectedFontSize = obx.QueryDoubleProperty<HomePageModel>(
+    _entities[7].properties[14],
+  );
+
+  /// See [HomePageModel.onboardingComplete].
+  static final onboardingComplete = obx.QueryBooleanProperty<HomePageModel>(
+    _entities[7].properties[15],
+  );
+
+  /// See [HomePageModel.lastPageIndex].
+  static final lastPageIndex = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[16],
+  );
+
+  /// See [HomePageModel.lastReadChapter].
+  static final lastReadChapter = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[17],
+  );
+
+  /// See [HomePageModel.lastSelectedStudyBook].
+  static final lastSelectedStudyBook = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[18],
+  );
+
+  /// See [HomePageModel.lastSelectedStudyChapter].
   static final lastSelectedStudyChapter =
-      obx.QueryStringProperty<GospelOnboardingModel>(
-          _entities[7].properties[7]);
+      obx.QueryStringProperty<HomePageModel>(_entities[7].properties[19]);
 
-  /// See [GospelOnboardingModel.lastBookmark].
-  static final lastBookmark = obx.QueryStringProperty<GospelOnboardingModel>(
-      _entities[7].properties[8]);
+  /// See [HomePageModel.currentMap].
+  static final currentMap = obx.QueryStringProperty<HomePageModel>(
+    _entities[7].properties[20],
+  );
 
-  /// See [GospelOnboardingModel.lastFavorite].
-  static final lastFavorite = obx.QueryStringProperty<GospelOnboardingModel>(
-      _entities[7].properties[9]);
+  /// See [HomePageModel.studiedChaptersCount].
+  static final studiedChaptersCount = obx.QueryIntegerProperty<HomePageModel>(
+    _entities[7].properties[21],
+  );
+}
 
-  /// See [GospelOnboardingModel.lastBibleNote].
-  static final lastBibleNote = obx.QueryStringProperty<GospelOnboardingModel>(
-      _entities[7].properties[10]);
+/// [HomeSettingsModel] entity fields to define ObjectBox queries.
+class HomeSettingsModel_ {
+  /// See [HomeSettingsModel.id].
+  static final id = obx.QueryIntegerProperty<HomeSettingsModel>(
+    _entities[8].properties[0],
+  );
 
-  /// See [GospelOnboardingModel.lastPersonalNote].
-  static final lastPersonalNote =
-      obx.QueryStringProperty<GospelOnboardingModel>(
-          _entities[7].properties[11]);
-
-  /// See [GospelOnboardingModel.lastStudyNote].
-  static final lastStudyNote = obx.QueryStringProperty<GospelOnboardingModel>(
-      _entities[7].properties[12]);
-
-  /// See [GospelOnboardingModel.lastSearch].
-  static final lastSearch = obx.QueryStringProperty<GospelOnboardingModel>(
-      _entities[7].properties[13]);
-
-  /// See [GospelOnboardingModel.lastContact].
-  static final lastContact = obx.QueryStringProperty<GospelOnboardingModel>(
-      _entities[7].properties[14]);
-
-  /// See [GospelOnboardingModel.currentMap].
-  static final currentMap = obx.QueryStringProperty<GospelOnboardingModel>(
-      _entities[7].properties[15]);
-
-  /// See [GospelOnboardingModel.readChaptersCount].
-  static final readChaptersCount =
-      obx.QueryIntegerProperty<GospelOnboardingModel>(
-          _entities[7].properties[16]);
-
-  /// See [GospelOnboardingModel.bookmarkCount].
-  static final bookmarkCount = obx.QueryIntegerProperty<GospelOnboardingModel>(
-      _entities[7].properties[17]);
-
-  /// See [GospelOnboardingModel.favoriteCount].
-  static final favoriteCount = obx.QueryIntegerProperty<GospelOnboardingModel>(
-      _entities[7].properties[18]);
-
-  /// See [GospelOnboardingModel.studiedChaptersCount].
-  static final studiedChaptersCount =
-      obx.QueryIntegerProperty<GospelOnboardingModel>(
-          _entities[7].properties[19]);
-
-  /// See [GospelOnboardingModel.bibleNoteCount].
-  static final bibleNoteCount = obx.QueryIntegerProperty<GospelOnboardingModel>(
-      _entities[7].properties[20]);
-
-  /// See [GospelOnboardingModel.personalNoteCount].
-  static final personalNoteCount =
-      obx.QueryIntegerProperty<GospelOnboardingModel>(
-          _entities[7].properties[21]);
-
-  /// See [GospelOnboardingModel.studyNoteCount].
-  static final studyNoteCount = obx.QueryIntegerProperty<GospelOnboardingModel>(
-      _entities[7].properties[22]);
-
-  /// See [GospelOnboardingModel.searchCount].
-  static final searchCount = obx.QueryIntegerProperty<GospelOnboardingModel>(
-      _entities[7].properties[23]);
+  /// See [HomeSettingsModel.themeMode].
+  static final themeMode = obx.QueryStringProperty<HomeSettingsModel>(
+    _entities[8].properties[1],
+  );
 }
 
 /// [PersonalNote] entity fields to define ObjectBox queries.
 class PersonalNote_ {
   /// See [PersonalNote.id].
-  static final id =
-      obx.QueryIntegerProperty<PersonalNote>(_entities[8].properties[0]);
+  static final id = obx.QueryIntegerProperty<PersonalNote>(
+    _entities[9].properties[0],
+  );
 
   /// See [PersonalNote.note].
-  static final note =
-      obx.QueryStringProperty<PersonalNote>(_entities[8].properties[1]);
+  static final note = obx.QueryStringProperty<PersonalNote>(
+    _entities[9].properties[1],
+  );
 
   /// See [PersonalNote.timestamp].
-  static final timestamp =
-      obx.QueryDateProperty<PersonalNote>(_entities[8].properties[2]);
+  static final timestamp = obx.QueryDateProperty<PersonalNote>(
+    _entities[9].properties[2],
+  );
+}
+
+/// [PrayPageModel] entity fields to define ObjectBox queries.
+class PrayPageModel_ {
+  /// See [PrayPageModel.id].
+  static final id = obx.QueryIntegerProperty<PrayPageModel>(
+    _entities[10].properties[0],
+  );
+
+  /// See [PrayPageModel.prayerId].
+  static final prayerId = obx.QueryStringProperty<PrayPageModel>(
+    _entities[10].properties[1],
+  );
+
+  /// See [PrayPageModel.richTextJson].
+  static final richTextJson = obx.QueryStringProperty<PrayPageModel>(
+    _entities[10].properties[2],
+  );
+
+  /// See [PrayPageModel.status].
+  static final status = obx.QueryStringProperty<PrayPageModel>(
+    _entities[10].properties[3],
+  );
+
+  /// See [PrayPageModel.timestamp].
+  static final timestamp = obx.QueryDateProperty<PrayPageModel>(
+    _entities[10].properties[4],
+  );
+}
+
+/// [PraySearchModel] entity fields to define ObjectBox queries.
+class PraySearchModel_ {
+  /// See [PraySearchModel.id].
+  static final id = obx.QueryIntegerProperty<PraySearchModel>(
+    _entities[11].properties[0],
+  );
+
+  /// See [PraySearchModel.lastSearch].
+  static final lastSearch = obx.QueryStringProperty<PraySearchModel>(
+    _entities[11].properties[1],
+  );
+
+  /// See [PraySearchModel.searchCount].
+  static final searchCount = obx.QueryIntegerProperty<PraySearchModel>(
+    _entities[11].properties[2],
+  );
+}
+
+/// [PraySettingsModel] entity fields to define ObjectBox queries.
+class PraySettingsModel_ {
+  /// See [PraySettingsModel.id].
+  static final id = obx.QueryIntegerProperty<PraySettingsModel>(
+    _entities[12].properties[0],
+  );
+
+  /// See [PraySettingsModel.isAutoScrollingEnabled].
+  static final isAutoScrollingEnabled =
+      obx.QueryBooleanProperty<PraySettingsModel>(_entities[12].properties[1]);
+
+  /// See [PraySettingsModel.autoScrollMode].
+  static final autoScrollMode = obx.QueryStringProperty<PraySettingsModel>(
+    _entities[12].properties[2],
+  );
+}
+
+/// [ReadBookmarksModel] entity fields to define ObjectBox queries.
+class ReadBookmarksModel_ {
+  /// See [ReadBookmarksModel.id].
+  static final id = obx.QueryIntegerProperty<ReadBookmarksModel>(
+    _entities[13].properties[0],
+  );
+
+  /// See [ReadBookmarksModel.book].
+  static final book = obx.QueryStringProperty<ReadBookmarksModel>(
+    _entities[13].properties[1],
+  );
+
+  /// See [ReadBookmarksModel.chapter].
+  static final chapter = obx.QueryIntegerProperty<ReadBookmarksModel>(
+    _entities[13].properties[2],
+  );
+
+  /// See [ReadBookmarksModel.verse].
+  static final verse = obx.QueryIntegerProperty<ReadBookmarksModel>(
+    _entities[13].properties[3],
+  );
+
+  /// See [ReadBookmarksModel.text].
+  static final text = obx.QueryStringProperty<ReadBookmarksModel>(
+    _entities[13].properties[4],
+  );
+
+  /// See [ReadBookmarksModel.lastBookmark].
+  static final lastBookmark = obx.QueryStringProperty<ReadBookmarksModel>(
+    _entities[13].properties[5],
+  );
+
+  /// See [ReadBookmarksModel.bookmarkCount].
+  static final bookmarkCount = obx.QueryIntegerProperty<ReadBookmarksModel>(
+    _entities[13].properties[6],
+  );
+}
+
+/// [ReadFavoritesModel] entity fields to define ObjectBox queries.
+class ReadFavoritesModel_ {
+  /// See [ReadFavoritesModel.id].
+  static final id = obx.QueryIntegerProperty<ReadFavoritesModel>(
+    _entities[14].properties[0],
+  );
+
+  /// See [ReadFavoritesModel.book].
+  static final book = obx.QueryStringProperty<ReadFavoritesModel>(
+    _entities[14].properties[1],
+  );
+
+  /// See [ReadFavoritesModel.chapter].
+  static final chapter = obx.QueryIntegerProperty<ReadFavoritesModel>(
+    _entities[14].properties[2],
+  );
+
+  /// See [ReadFavoritesModel.verse].
+  static final verse = obx.QueryIntegerProperty<ReadFavoritesModel>(
+    _entities[14].properties[3],
+  );
+
+  /// See [ReadFavoritesModel.text].
+  static final text = obx.QueryStringProperty<ReadFavoritesModel>(
+    _entities[14].properties[4],
+  );
+
+  /// See [ReadFavoritesModel.timestamp].
+  static final timestamp = obx.QueryDateProperty<ReadFavoritesModel>(
+    _entities[14].properties[5],
+  );
+}
+
+/// [ReadSettingsModel] entity fields to define ObjectBox queries.
+class ReadSettingsModel_ {
+  /// See [ReadSettingsModel.id].
+  static final id = obx.QueryIntegerProperty<ReadSettingsModel>(
+    _entities[15].properties[0],
+  );
+
+  /// See [ReadSettingsModel.isAutoScrollingEnabled].
+  static final isAutoScrollingEnabled =
+      obx.QueryBooleanProperty<ReadSettingsModel>(_entities[15].properties[1]);
+
+  /// See [ReadSettingsModel.autoScrollMode].
+  static final autoScrollMode = obx.QueryStringProperty<ReadSettingsModel>(
+    _entities[15].properties[2],
+  );
 }
 
 /// [StudyNote] entity fields to define ObjectBox queries.
 class StudyNote_ {
   /// See [StudyNote.id].
-  static final id =
-      obx.QueryIntegerProperty<StudyNote>(_entities[9].properties[0]);
+  static final id = obx.QueryIntegerProperty<StudyNote>(
+    _entities[16].properties[0],
+  );
 
   /// See [StudyNote.note].
-  static final note =
-      obx.QueryStringProperty<StudyNote>(_entities[9].properties[1]);
+  static final note = obx.QueryStringProperty<StudyNote>(
+    _entities[16].properties[1],
+  );
 
   /// See [StudyNote.timestamp].
-  static final timestamp =
-      obx.QueryDateProperty<StudyNote>(_entities[9].properties[2]);
+  static final timestamp = obx.QueryDateProperty<StudyNote>(
+    _entities[16].properties[2],
+  );
+}
+
+/// [StudyNotesModel] entity fields to define ObjectBox queries.
+class StudyNotesModel_ {
+  /// See [StudyNotesModel.id].
+  static final id = obx.QueryIntegerProperty<StudyNotesModel>(
+    _entities[17].properties[0],
+  );
+
+  /// See [StudyNotesModel.lastBibleNote].
+  static final lastBibleNote = obx.QueryStringProperty<StudyNotesModel>(
+    _entities[17].properties[1],
+  );
+
+  /// See [StudyNotesModel.lastPersonalNote].
+  static final lastPersonalNote = obx.QueryStringProperty<StudyNotesModel>(
+    _entities[17].properties[2],
+  );
+
+  /// See [StudyNotesModel.lastStudyNote].
+  static final lastStudyNote = obx.QueryStringProperty<StudyNotesModel>(
+    _entities[17].properties[3],
+  );
+
+  /// See [StudyNotesModel.bibleNoteCount].
+  static final bibleNoteCount = obx.QueryIntegerProperty<StudyNotesModel>(
+    _entities[17].properties[4],
+  );
+
+  /// See [StudyNotesModel.personalNoteCount].
+  static final personalNoteCount = obx.QueryIntegerProperty<StudyNotesModel>(
+    _entities[17].properties[5],
+  );
+
+  /// See [StudyNotesModel.studyNoteCount].
+  static final studyNoteCount = obx.QueryIntegerProperty<StudyNotesModel>(
+    _entities[17].properties[6],
+  );
+}
+
+/// [StudyPageModel] entity fields to define ObjectBox queries.
+class StudyPageModel_ {
+  /// See [StudyPageModel.id].
+  static final id = obx.QueryIntegerProperty<StudyPageModel>(
+    _entities[18].properties[0],
+  );
+
+  /// See [StudyPageModel.lastSelectedStudyBook].
+  static final lastSelectedStudyBook = obx.QueryStringProperty<StudyPageModel>(
+    _entities[18].properties[1],
+  );
+
+  /// See [StudyPageModel.lastSelectedStudyChapter].
+  static final lastSelectedStudyChapter =
+      obx.QueryIntegerProperty<StudyPageModel>(_entities[18].properties[2]);
+
+  /// See [StudyPageModel.selectedStudyFont].
+  static final selectedStudyFont = obx.QueryStringProperty<StudyPageModel>(
+    _entities[18].properties[3],
+  );
+
+  /// See [StudyPageModel.selectedStudyFontSize].
+  static final selectedStudyFontSize = obx.QueryDoubleProperty<StudyPageModel>(
+    _entities[18].properties[4],
+  );
+
+  /// See [StudyPageModel.studiedChaptersCount].
+  static final studiedChaptersCount = obx.QueryIntegerProperty<StudyPageModel>(
+    _entities[18].properties[5],
+  );
+}
+
+/// [StudySearchModel] entity fields to define ObjectBox queries.
+class StudySearchModel_ {
+  /// See [StudySearchModel.id].
+  static final id = obx.QueryIntegerProperty<StudySearchModel>(
+    _entities[19].properties[0],
+  );
+
+  /// See [StudySearchModel.lastSearch].
+  static final lastSearch = obx.QueryStringProperty<StudySearchModel>(
+    _entities[19].properties[1],
+  );
+
+  /// See [StudySearchModel.searchCount].
+  static final searchCount = obx.QueryIntegerProperty<StudySearchModel>(
+    _entities[19].properties[2],
+  );
+}
+
+/// [StudySettingsModel] entity fields to define ObjectBox queries.
+class StudySettingsModel_ {
+  /// See [StudySettingsModel.id].
+  static final id = obx.QueryIntegerProperty<StudySettingsModel>(
+    _entities[20].properties[0],
+  );
+
+  /// See [StudySettingsModel.selectedStudyFont].
+  static final selectedStudyFont = obx.QueryStringProperty<StudySettingsModel>(
+    _entities[20].properties[1],
+  );
+
+  /// See [StudySettingsModel.selectedStudyFontSize].
+  static final selectedStudyFontSize =
+      obx.QueryDoubleProperty<StudySettingsModel>(_entities[20].properties[2]);
 }
 
 /// [UserPreference] entity fields to define ObjectBox queries.
 class UserPreference_ {
   /// See [UserPreference.id].
-  static final id =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[0]);
-
-  /// See [UserPreference.themeMode].
-  static final themeMode =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[1]);
+  static final id = obx.QueryIntegerProperty<UserPreference>(
+    _entities[21].properties[0],
+  );
 
   /// See [UserPreference.fontSize].
-  static final fontSize =
-      obx.QueryDoubleProperty<UserPreference>(_entities[10].properties[2]);
+  static final fontSize = obx.QueryDoubleProperty<UserPreference>(
+    _entities[21].properties[1],
+  );
 
-  /// See [UserPreference.lastReadChapter].
-  static final lastReadChapter =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[3]);
+  /// See [UserPreference.lastSelectedBook].
+  static final lastSelectedBook = obx.QueryStringProperty<UserPreference>(
+    _entities[21].properties[2],
+  );
 
-  /// See [UserPreference.lastPageIndex].
-  static final lastPageIndex =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[4]);
+  /// See [UserPreference.lastSelectedChapter].
+  static final lastSelectedChapter = obx.QueryStringProperty<UserPreference>(
+    _entities[21].properties[3],
+  );
 
-  /// See [UserPreference.currentMap].
-  static final currentMap =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[5]);
+  /// See [UserPreference.selectedFont].
+  static final selectedFont = obx.QueryStringProperty<UserPreference>(
+    _entities[21].properties[4],
+  );
 
-  /// See [UserPreference.lastSelectedStudyBook].
-  static final lastSelectedStudyBook =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[6]);
+  /// See [UserPreference.selectedFontSize].
+  static final selectedFontSize = obx.QueryDoubleProperty<UserPreference>(
+    _entities[21].properties[5],
+  );
 
-  /// See [UserPreference.lastSelectedStudyChapter].
-  static final lastSelectedStudyChapter =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[7]);
+  /// See [UserPreference.isAutoScrollingEnabled].
+  static final isAutoScrollingEnabled =
+      obx.QueryBooleanProperty<UserPreference>(_entities[21].properties[6]);
 
-  /// See [UserPreference.selectedStudyFont].
-  static final selectedStudyFont =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[8]);
-
-  /// See [UserPreference.selectedStudyFontSize].
-  static final selectedStudyFontSize =
-      obx.QueryDoubleProperty<UserPreference>(_entities[10].properties[9]);
+  /// See [UserPreference.autoScrollMode].
+  static final autoScrollMode = obx.QueryStringProperty<UserPreference>(
+    _entities[21].properties[7],
+  );
 
   /// See [UserPreference.lastBookmark].
-  static final lastBookmark =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[10]);
+  static final lastBookmark = obx.QueryStringProperty<UserPreference>(
+    _entities[21].properties[8],
+  );
 
   /// See [UserPreference.lastFavorite].
-  static final lastFavorite =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[11]);
-
-  /// See [UserPreference.lastBibleNote].
-  static final lastBibleNote =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[12]);
-
-  /// See [UserPreference.lastPersonalNote].
-  static final lastPersonalNote =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[13]);
-
-  /// See [UserPreference.lastStudyNote].
-  static final lastStudyNote =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[14]);
-
-  /// See [UserPreference.lastSearch].
-  static final lastSearch =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[15]);
-
-  /// See [UserPreference.lastContact].
-  static final lastContact =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[16]);
-
-  /// See [UserPreference.readChaptersCount].
-  static final readChaptersCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[17]);
-
-  /// See [UserPreference.bookmarkCount].
-  static final bookmarkCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[18]);
-
-  /// See [UserPreference.favoriteCount].
-  static final favoriteCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[19]);
-
-  /// See [UserPreference.studiedChaptersCount].
-  static final studiedChaptersCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[20]);
-
-  /// See [UserPreference.bibleNoteCount].
-  static final bibleNoteCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[21]);
-
-  /// See [UserPreference.personalNoteCount].
-  static final personalNoteCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[22]);
-
-  /// See [UserPreference.studyNoteCount].
-  static final studyNoteCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[23]);
-
-  /// See [UserPreference.searchCount].
-  static final searchCount =
-      obx.QueryIntegerProperty<UserPreference>(_entities[10].properties[24]);
-
-  /// See [UserPreference.homeSelectedFont].
-  static final homeSelectedFont =
-      obx.QueryStringProperty<UserPreference>(_entities[10].properties[25]);
-
-  /// See [UserPreference.homeSelectedFontSize].
-  static final homeSelectedFontSize =
-      obx.QueryDoubleProperty<UserPreference>(_entities[10].properties[26]);
-
-  /// See [UserPreference.onboardingComplete].
-  static final onboardingComplete =
-      obx.QueryBooleanProperty<UserPreference>(_entities[10].properties[27]);
+  static final lastFavorite = obx.QueryStringProperty<UserPreference>(
+    _entities[21].properties[9],
+  );
 }
 
-/// [Contact] entity fields to define ObjectBox queries.
-class Contact_ {
-  /// See [Contact.id].
-  static final id =
-      obx.QueryIntegerProperty<Contact>(_entities[11].properties[0]);
+/// [VerseData] entity fields to define ObjectBox queries.
+class VerseData_ {
+  /// See [VerseData.id].
+  static final id = obx.QueryIntegerProperty<VerseData>(
+    _entities[22].properties[0],
+  );
 
-  /// See [Contact.contactId].
-  static final contactId =
-      obx.QueryIntegerProperty<Contact>(_entities[11].properties[1]);
+  /// See [VerseData.book].
+  static final book = obx.QueryStringProperty<VerseData>(
+    _entities[22].properties[1],
+  );
 
-  /// See [Contact.firstName].
-  static final firstName =
-      obx.QueryStringProperty<Contact>(_entities[11].properties[2]);
+  /// See [VerseData.chapter].
+  static final chapter = obx.QueryIntegerProperty<VerseData>(
+    _entities[22].properties[2],
+  );
 
-  /// See [Contact.lastName].
-  static final lastName =
-      obx.QueryStringProperty<Contact>(_entities[11].properties[3]);
+  /// See [VerseData.verse].
+  static final verse = obx.QueryIntegerProperty<VerseData>(
+    _entities[22].properties[3],
+  );
 
-  /// See [Contact.address].
-  static final address =
-      obx.QueryStringProperty<Contact>(_entities[11].properties[4]);
-
-  /// See [Contact.birthday].
-  static final birthday =
-      obx.QueryDateProperty<Contact>(_entities[11].properties[5]);
-
-  /// See [Contact.latitude].
-  static final latitude =
-      obx.QueryDoubleProperty<Contact>(_entities[11].properties[6]);
-
-  /// See [Contact.longitude].
-  static final longitude =
-      obx.QueryDoubleProperty<Contact>(_entities[11].properties[7]);
-
-  /// See [Contact.phone].
-  static final phone =
-      obx.QueryStringProperty<Contact>(_entities[11].properties[8]);
-
-  /// See [Contact.email].
-  static final email =
-      obx.QueryStringProperty<Contact>(_entities[11].properties[9]);
-
-  /// See [Contact.picturePath].
-  static final picturePath =
-      obx.QueryStringProperty<Contact>(_entities[11].properties[10]);
-
-  /// See [Contact.notes].
-  static final notes =
-      obx.QueryStringProperty<Contact>(_entities[11].properties[11]);
+  /// See [VerseData.text].
+  static final text = obx.QueryStringProperty<VerseData>(
+    _entities[22].properties[4],
+  );
 }

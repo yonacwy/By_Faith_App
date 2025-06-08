@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:by_faith_app/models/gospel_map_info_model.dart';
-import 'package:by_faith_app/models/user_preference_model.dart';
+
+import 'package:by_faith_app/models/user_preferences.dart';
 import 'package:by_faith_app/ui/gospel_contacts_ui.dart' as gospel_contacts_ui;
 import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart' as gospel_offline_maps_ui;
 import 'package:by_faith_app/ui/gospel_profile_ui.dart' as gospel_profile_ui;
@@ -12,6 +12,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:by_faith_app/objectbox.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:by_faith_app/models/gospel_offline_maps_model.dart';
 
 class GospelPageUi extends StatefulWidget {
   const GospelPageUi({super.key});
@@ -66,7 +67,7 @@ class _GospelPageState extends State<GospelPageUi> {
     final String? savedMapName = savedMapPref?.currentMap;
 
     if (savedMapName != null) {
-      final mapInfo = objectbox.mapInfoBox.query(MapInfo_.name.eq(savedMapName)).build().findFirst();
+      final mapInfo = objectbox.gospelOfflineMapsModelBox.query(MapInfo_.name.eq(savedMapName)).build().findFirst();
       if (mapInfo != null) {
         await _loadMap(mapInfo);
       } else {
@@ -129,8 +130,8 @@ class _GospelPageState extends State<GospelPageUi> {
 
   Future<void> _initObjectBox() async {
     try {
-      _mapInfoBox = objectbox.mapInfoBox;
-      _contactBox = objectbox.contactBox;
+      _mapInfoBox = objectbox.gospelOfflineMapsModelBox;
+      _contactBox = objectbox.gospelContactsModelBox;
 
       MapInfo? worldMapInfo = _mapInfoBox.query(MapInfo_.name.eq('World')).build().findFirst();
 
@@ -163,7 +164,7 @@ class _GospelPageState extends State<GospelPageUi> {
   Future<void> _setupMarkers() async {
     if (_isDisposed || !mounted) return;
     final List<fm.Marker> newMarkers = [];
-    final contacts = objectbox.contactBox.getAll();
+    final contacts = objectbox.gospelContactsModelBox.getAll();
     for (final contact in contacts) {
       final marker = _createMarker(contact);
       newMarkers.add(marker);
@@ -184,12 +185,12 @@ class _GospelPageState extends State<GospelPageUi> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => gospel_contacts_ui.AddEditContactPage(
-                contactBox: _contactBox,
+              builder: (context) => gospel_contacts_ui.AddEditGospelContactsModelPage(
+                objectbox: objectbox,
                 contact: contact,
                 latitude: contact.latitude,
                 longitude: contact.longitude,
-                onContactAdded: (newOrUpdatedContact) {},
+                onGospelContactsModelAdded: (newOrUpdatedContact) {},
               ),
             ),
           );
@@ -328,6 +329,10 @@ class _GospelPageState extends State<GospelPageUi> {
       );
       _mapInfoBox.put(mapInfo);
 
+      // Save the map description to GospelOfflineMapsModel
+      final gospelOfflineMapsModel = GospelOfflineMapsModel(mapName: mapName, description: 'Downloaded Map');
+      objectbox.gospelOfflineMapsModelBox.put(gospelOfflineMapsModel);
+
       if (mounted && Navigator.of(dialogContext).canPop()) {
         Navigator.of(dialogContext).pop();
       }
@@ -372,7 +377,7 @@ class _GospelPageState extends State<GospelPageUi> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => gospel_contacts_ui.ContactsPage(contactBox: objectbox.contactBox),
+        builder: (context) => gospel_contacts_ui.GospelContactsModelsPage(objectbox: objectbox),
       ),
     );
   }
@@ -403,11 +408,11 @@ class _GospelPageState extends State<GospelPageUi> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => gospel_contacts_ui.AddEditContactPage(
-          contactBox: objectbox.contactBox,
+        builder: (context) => gospel_contacts_ui.AddEditGospelContactsModelPage(
+          objectbox: objectbox,
           latitude: latLng.latitude,
           longitude: latLng.longitude,
-          onContactAdded: (contact) {
+          onGospelContactsModelAdded: (contact) {
             if (mounted) {
               setState(() {
                 _isAddingMarker = false;

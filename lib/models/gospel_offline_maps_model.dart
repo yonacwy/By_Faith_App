@@ -1,7 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class MapInfo {
+class GospelOfflineMapsModel {
   @Id()
   int id = 0;
   final String name;
@@ -12,7 +12,7 @@ class MapInfo {
   double longitude;
   int zoomLevel;
 
-  MapInfo({
+  GospelOfflineMapsModel({
     required this.name,
     required this.filePath,
     required this.downloadUrl,
@@ -33,5 +33,30 @@ class MapInfo {
       'longitude': longitude,
       'zoomLevel': zoomLevel,
     };
+  }
+}
+
+@Entity()
+class GospelOfflineMapsPreference {
+  @Id()
+  int id = 0;
+  String currentMap;
+
+  GospelOfflineMapsPreference({
+    required this.currentMap,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'currentMap': currentMap,
+    };
+  }
+
+  factory GospelOfflineMapsPreference.fromMap(Map<String, dynamic> map) {
+    return GospelOfflineMapsPreference(
+      id: map['id'] as int,
+      currentMap: map['currentMap'] as String,
+    );
   }
 }

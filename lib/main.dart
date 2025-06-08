@@ -1,7 +1,7 @@
 import 'package:by_faith_app/models/gospel_contacts_model.dart';
-import 'package:by_faith_app/models/gospel_map_info_model.dart';
-import 'package:by_faith_app/models/pray_model.dart';
-import 'package:by_faith_app/models/read_data_model.dart';
+
+import 'package:by_faith_app/models/pray_page_model.dart';
+import 'package:by_faith_app/models/read_page_model.dart';
 import 'package:by_faith_app/providers/page_notifier.dart';
 import 'package:by_faith_app/providers/theme_notifier.dart';
 import 'package:by_faith_app/ui/gospel_offline_maps_ui.dart';

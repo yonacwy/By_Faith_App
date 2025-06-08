@@ -3,7 +3,7 @@ import 'package:by_faith_app/objectbox.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import '../models/pray_model.dart';
+import '../models/pray_page_model.dart';
 import '../providers/theme_notifier.dart';
 import 'dart:convert';
 import 'pray_settings_ui.dart';
@@ -18,7 +18,7 @@ class PrayPageUi extends StatefulWidget {
 }
 
 class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
-  late Box<Prayer> _prayerBox;
+  late Box<PrayPageModel> _prayerBox;
   final GlobalKey<AnimatedListState> _newListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _answeredListKey = GlobalKey<AnimatedListState>();
   final GlobalKey<AnimatedListState> _unansweredListKey = GlobalKey<AnimatedListState>();
@@ -27,7 +27,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _prayerBox = objectbox.store.box<Prayer>();
+    _prayerBox = objectbox.store.box<PrayPageModel>();
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -37,7 +37,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _updatePrayerStatus(Prayer prayer, String newStatus, int index) {
+  void _updatePrayerStatus(PrayPageModel prayer, String newStatus, int index) {
     final oldStatus = prayer.status;
     if (oldStatus == newStatus) return;
 
@@ -65,7 +65,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
         : newStatus == 'answered'
             ? _answeredListKey
             : _unansweredListKey;
-    final prayersInNewStatus = _prayerBox.query(Prayer_.status.equals(newStatus)).build().find();
+    final prayersInNewStatus = _prayerBox.query(PrayPageModel_.status.equals(newStatus)).build().find();
     prayersInNewStatus.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     final insertionIndex = prayersInNewStatus.indexWhere((p) => p.id == prayer.id);
     newListKey.currentState?.insertItem(
@@ -81,14 +81,14 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     );
   }
 
-  void _deletePrayer(Prayer prayer, int index, String status) {
+  void _deletePrayer(PrayPageModel prayer, int index, String status) {
     final listKey = status == 'new'
         ? _newListKey
         : status == 'answered'
             ? _answeredListKey
             : _unansweredListKey;
 
-    final deletedPrayerData = Prayer(
+    final deletedPrayerData = PrayPageModel(
       richTextJson: prayer.richTextJson,
       status: prayer.status,
       timestamp: prayer.timestamp,
@@ -125,7 +125,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     );
   }
 
-  void _editPrayer(Prayer prayer, int index) {
+  void _editPrayer(PrayPageModel prayer, int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -178,7 +178,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     setState(() {});
   }
 
-  Widget _buildPrayerCard(Prayer prayer, String status, int index) {
+  Widget _buildPrayerCard(PrayPageModel prayer, String status, int index) {
     final quillController = quill.QuillController(
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
@@ -294,7 +294,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
     // ObjectBox does not have a direct ValueListenableBuilder equivalent for queries.
     // We will use a StreamBuilder or simply rebuild the widget on state changes.
     // For simplicity, we'll just fetch the data directly here.
-    var prayers = _prayerBox.query(Prayer_.status.equals(status)).build().find();
+    var prayers = _prayerBox.query(PrayPageModel_.status.equals(status)).build().find();
     prayers.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
         if (status == 'new') {
@@ -521,7 +521,7 @@ class _PrayPageUiState extends State<PrayPageUi> with TickerProviderStateMixin {
 }
 
 class _NewPrayerPage extends StatefulWidget {
-  final Function(Prayer) onSave;
+  final Function(PrayPageModel) onSave;
 
   const _NewPrayerPage({required this.onSave});
 
@@ -555,7 +555,7 @@ class _NewPrayerPageState extends State<_NewPrayerPage> {
       );
       return;
     }
-    final newPrayer = Prayer(
+    final newPrayer = PrayPageModel(
       richTextJson: jsonEncode(_quillController.document.toDelta().toJson()),
       status: 'new',
       timestamp: DateTime.now(),

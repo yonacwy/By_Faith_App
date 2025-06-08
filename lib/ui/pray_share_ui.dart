@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:share_plus/share_plus.dart'; // Import share_plus
-import '../models/pray_model.dart';
+import '../models/pray_page_model.dart';
 import '../providers/theme_notifier.dart';
 import 'dart:convert';
 import '../objectbox.dart'; // Import objectbox
@@ -72,7 +72,7 @@ class _PrayShareUiState extends State<PrayShareUi> {
   Future<void> _sharePrayer(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
-      final allPrayers = objectbox.prayerBox.getAll();
+      final allPrayers = objectbox.prayPageModelBox.getAll();
 
       if (allPrayers.isEmpty) {
         scaffoldMessenger.showSnackBar(
@@ -81,7 +81,7 @@ class _PrayShareUiState extends State<PrayShareUi> {
         return;
       }
 
-      final List<Prayer> selectedPrayers = await showDialog(
+      final List<PrayPageModel> selectedPrayers = await showDialog(
         context: context,
         builder: (BuildContext dialogContext) {
           return _PrayerSelectionDialog(prayers: allPrayers);
@@ -122,7 +122,7 @@ class _PrayShareUiState extends State<PrayShareUi> {
 }
 
 class _PrayerSelectionDialog extends StatefulWidget {
-  final List<Prayer> prayers;
+  final List<PrayPageModel> prayers;
 
   const _PrayerSelectionDialog({Key? key, required this.prayers}) : super(key: key);
 
@@ -155,10 +155,10 @@ class __PrayerSelectionDialogState extends State<_PrayerSelectionDialog> {
             _controller.dispose();
             return CheckboxListTile(
               title: Text(plainText.isNotEmpty ? plainText : 'Empty Prayer'),
-              value: _selectedPrayers[prayer.id],
+              value: _selectedPrayers[prayer.id.toString()],
               onChanged: (bool? value) {
                 setState(() {
-                  _selectedPrayers[prayer.id] = value!;
+                  _selectedPrayers[prayer.id.toString()] = value!;
                 });
               },
             );
@@ -175,7 +175,7 @@ class __PrayerSelectionDialogState extends State<_PrayerSelectionDialog> {
         ElevatedButton(
           onPressed: () {
             final selected = widget.prayers
-                .where((prayer) => _selectedPrayers[prayer.id] == true)
+                .where((prayer) => _selectedPrayers[prayer.id.toString()] == true)
                 .toList();
             Navigator.of(context).pop(selected);
           },

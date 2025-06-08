@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import '../objectbox.dart';
-import '../objectbox.g.dart';
-import '../models/read_data_model.dart';
+import '../objectbox.g.dart'; // Import objectbox.g.dart for Box types
+import '../models/read_page_model.dart'; // For BibleNote, PersonalNote, StudyNote, UserPreference
+import '../models/study_notes_model.dart';
 import 'study_page_ui.dart';
 
 class StudyNotesPageUi extends StatefulWidget {
@@ -33,10 +34,10 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
 
   Future<void> _initNotesBoxes() async {
     objectbox = await ObjectBox.create();
-    bibleNotesBox = objectbox.store.box<BibleNote>();
-    personalNotesBox = objectbox.store.box<PersonalNote>();
-    studyNotesBox = objectbox.store.box<StudyNote>();
-    userPreferenceBox = objectbox.store.box<UserPreference>();
+    bibleNotesBox = objectbox.bibleNotesModelBox;
+    personalNotesBox = objectbox.personalNotesModelBox;
+    studyNotesBox = objectbox.studyNotesModelBox;
+    userPreferenceBox = objectbox.userPreferenceBox;
     _loadNotes();
   }
 
@@ -60,10 +61,10 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
         studyNotesBox.remove(studyNotes[index].id);
         break;
     }
-    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+    UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
     switch (category) {
       case 'Bible Notes':
-        prefs.lastBibleNote = null;
+        prefs.lastStudyNote = null;
         break;
       case 'Personal Notes':
         prefs.lastPersonalNote = null;
@@ -181,10 +182,10 @@ class _StudyNotesPageUiState extends State<StudyNotesPageUi> {
                         print('Error decoding note for dashboard: $e');
                       }
 
-                      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference();
+                      UserPreference prefs = userPreferenceBox.get(1) ?? UserPreference(fontSize: 16.0);
                       switch (category) {
                         case 'Bible Notes':
-                          prefs.lastBibleNote = lastNoteText;
+                          prefs.lastStudyNote = lastNoteText;
                           break;
                         case 'Personal Notes':
                           prefs.lastPersonalNote = lastNoteText;

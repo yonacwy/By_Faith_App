@@ -2,24 +2,25 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:by_faith_app/models/gospel_contacts_model.dart';
 import 'package:by_faith_app/objectbox.dart';
+import 'package:by_faith_app/objectbox.g.dart'; // Import objectbox.g.dart for Box types
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:intl/intl.dart';
 
-class ContactsPage extends StatelessWidget {
+class GospelContactsModelsPage extends StatelessWidget {
   final ObjectBox objectbox;
 
-  const ContactsPage({Key? key, required this.objectbox}) : super(key: key);
+  const GospelContactsModelsPage({Key? key, required this.objectbox}) : super(key: key);
 
-  void _navigateToAddContact(BuildContext context) {
+  void _navigateToAddGospelContactsModel(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddEditContactPage(
+        builder: (context) => AddEditGospelContactsModelPage(
           objectbox: objectbox,
-          onContactAdded: (contact) {
+          onGospelContactsModelAdded: (contact) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Contact ${contact.name} added')),
+              SnackBar(content: Text('GospelContactsModel ${contact.name} added')),
             );
           },
         ),
@@ -28,29 +29,29 @@ class ContactsPage extends StatelessWidget {
   }
 
   
-    void _navigateToEditContact(BuildContext context, Contact contact) {
+    void _navigateToEditGospelContactsModel(BuildContext context, GospelContactsModel contact) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddEditContactPage(
+          builder: (context) => AddEditGospelContactsModelPage(
             objectbox: objectbox,
             contact: contact,
-            onContactUpdated: (updatedContact) {
+            onGospelContactsModelUpdated: (updatedGospelContactsModel) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Contact ${updatedContact.name} updated')),
+                SnackBar(content: Text('GospelContactsModel ${updatedGospelContactsModel.name} updated')),
               );
             },
-            onDeleteContact: _deleteContact,
+            onDeleteGospelContactsModel: _deleteGospelContactsModel,
           ),
         ),
       );
     }
   
-  void _deleteContact(BuildContext context, Contact contact) {
+  void _deleteGospelContactsModel(BuildContext context, GospelContactsModel contact) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Contact'),
+        title: const Text('Delete GospelContactsModel'),
         content: Text('Are you sure you want to delete ${contact.name}?'),
         actions: [
           TextButton(
@@ -59,10 +60,10 @@ class ContactsPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              objectbox.contactBox.remove(contact.id);
+              objectbox.gospelContactsModelBox.remove(contact.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Contact ${contact.name} deleted')),
+                SnackBar(content: Text('GospelContactsModel ${contact.name} deleted')),
               );
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -76,7 +77,7 @@ class ContactsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contacts'),
+        title: const Text('GospelContactsModels'),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -87,13 +88,13 @@ class ContactsPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _navigateToAddContact(context),
-            tooltip: 'Add Contact',
+            onPressed: () => _navigateToAddGospelContactsModel(context),
+            tooltip: 'Add GospelContactsModel',
           ),
         ],
       ),
-      body: StreamBuilder<List<Contact>>(
-        stream: objectbox.contactBox.query().watch(triggerImmediately: true),
+      body: StreamBuilder<List<GospelContactsModel>>(
+        stream: objectbox.gospelContactsModelBox.query().watch(triggerImmediately: true),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -110,7 +111,7 @@ class ContactsPage extends StatelessWidget {
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 4.0),
                 child: InkWell(
-                  onTap: () => _navigateToEditContact(context, contact),
+                  onTap: () => _navigateToEditGospelContactsModel(context, contact),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
@@ -146,29 +147,29 @@ class ContactsPage extends StatelessWidget {
   }
 }
 
-class AddEditContactPage extends StatefulWidget {
+class AddEditGospelContactsModelPage extends StatefulWidget {
   final ObjectBox objectbox;
-  final Contact? contact;
-  final Function(Contact)? onContactAdded;
-  final Function(BuildContext, Contact)? onDeleteContact;
+  final GospelContactsModel? contact;
+  final Function(GospelContactsModel)? onGospelContactsModelAdded;
+  final Function(BuildContext, GospelContactsModel)? onDeleteGospelContactsModel;
   final double? latitude;
   final double? longitude;
 
-  const AddEditContactPage({
+  const AddEditGospelContactsModelPage({
     Key? key,
     required this.objectbox,
     this.contact,
-    this.onContactAdded,
-    this.onDeleteContact,
+    this.onGospelContactsModelAdded,
+    this.onDeleteGospelContactsModel,
     this.latitude,
     this.longitude,
   }) : super(key: key);
 
   @override
-  _AddEditContactPageState createState() => _AddEditContactPageState();
+  _AddEditGospelContactsModelPageState createState() => _AddEditGospelContactsModelPageState();
 }
 
-class _AddEditContactPageState extends State<AddEditContactPage> {
+class _AddEditGospelContactsModelPageState extends State<AddEditGospelContactsModelPage> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -200,7 +201,7 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
       _longitudeController.text = widget.contact!.longitude.toString();
       _picturePath = widget.contact!.picturePath;
       if (widget.contact!.notes != null) {
-        _notesController.document = quill.Document.fromJson(widget.contact!.notes!);
+        _notesController.document = quill.Document.fromJson(jsonDecode(widget.contact!.notes!));
       }
       _isReadOnly = true; // Initially read-only for existing contacts
     } else {
@@ -249,11 +250,11 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
     }
   }
 
-  Future<void> _saveContact() async {
+  Future<void> _saveGospelContactsModel() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final contact = Contact(
-          id: _isEditing ? widget.contact!.id : 0,
+        final contact = GospelContactsModel(
+          id: _isEditing ? widget.contact!.id : null,
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
           address: _addressController.text,
@@ -269,17 +270,17 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
         );
 
         contact.id = widget.contact?.id ?? 0;
-        widget.objectbox.contactBox.put(contact);
+        widget.objectbox.gospelContactsModelBox.put(contact);
 
         if (_isEditing) {
-          widget.onContactUpdated?.call(contact);
+          widget.onGospelContactsModelUpdated?.call(contact);
         } else {
-          widget.onContactAdded?.call(contact);
+          widget.onGospelContactsModelAdded?.call(contact);
         }
 
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_isEditing ? 'Contact updated' : 'Contact added')),
+          SnackBar(content: Text(_isEditing ? 'GospelContactsModel updated' : 'GospelContactsModel added')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -295,8 +296,8 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
       appBar: AppBar(
         title: Text(
           _isEditing
-              ? (_isReadOnly ? 'Contact Details' : 'Edit Contact')
-              : 'Add Contact',
+              ? (_isReadOnly ? 'GospelContactsModel Details' : 'Edit GospelContactsModel')
+              : 'Add GospelContactsModel',
         ),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
@@ -316,23 +317,23 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
                           _notesController.readOnly = false;
                         });
                       },
-                      tooltip: 'Edit Contact',
+                      tooltip: 'Edit GospelContactsModel',
                     ),
                   ]
                 : [
                     IconButton(
                       icon: const Icon(Icons.save, color: Colors.green),
-                      onPressed: _saveContact,
+                      onPressed: _saveGospelContactsModel,
                       tooltip: 'Save Changes',
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
                         if (widget.contact != null) {
-                          widget.onDeleteContact?.call(context, widget.contact!);
+                          widget.onDeleteGospelContactsModel?.call(context, widget.contact!);
                         }
                       },
-                      tooltip: 'Delete Contact',
+                      tooltip: 'Delete GospelContactsModel',
                     ),
                   ])
             : null,
@@ -545,8 +546,8 @@ class _AddEditContactPageState extends State<AddEditContactPage> {
       ),
       floatingActionButton: !_isEditing
           ? FloatingActionButton.extended(
-              onPressed: _saveContact,
-              label: const Text('Save Contact'),
+              onPressed: _saveGospelContactsModel,
+              label: const Text('Save GospelContactsModel'),
               icon: const Icon(Icons.save),
             )
           : null,

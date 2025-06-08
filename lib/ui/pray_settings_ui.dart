@@ -7,8 +7,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:quill_delta/quill_delta.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:by_faith_app/objectbox.dart'; // ObjectBox import
-import '../models/pray_model.dart';
+import '../models/pray_page_model.dart';
 import '../providers/theme_notifier.dart';
+import '../objectbox.g.dart'; // Import objectbox.g.dart for Prayer_
 
 class PraySettingsUi extends StatefulWidget {
   const PraySettingsUi({Key? key}) : super(key: key);
@@ -120,8 +121,8 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
          return;
        }
 
-       final prayersBox = objectbox.store.box<Prayer>(); // Get ObjectBox Prayer Box
-       final unansweredPrayers = prayersBox.query(Prayer_.status.equals('unanswered')).build().find();
+       final prayersBox = objectbox.store.box<PrayPageModel>(); // Get ObjectBox Prayer Box
+       final unansweredPrayers = prayersBox.query(PrayPageModel_.status.equals('unanswered')).build().find();
 
        if (unansweredPrayers.isEmpty) {
          scaffoldMessenger.showSnackBar(
@@ -130,7 +131,7 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
          return;
        }
 
-       final List<Prayer> selectedPrayers = await showDialog(
+       final List<PrayPageModel> selectedPrayers = await showDialog(
          context: context,
          builder: (BuildContext dialogContext) {
            return _PrayerSelectionDialog(prayers: unansweredPrayers);
@@ -186,9 +187,9 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
          final file = File(result.files.single.path!);
          final String contents = await file.readAsString();
          final List<dynamic> jsonList = jsonDecode(contents);
-         final List<Prayer> importedPrayers = jsonList.map((json) => Prayer.fromJson(json)).toList();
+         final List<PrayPageModel> importedPrayers = jsonList.map((json) => PrayPageModel.fromJson(json)).toList();
 
-         final prayersBox = objectbox.store.box<Prayer>(); // Get ObjectBox Prayer Box
+         final prayersBox = objectbox.store.box<PrayPageModel>(); // Get ObjectBox Prayer Box
          for (var prayer in importedPrayers) {
            // Ensure imported prayers are marked as 'unanswered'
            prayer.status = 'unanswered';
@@ -212,7 +213,7 @@ class _PraySettingsUiState extends State<PraySettingsUi> {
 }
 
 class _PrayerSelectionDialog extends StatefulWidget {
- final List<Prayer> prayers;
+ final List<PrayPageModel> prayers;
 
  const _PrayerSelectionDialog({Key? key, required this.prayers}) : super(key: key);
 
@@ -245,10 +246,10 @@ class __PrayerSelectionDialogState extends State<_PrayerSelectionDialog> {
            _controller.dispose();
            return CheckboxListTile(
              title: Text(plainText.isNotEmpty ? plainText : 'Empty Prayer'),
-             value: _selectedPrayers[prayer.id],
+             value: _selectedPrayers[prayer.id.toString()],
              onChanged: (bool? value) {
                setState(() {
-                 _selectedPrayers[prayer.id] = value!;
+                 _selectedPrayers[prayer.id.toString()] = value!;
                });
                },
            );
@@ -265,7 +266,7 @@ class __PrayerSelectionDialogState extends State<_PrayerSelectionDialog> {
        ElevatedButton(
          onPressed: () {
            final selected = widget.prayers
-               .where((prayer) => _selectedPrayers[prayer.id] == true)
+               .where((prayer) => _selectedPrayers[prayer.id.toString()] == true)
                .toList();
            Navigator.of(context).pop(selected);
          },

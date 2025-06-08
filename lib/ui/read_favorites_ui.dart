@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:by_faith_app/objectbox.dart';
-import '../models/read_data_model.dart'; // Import your data model
+import 'package:by_faith_app/objectbox.g.dart'; // Import objectbox.g.dart for Box types
+import '../models/read_page_model.dart'; // Import your data model\nimport '../models/read_favorites_model.dart';
 import 'read_page_ui.dart'; // Import ReadPageUi
 import 'package:flutter/material.dart';
+import '../models/read_favorites_model.dart';
 
 class ReadFavoritesUi extends StatefulWidget {
   const ReadFavoritesUi({super.key});
@@ -19,8 +21,8 @@ class _ReadFavoritesUiState extends State<ReadFavoritesUi> {
     super.initState();
   }
 
-  Future<void> _deleteFavorite(Favorite favorite) async {
-    objectbox.favoriteBox.remove(favorite.id);
+  Future<void> _deleteFavorite(ReadFavoritesModel favorite) async {
+    objectbox.readFavoritesModelBox.remove(favorite.id);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Favorite removed!')),
     );
@@ -38,8 +40,8 @@ class _ReadFavoritesUiState extends State<ReadFavoritesUi> {
             ),
         centerTitle: true,
       ),
-      body: StreamBuilder<List<Favorite>>(
-       stream: objectbox.favoriteBox.query().watch(triggerImmediately: true).map((query) => query.find()),
+      body: StreamBuilder<List<ReadFavoritesModel>>(
+       stream: objectbox.readFavoritesModelBox.query().watch(triggerImmediately: true).map((query) => query.find()),
        builder: (context, snapshot) {
          if (snapshot.connectionState == ConnectionState.waiting) {
            return const Center(child: CircularProgressIndicator());
@@ -64,14 +66,14 @@ class _ReadFavoritesUiState extends State<ReadFavoritesUi> {
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
                 child: ListTile(
                   title: Text(
-                    '${favorite.verseData.book} ${favorite.verseData.chapter}:${favorite.verseData.verse}',
+                    '${favorite.book} ${favorite.chapter}:${favorite.verse}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   subtitle: Text(
-                    favorite.verseData.text,
+                    favorite.text,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -87,9 +89,9 @@ class _ReadFavoritesUiState extends State<ReadFavoritesUi> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ReadPageUi(
-                          initialBook: favorite.verseData.book,
-                          initialChapter: favorite.verseData.chapter,
-                          initialVerse: favorite.verseData.verse,
+                          initialBook: favorite.book,
+                          initialChapter: favorite.chapter,
+                          initialVerse: favorite.verse,
                         ),
                       ),
                     );

@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:by_faith_app/objectbox.dart';
 import 'dart:convert';
-import '../models/pray_model.dart';
+import '../models/pray_page_model.dart';
 import 'package:objectbox/objectbox.dart';
 
 class PraySearchUi extends StatefulWidget {
@@ -12,9 +12,9 @@ class PraySearchUi extends StatefulWidget {
   final GlobalKey<AnimatedListState> newListKey;
   final GlobalKey<AnimatedListState> answeredListKey;
   final GlobalKey<AnimatedListState> unansweredListKey;
-  final Function(Prayer, String, int) updatePrayerStatus;
-  final Function(Prayer, int, String) deletePrayer;
-  final Function(Prayer, int) editPrayer;
+  final Function(PrayPageModel, String, int) updatePrayerStatus;
+  final Function(PrayPageModel, int, String) deletePrayer;
+  final Function(PrayPageModel, int) editPrayer;
 
   const PraySearchUi({
     Key? key,
@@ -34,13 +34,13 @@ class PraySearchUi extends StatefulWidget {
 
 class _PraySearchUiState extends State<PraySearchUi> {
   late String _searchQuery;
-  late Box<Prayer> _prayerBox;
+  late Box<PrayPageModel> _prayerBox;
 
   @override
   void initState() {
     super.initState();
     _searchQuery = widget.initialSearchQuery;
-    _prayerBox = objectbox.store.box<Prayer>();
+    _prayerBox = objectbox.store.box<PrayPageModel>();
     widget.searchController.addListener(_onSearchChanged);
   }
 
@@ -56,7 +56,7 @@ class _PraySearchUiState extends State<PraySearchUi> {
     });
   }
 
-  Widget _buildPrayerCard(Prayer prayer, String status, int index) {
+  Widget _buildPrayerCard(PrayPageModel prayer, String status, int index) {
     final quillController = quill.QuillController(
       document: quill.Document.fromJson(jsonDecode(prayer.richTextJson)),
       selection: const TextSelection.collapsed(offset: 0),
